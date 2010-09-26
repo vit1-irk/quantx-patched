@@ -1,0 +1,12 @@
+- Transition to Qt 4.6.3
+- Report version information (about dialog)
+- Dialog for wave packet should be better
+- Avoid wave functions flickers in compute_PsixE and others
++ User interrupts computation
+
+- bug: add segments, then 1-well, goto table -> segv
+- table: add insert rows and possibilities Of editing 
+- tableU: want to *edit* shown width/U, not re-type
+- need maximize button on plotters
+- more precision in tableEn
+- single barrier is junk in PotentialScene

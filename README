@@ -1,0 +1,22 @@
+A reincarnation of an old educational software Quantum.
+The software has been used in Novosibirsk State University
+to teach quantum mechanics.
+
+The project requires Qt, currently 4.4.0. 
+Transition to 4.6.3+ is on plans.
+
+When compiling qt-4.4.0 for win32-msvc2008 there is a problem
+with xrefwrap, 
+see http://labs.trolltech.com/blogs/2008/05/06/qt-440-fully-released
+The fix is:
+------------- src/3rdparty/webkit/JavaScriptCore/wtf/MathExtras.h -------------
+@@ -46,7 +46,7 @@
+ 
+ #include "kjs/operations.h"
+ #include "kjs/value.h"
+-#include <xmath.h>
++//#include <xmath.h>
+ #include <limits>
+ 
+ #if HAVE(FLOAT_H)
+
