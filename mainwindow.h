@@ -6,7 +6,6 @@
 #include <vector>
 #include "plotter.h"
 #include "myparam.h"
-#include "ModelKostia.h"
 //#include "PotentialScene.h"
 #include "PotentialViewMultiWell.h"
 #include "PotentialModel.h"

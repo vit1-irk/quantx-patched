@@ -9,7 +9,6 @@ HEADERS += LevelModel.h
 HEADERS += LineEditDelegate.h
 HEADERS += mainwindow.h
 HEADERS += model.h
-HEADERS += ModelKostia.h
 HEADERS += myparam.h
 HEADERS += plotter.h
 HEADERS += PotentialModel.h

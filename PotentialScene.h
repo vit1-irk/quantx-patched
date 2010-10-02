@@ -3,7 +3,6 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
-#include "ModelKostia.h"
 #include "model.h"
 
 class DraggableLine;
