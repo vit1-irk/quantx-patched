@@ -3,6 +3,7 @@
 
 struct PotData
 {
+	double  Uwleft; //value onleft
 	double * u; //value of potential
 	double * l; //length of step (width)
 	int size; //??number of step

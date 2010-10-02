@@ -64,7 +64,8 @@ QPointF HDraggableLine::RestrictMotion(QPointF point)
 void HDraggableLine::paint(QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget)
 {
     if(option->state & QStyle::State_Selected)painter->setPen(Qt::red); else painter->setPen(Qt::black);
-    painter->drawLine(0,0,length,0);
+    painter->drawLine(QPointF(0,0),QPointF(length,0));
+    //    painter->drawLine(0,0,length,0);
 }
 
 bool HDraggableLine::CheckStart(QPointF point) { if(length + pos().x() - point.x() < 0) return false; return true;}
@@ -89,16 +90,27 @@ QPointF VDraggableLine::RestrictMotion(QPointF point)
 }
 void VDraggableLine::paint(QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget)
 {
-    if(option->state & QStyle::State_Selected)painter->setPen(Qt::red); else painter->setPen(Qt::black);
-    painter->drawLine(0,0,0,length);
+    //    QPen p;
+    if(option->state & QStyle::State_Selected)
+    {
+        painter->setPen(Qt::red);
+    }
+    else 
+    {
+        painter->setPen(Qt::black);
+    }
+    //    p.setWidth(2);
+    //    painter->setPen(p);
+    painter->drawLine(QPointF(0,0),QPointF(0,length));
+    //    painter->drawLine(0,0,0,length);
 }
 
 void VDraggableLine::SetStart(QPointF point) { SetLength( length + pos().y() - point.y()); setPos(point); }
 void VDraggableLine::SetEnd(QPointF point) { SetLength( point.y()-pos().y()); }
 
 //***************** Infinite Line ********************************************
-InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model, abs(int(_model->scalex*_model->Xmin)),p) // было 100
-//InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model, 60,p) // было 100
+InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model,100, p) // было 100
+//InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model, abs(int(_model->scalex*_model->Xmin)),p) // было 100
 {
     setFlag(QGraphicsItem::ItemIsMovable,false);		
     setFlag(QGraphicsItem::ItemIsSelectable,false);		

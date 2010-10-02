@@ -36,8 +36,8 @@ protected:
 
     /* model reference */
     Model *model;
-	Elevdata * eld; // energy levels
-	PotData * pdata; // definition of potential
-	void realloc();
+//	Elevdata * eld; // energy levels
+//	PotData * pdata; // definition of potential
+//	void realloc();
 };
 #endif /* INCLUDED_POTENTIALSCENE_H */

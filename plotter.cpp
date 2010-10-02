@@ -34,7 +34,8 @@ void Plotter::moveButtons()
 Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
 : QWidget(parent, flags)
 {   
-    setBackgroundRole(QPalette::Text);
+//    setBackgroundRole(QPalette::Dark);
+    setBackgroundRole(QPalette::Text); //was!!!1.
     setAutoFillBackground ( true );
 //    setBackGround(Qt::TransparentMode);
 //    setBackGroundMode(Qt::BGMode Qt::TransparentMode);
@@ -186,11 +187,11 @@ void Plotter::clearCurve(int id)
 }
 QSize Plotter::minimumSizeHint() const
 {
-    return QSize(4 * Margin, 4 * Margin);
+    return QSize(6 * Margin, 4 * Margin);
 }
 QSize Plotter::sizeHint() const
 {
-    return QSize(8 * Margin, 6 * Margin);
+    return QSize(12 * Margin, 8 * Margin);
 }
 void Plotter::paintEvent(QPaintEvent *event)
 {
@@ -200,7 +201,8 @@ void Plotter::paintEvent(QPaintEvent *event)
         painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
     if(rubberBandIsShown)
     {
-        painter.setPen(palette().color(QPalette::WindowText));
+        painter.setPen(palette().light().color());//was 2!!!!
+//        painter.setPen(palette().color(QPalette::WindowText));
         painter.drawRect(rubberBandRect.normalized());
     }
     if (hasFocus()) 

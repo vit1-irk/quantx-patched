@@ -139,7 +139,7 @@ private:
     MyParamD Ubiasmin,Ubiasmax,hUbias, wpE_lo, wpE_hi, wpN;
     MyParamD Psi2, Refl,Trans,totalRT,tmin, tmax,htime;
 //    MyParamD Psi2, psi_phasehth, psit_real,psit_imag;
-    QCheckBox *flgScale, *flgErase;
+    QCheckBox *flgScale, *flgErase, *flgUx;
 //    int Erase, wave_packet_type;
     Vector<double> U1; //!< Inital potential values for z-animations
     Vector<double> U2; //!< Final potential values for z-animations

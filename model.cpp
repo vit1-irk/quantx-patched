@@ -213,13 +213,20 @@ void Model::build_U() /* input:Ub,Ui --- result:U */
         width += this->d(n);
 
     double pos=0;
-    for(int n=1; n <= this->N; n++)
+    for(int n=this->N; n >= 0; n--)
     {
         pos += this->d(n)/2.;
         U(n) = Ui(n) + pos/width * this->Ub;
         pos += this->d(n)/2.;
     }
-    U(N+1) = Ui(N+1) + this->Ub;
+//    U(N+1) = Ui(N+1) + this->Ub;
+/*    for(int n=1; n <= this->N; n++)
+    {
+        pos += this->d(n)/2.;
+        U(n) = Ui(n) + pos/width * this->Ub;
+        pos += this->d(n)/2.;
+    }
+    U(N+1) = Ui(N+1) + this->Ub;*/
 }
 void Model::XUscales() /* input:Ub,Ui --- result:U */
 {
@@ -243,10 +250,14 @@ void Model::XUscales() /* input:Ub,Ui --- result:U */
     if(Umax==0) Umax=0.5*abs(Umin);
     if(Umin==0) Umin=-0.1*abs(Umax);
 //--------------------------
-    this->iwidth=200;
-    this->iheight=200;
-    this->scalex=this->iwidth/(Xmax-Xmin);
-    this->scaley=this->iheight/(Umax-Umin);
+    this->width=(Xmax-Xmin);
+    this->height=(Umax-Umin);
+//    this->iwidth=300;
+//    this->iheight=250;
+//    this->scalex=this->iwidth/(Xmax-Xmin);
+//    this->scaley=this->iheight/(Umax-Umin);
+    this->scalex=this->width/(Xmax-Xmin);
+    this->scaley=this->height/(Umax-Umin);
 //------------------
 }
 inline double module(complex& a){ return fabs(real(a))+fabs(imag(a)); }
@@ -567,6 +578,7 @@ Model::Model(QObject *parent)
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),
  psi_imag(0), Phi_imag(0),
- iwidth(0), iheight(0), scalex(1), scaley(1)
+ width(5), height(5), scalex(1), scaley(1)
+// iwidth(0), iheight(0), scalex(1), scaley(1)
 {
 }

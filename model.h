@@ -129,7 +129,8 @@ public:
     double	 psi_imag;   /* real of total Psi */
     double	 Phi_imag;   /* real of total Psi */
 
-    int iwidth, iheight, scalex, scaley; 
+    double width, height, scalex, scaley; 
+//    int iwidth, iheight, scalex, scaley; 
     int getN() const { return N; }
 
     void set_N(int N)

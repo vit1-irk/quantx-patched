@@ -2,6 +2,9 @@ A reincarnation of an old educational software Quantum.
 The software has been used in Novosibirsk State University
 to teach quantum mechanics.
 
+The project is hosted on quantx.sourceforge.net.
+
+
 The project requires Qt, currently 4.4.0. 
 Transition to 4.6.3+ is on plans.
 

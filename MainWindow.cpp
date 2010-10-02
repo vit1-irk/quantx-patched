@@ -682,21 +682,30 @@ void MainWindow::initControlDockWindow()
         }
 
         { 
-            QGroupBox *gb3 = new QGroupBox(tr("Wave function Psi(x)"));
+            //QString sum=QChar(0x03A3);
+            QString sum=QChar(0x2211);
+
+            QString psi=QChar(0x03C8);
+            QString Psi=QChar(0x03A8);
+            QString to2=QChar(0x00B2);
+            QString psiofx=psi+"(x)";
+            QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
+            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
             QVBoxLayout *vl = new QVBoxLayout;
             QHBoxLayout *hl = new QHBoxLayout;
             psi_type = new QComboBox(this);
-            psi_type->addItem(tr("|Psi(x)|^2"));
-            psi_type->addItem(tr("real(Psi(x))"));
-            psi_type->addItem(tr("imag(Psi(x))"));
+            psi_type->addItem(mod_psiofx);
+//            psi_type->addItem(tr("|Psi(x)|^2"));
+            psi_type->addItem("real "+psi);
+            psi_type->addItem("imag "+psi);
             psi_type->setCurrentIndex(0);
             vl->addWidget(psi_type);
 
             psix_var = new QComboBox(this);
-            psix_var->addItem(tr("Psi_n(x,n)"));
-            psix_var->addItem(tr("Psi(x,E)"));
-            psix_var->addItem(tr("Psi(x)"));
-            psix_var->addItem(tr("sum(Psi_n(x,t))"));
+            psix_var->addItem(psi+"_n(x,n)");
+            psix_var->addItem(psi+"(x,E)");
+            psix_var->addItem(psiofx);
+            psix_var->addItem(sum+Psi+"_n(x,t)");
             psix_var->setCurrentIndex(0);
             vl->addWidget(psix_var);
             hl->addLayout(vl);
@@ -710,13 +719,18 @@ void MainWindow::initControlDockWindow()
 //            butPsix->minimumSize();
 //            butPsix->show();
 //            QPushButton *butPsix = new QPushButton("\Psi(x)");
-            QPushButton *butPsix = new QPushButton(tr("run &psi"));
+    QVBoxLayout *vlr = new QVBoxLayout();
+    flgUx= new QCheckBox("add U(x)",gb3);
+    flgUx->setChecked(true);
+    vlr->addWidget(flgUx);
+            QString run=QChar(0x2B55);//(0x25C9);//(0x25BC);
+            QPushButton *butPsix = new QPushButton("run "+psi);
 //            QPushButton *butPsix = new QPushButton(tr("&psi(x)"));
 //            butPsix->setFont(QFont("Symbol", 12, QFont::Bold ));
             connect(butPsix, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-            hl->addWidget(butPsix);
+            vlr->addWidget(butPsix);
 
-//            vl->addLayout(hlb);
+            hl->addLayout(vlr);
 //            hl->addLayout(vl);
             gb3->setLayout(hl);
             vld->addWidget(gb3);
@@ -1158,7 +1172,7 @@ static void addUx(double xmin,double xmax, double yscale, Model *model, Plotter 
     int nmax=model->N;
     if(nmin==0) 
     {
-        y=model->Ui(0);
+        y=yscale*model->U(0);
         dataUx.push_back(x);
         dataUx.push_back(y);
         dataUx.push_back(0.);
@@ -1348,7 +1362,7 @@ void MainWindow::showU()
     double x,y;
     x=0;
     numOfCurveUx=0;
-//    model->XUscales();
+    //    model->XUscales();
     PlotSettings ps;
     ps.minX = this->xmin;//model->Xmin;
     ps.maxX = this->xmax;//model->Xmax;
@@ -1371,13 +1385,14 @@ void MainWindow::showU()
         data.push_back(x);
         data.push_back(y);
     }
-        data.push_back(x);
-        data.push_back(model->U(model->N+1));
-        x =this->xmax;//model->Xmax;
-        data.push_back(x);
-        data.push_back(model->U(model->N+1));
-        this->plotterUx->setCurveData(numOfCurveUx,data);
-        this->numOfCurveUx++;
+    data.push_back(x);
+    data.push_back(model->U(model->N+1));
+    if(this->xmax<x) this->xmax=x; 
+    else x =this->xmax;
+    data.push_back(x);
+    data.push_back(model->U(model->N+1));
+    this->plotterUx->setCurveData(numOfCurveUx,data);
+    this->numOfCurveUx++;
 }
 void MainWindow::showEn(double E)
 {
@@ -1486,16 +1501,17 @@ void MainWindow::compute_Psin()
 //    ps.adjust();
     plotterPsi2x->setPlotSettings(ps);
     }
+        if(this->flgUx->isChecked()) 
+    {
     double ymax=abs(this->Umin);
     if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
-//    this->plotterPsi2x->clearAll();
     addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-//  addUx(model, plotterPsi2x);
-//    double dx=(model->Xmax-model->Xmin)/300.;
-    double dx=(this->xmax-this->xmin)/300.;
+        }
+    double dx=this->hx;
+//    double dx=(this->xmax-this->xmin)/300.;
     int ii=psi_type->QComboBox::currentIndex();
     int numCurve=2;
     int nmx=this->nmaxLevel;
@@ -1567,8 +1583,7 @@ void MainWindow::compute_PsixE()
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-
+//    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
     //    if(this->Emin<0) model->Xmax=model->Xmax*1.1/1.3;
 //    double dx=(this->xmax-this->xmin)/2000.;
     double dx=this->hx;//(this->xmax-model->Xmin)/2000.;
@@ -1608,7 +1623,7 @@ void MainWindow::compute_PsixE()
         data.push_back(x);
         data.push_back(y);
     }
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
+            if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
     this->plotterPsi2x->setCurveData(this->numOfCurve,data);
     }
     this->E0=this->E0+this->hE;
@@ -1697,16 +1712,19 @@ void MainWindow::compute_PsiXatE()
 //    ps.adjust();
     plotterPsi2x->setPlotSettings(ps);
     }
+            if(this->flgUx->isChecked()) 
+    {
     double ymax=abs(this->Umin);
     if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
     addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
+            }
     double y;
-    double dx=(this->xmax-this->xmin)/300.;
-    if(dx>this->hx) dx=this->hx;
-//    double dx=(model->Xmax-model->Xmin)/300.;
+    double dx=this->hx;//(this->xmax-this->xmin)/300.;
+//    double dx=(this->xmax-this->xmin)/300.;
+//    if(dx>this->hx) dx=this->hx;
     int ii=psi_type->QComboBox::currentIndex();
 //    int ivar=psix_var->QComboBox::currentIndex();
 //    double E=model->Ebound[this->nLevel];
@@ -1986,14 +2004,53 @@ WavePacket MainWindow::buildWPmE()
     WavePacket result;
     result.clear();
     if(model->Ebound.size()==0) model->findBoundStates();
-    if(this->nmaxWP>model->Ebound.size()) this->nmaxWP=model->Ebound.size()-1;
+    if(this->nmaxWP>=model->Ebound.size()) this->nmaxWP=model->Ebound.size()-1;
     if(this->nminWP<0) this->nminWP=0;
     int NwpEm=(this->nmaxWP-this->nminWP)/this->hnWP + 1;
     result.resize(NwpEm);
     int j=0;
     for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
     {
-        if(j>=NwpEm) break;  
+//        if(j>=NwpEm) break;  
+        result[j].E = model->Ebound[i];
+        j++;
+    } 
+    Emin=result[0].E;
+    Emax=result[NwpEm-1].E;
+    if(Emin==Emax) 
+    {
+        result[0].w =1.;
+        return result;
+    }
+    double W=0;
+    double nc=0.5*(this->nminWP+this->nmaxWP);
+    double C=0.5*(this->nmaxWP-this->nminWP);
+    C*=C;C=6/C;
+    j=0;
+    for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
+    {
+//    for(int i=0;i<NwpEm;i++)
+        double z=(i-nc);z*=z*C;
+        W += result[j].w = exp(-z);
+        j++;
+    }
+    for(int i=0;i<NwpEm;i++)
+        result[i].w /=W;
+    return result;
+}
+/*WavePacket MainWindow::buildWPmE()
+{
+    WavePacket result;
+    result.clear();
+    if(model->Ebound.size()==0) model->findBoundStates();
+    if(this->nmaxWP>=model->Ebound.size()) this->nmaxWP=model->Ebound.size()-1;
+    if(this->nminWP<0) this->nminWP=0;
+    int NwpEm=(this->nmaxWP-this->nminWP)/this->hnWP + 1;
+    result.resize(NwpEm);
+    int j=0;
+    for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
+    {
+//        if(j>=NwpEm) break;  
         result[j].E = model->Ebound[i];
         j++;
     } 
@@ -2006,7 +2063,7 @@ WavePacket MainWindow::buildWPmE()
     }
     double W=0;
     double Ec=0.5*(Emin+Emax);
-    double C=(Emax-Emin)/2;C*=C;C=3/C;
+    double C=(Emax-Emin)/2;C*=C;C=6/C;
     for(int i=0;i<NwpEm;i++)
     {
         double z=(result[i].E-Ec);z*=z*C;
@@ -2015,8 +2072,98 @@ WavePacket MainWindow::buildWPmE()
     for(int i=0;i<NwpEm;i++)
         result[i].w /=W;
     return result;
+}*/
+/*
+WavePacket MainWindow::buildWPpE()
+{
+    std::vector<double> kN;
+    WavePacket result;
+    result.clear();
+    result.resize(this->wpN);
+    kN.resize(this->wpN);
+    if(this->wpE_hi==this->wpE_lo||this->wpN==1)
+    {
+    result.resize(1);
+    result[0].E=this->wpE_hi;
+    result[0].w=1.;
+    return result;
+    }
+    if(this->wpE_hi<this->wpE_lo)
+    {
+    double a=this->wpE_hi;
+    double b=this->wpE_lo;
+    this->wpE_hi=b;
+    this->wpE_lo=a;
+    }
+    double kNmin=sqrt(2/hbar2 * model->m(model->N+1) * ( this->wpE_lo) );
+    double kNmax=sqrt(2/hbar2 * model->m(model->N+1) * ( this->wpE_hi) );
+    double dk=(kNmax-kNmin)/(this->wpN-1);
+//    double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
+    double a = 2/hbar2;
+    for(int i=0;i<this->wpN;i++)
+    {
+        kN[i] = kNmin+dk*i;
+        double EE=kN[i]; EE*=EE; EE=EE/a/model->m(model->N+1);
+        result[i].E =EE;
+    } 
+    double W=0;
+    double C=(kN[wpN-1]-kN[0])/2;C*=C;C=3/C;
+    double kc=(kN[0]+kN[wpN-1])/2;
+//    wpweightEi.resize(this->wpN);
+    for(int i=0;i<wpN;i++)
+    {
+        double z=(kN[i]-kc);z*=z*C;
+        W += result[i].w = exp(-z);
+    }
+    for(int i=0;i<wpN;i++)
+        result[i].w /=W;
+    return result;
 }
-
+*/
+/*
+WavePacket MainWindow::buildWPpE()
+{
+    std::vector<double> kN;
+    WavePacket result;
+    result.clear();
+    result.resize(this->wpN);
+    kN.resize(this->wpN);
+    if(this->wpE_hi==this->wpE_lo||this->wpN==1)
+    {
+    result.resize(1);
+    result[0].E=this->wpE_hi;
+    result[0].w=1.;
+    return result;
+    }
+    if(this->wpE_hi<this->wpE_lo)
+    {
+    double a=this->wpE_hi;
+    double b=this->wpE_lo;
+    this->wpE_hi=b;
+    this->wpE_lo=a;
+    }
+    double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
+    double a = 2;///hbar2;
+    for(int i=0;i<this->wpN;i++)
+    {
+        result[i].E = this->wpE_lo+i*de;
+        double c = a * model->m(model->N+1) * ( result[i].E);
+        kN[i] = sqrt( c);
+    } 
+    double W=0;
+    double C=(kN[wpN-1]-kN[0])/2;C*=C;C=3/C;
+    double kc=(kN[0]+kN[wpN-1])/2;
+//    wpweightEi.resize(this->wpN);
+    for(int i=0;i<wpN;i++)
+    {
+        double z=(kN[i]-kc);z*=z*C;
+        W += result[i].w = exp(-z);
+    }
+    for(int i=0;i<wpN;i++)
+        result[i].w /=W;
+    return result;
+}
+*/ 
 WavePacket MainWindow::buildWPpE()
 {
     WavePacket result;
@@ -2030,24 +2177,31 @@ WavePacket MainWindow::buildWPpE()
     result[0].w=1.;
     return result;
     }
+    if(this->wpE_hi<this->wpE_lo)
+    {
+    double a=this->wpE_hi;
+    double b=this->wpE_lo;
+    this->wpE_hi=b;
+    this->wpE_lo=a;
+    }
     double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
     for(int i=0;i<this->wpN;i++)
     {
         result[i].E = this->wpE_lo+i*de;
     } 
     double W=0;
-    double C=(wpE_hi-wpE_lo)/2;C*=C;C=3/C;
+    double C=(wpE_hi-wpE_lo)/2;C*=C;C=6/C;
     double Ec=(wpE_hi+wpE_lo)/2;
-    wpweightEi.resize(wpN);
+    double z0=wpE_hi-Ec+de;z0*=z0*C;
+    double ex0=exp(-z0);
     for(int i=0;i<wpN;i++)
     {
         double z=(result[i].E-Ec);z*=z*C;
-        W += wpweightEi[i] = exp(-z);
+        W += result[i].w = exp(-z)-ex0;
+
     }
     for(int i=0;i<wpN;i++)
-        wpweightEi[i] /=W;
-    for(int i=0;i<wpN;i++)
-        result[i].w=wpweightEi[i];
+        result[i].w /=W;
     return result;
 
 }
@@ -2072,12 +2226,14 @@ void MainWindow::WavePacketXoft()
         //    ps.adjust();
         plotterPsi2x->setPlotSettings(ps);
     }
+    if(flgUx->isChecked()){
     double ymax=abs(this->Umin);
     if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
     addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
+    }
     double y;
     this->numOfCurve=0;
     int ii=psi_type->QComboBox::currentIndex();
