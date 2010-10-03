@@ -1,13 +1,12 @@
 #include <QStyleOption>
 #include <QGraphicsScene>
 #include <QMessageBox>
-#include "model.h"
+#include "PhysicalModel.h"
 #include "PotentialScene.h"
 #include "DraggableLine.h"
+
 //***************** Base Class *******************************
-//PotentialScene::PotentialScene(Model *_model, QObject * parent)
-//    : QGraphicsScene(parent), pdata(new PotData),eld(new Elevdata), model(_model)
-DraggableLine::DraggableLine(Model *_model, qreal len,PotentialScene * p)
+DraggableLine::DraggableLine(PhysicalModel *_model, qreal len,PotentialScene * p)
 :length(len),adj(5),left(0),right(0),parent(p),model(_model)
 
 //DraggableLine::DraggableLine(qreal len,PotentialScene * p): adj(5),left(0),right(0),parent(p)
@@ -44,7 +43,7 @@ void DraggableLine::SetLength(qreal len)
 
 //*************** Concrete Classes ****************************
 // **************** Horizontal Line ************************
-HDraggableLine::HDraggableLine(Model *_model, qreal len,PotentialScene * p)
+HDraggableLine::HDraggableLine(PhysicalModel *_model, qreal len,PotentialScene * p)
 :DraggableLine(model, len,p), model (_model)
 { 
     setCursor(Qt::SizeVerCursor); 
@@ -109,8 +108,7 @@ void VDraggableLine::SetStart(QPointF point) { SetLength( length + pos().y() - p
 void VDraggableLine::SetEnd(QPointF point) { SetLength( point.y()-pos().y()); }
 
 //***************** Infinite Line ********************************************
-InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model,100, p) // было 100
-//InfDraggableLine::InfDraggableLine(Model *_model, PotentialScene * p) : model(_model), HDraggableLine(_model, abs(int(_model->scalex*_model->Xmin)),p) // было 100
+InfDraggableLine::InfDraggableLine(PhysicalModel *_model, PotentialScene * p) : model(_model), HDraggableLine(_model,100, p) // было 100
 {
     setFlag(QGraphicsItem::ItemIsMovable,false);		
     setFlag(QGraphicsItem::ItemIsSelectable,false);		

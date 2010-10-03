@@ -28,7 +28,7 @@ PotentialModel::invalidateModel()
 }
 
 void
-PotentialModel::setPotential(Model *_model)
+PotentialModel::setPotential(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(potentialChanged()),this,SLOT(invalidateModel()));

@@ -9,7 +9,7 @@ PotentialViewMovable::~PotentialViewMovable(void)
 {
 }
 
-void PotentialViewMovable::setModel(Model *_model)
+void PotentialViewMovable::setModel(PhysicalModel *_model)
 {
     model = _model;
 }

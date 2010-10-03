@@ -3,7 +3,7 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
-#include "model.h"
+#include "PhysicalModel.h"
 
 class DraggableLine;
 class PotentialScene: public QGraphicsScene
@@ -11,9 +11,9 @@ class PotentialScene: public QGraphicsScene
 	Q_OBJECT
 public:
 
-    PotentialScene(Model *, QObject * parent = 0);
+    PotentialScene(PhysicalModel *, QObject * parent = 0);
 
-    void setModel(Model*);
+    void setModel(PhysicalModel*);
 
 public slots:
 	void clearPotential();
@@ -34,7 +34,7 @@ protected:
 	QList<QGraphicsLineItem *> lines;
 
     /* model reference */
-    Model *model;
+    PhysicalModel *model;
 //	Elevdata * eld; // energy levels
 //	PotData * pdata; // definition of potential
 //	void realloc();

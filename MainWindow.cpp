@@ -1,7 +1,7 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 #include <math.h>
-#include "myparam.h"
-#include "model.h"
+#include "MyParam.h"
+#include "PhysicalModel.h"
 #include "PotentialScene.h"
 #include "PotentialModel.h"
 #include "LevelModel.h"
@@ -1163,7 +1163,7 @@ void MainWindow::compute_BE()
     this->numOfCurveUx++;
 
 }
-static void addUx(double xmin,double xmax, double yscale, Model *model, Plotter *plotter)
+static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
 {
     std::vector<double> dataUx;
     double x,y;
@@ -1429,7 +1429,7 @@ void MainWindow::compute_Psi()
             break; 
         }
 }
-/*static void addUx(double xmin,double xmax, double yscale, Model *model, Plotter *plotter)
+/*static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
 {
     std::vector<double> dataUx;
     double x,y;
@@ -1887,7 +1887,7 @@ void MainWindow::initPlotUx()
 //}
 
 
-static void setSomeInitialU(Model *m)
+static void setSomeInitialU(PhysicalModel *m)
 {
     UAsMW u = { 1, 5, 1, -10, 0 , 0};
     m->setUAsMW( u );
@@ -1904,7 +1904,7 @@ wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),gbScales(0),gbIntervals(0),dialogUAsMW(0),tableViewEn(0), gbScaleX(0),gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0) 
 {
-    this->model = new Model();
+    this->model = new PhysicalModel();
     UAsMW u1 = { 1, 0.1, 1, -10, 0 , 0};
     model->setUAsMW( u1 );
     this->slotU1();

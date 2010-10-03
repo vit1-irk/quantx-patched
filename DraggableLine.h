@@ -6,7 +6,7 @@ class PotentialScene;
 class DraggableLine: public QGraphicsItem
 {
 public: 
-	DraggableLine(Model *,qreal len,PotentialScene * p);
+	DraggableLine(PhysicalModel *,qreal len,PotentialScene * p);
 	virtual void SetStart(QPointF point) = 0;
 	virtual void SetEnd(QPointF point) = 0;
 	virtual bool CheckStart(QPointF point);
@@ -17,7 +17,7 @@ protected:
 	QVariant itemChange(GraphicsItemChange change, const QVariant &value);	
 
     /* model reference */
-    Model *model;
+    PhysicalModel *model;
 
 	qreal length;
 	qreal adj;
@@ -36,12 +36,12 @@ public:
 class HDraggableLine: public DraggableLine 
 {
 public:
-	HDraggableLine(Model *,qreal len,PotentialScene * p);
+	HDraggableLine(PhysicalModel *,qreal len,PotentialScene * p);
 	QRectF boundingRect() const;
 	void paint(QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget);
 protected:
     /* model reference */
-    Model *model;
+    PhysicalModel *model;
 
     QPointF RestrictMotion(QPointF point);
 	virtual void SetStart(QPointF point);
@@ -65,9 +65,9 @@ protected:
 class InfDraggableLine: public HDraggableLine 
 {
 public:
-	InfDraggableLine(Model *,PotentialScene * p);
+	InfDraggableLine(PhysicalModel *,PotentialScene * p);
 protected:
-    Model *model;
+    PhysicalModel *model;
 	virtual void SetStart(QPointF point);
 	virtual void SetEnd(QPointF point);
 	virtual bool CheckStart(QPointF point);

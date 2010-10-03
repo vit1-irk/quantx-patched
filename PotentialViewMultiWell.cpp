@@ -75,7 +75,7 @@ PotentialViewMultiWell::~PotentialViewMultiWell(void)
 {
 }
 
-void PotentialViewMultiWell::setModel(Model *_model)
+void PotentialViewMultiWell::setModel(PhysicalModel *_model)
 {
     model = _model;
     int N=model->N;

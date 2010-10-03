@@ -1,15 +1,13 @@
 #ifndef MAINWINDOW_H_INCLUDED
 #define MAINWINDOW_H_INCLUDED
 #include <QtGui>
-//#include <qtoolbar.h>
 #include <QWidget>
 #include <vector>
 #include "plotter.h"
 #include "myparam.h"
-//#include "PotentialScene.h"
 #include "PotentialViewMultiWell.h"
 #include "PotentialModel.h"
-struct Model;
+struct PhysicalModel;
 
 
 struct WPE
@@ -164,7 +162,7 @@ private:
     std::vector<double> Elevels;
     int Number_of_Levels; 
     //    QComboBox *typeCond;
-    Model *model;
+    PhysicalModel *model;
 
     QLabel *dispEnergy; // Display of Energy
     QLabel *dispZ; // Display of Energy

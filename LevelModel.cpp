@@ -29,7 +29,7 @@ LevelModel::invalidateModel()
 }
 
 void 
-LevelModel::setLevels(Model *_model)
+LevelModel::setLevels(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(potentialChanged()),this,SLOT(invalidateModel()));

@@ -1,6 +1,6 @@
 #pragma once
 #include <QAbstractTableModel>
-#include "model.h"
+#include "PhysicalModel.h"
 
 class LevelModel :
     public QAbstractTableModel
@@ -10,7 +10,7 @@ public:
     LevelModel(QObject * parent = 0);
     ~LevelModel(void);
 
-    void setLevels(Model *model);
+    void setLevels(PhysicalModel *model);
         
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     int columnCount(const QModelIndex& parent = QModelIndex()) const;
@@ -22,5 +22,5 @@ public slots:
     void invalidateModel();
 
 private:
-    Model *model;
+    PhysicalModel *model;
 };

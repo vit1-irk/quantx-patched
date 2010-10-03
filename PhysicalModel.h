@@ -84,14 +84,14 @@ struct UAsMW
     }
 };
 
-struct Model : public QObject
+struct PhysicalModel : public QObject
 {
     Q_OBJECT
 signals:
     void potentialChanged();
 
 public:
-    Model(QObject * parent = 0);
+    PhysicalModel(QObject * parent = 0);
 
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);

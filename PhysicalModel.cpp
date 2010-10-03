@@ -1,15 +1,15 @@
-#include "model.h"
+#include "PhysicalModel.h"
 #include <cmath>
 
 // Auxiliary class for finding energy levels
 class ETree
 {
     double emin,emax;
-    Model *model;
+    PhysicalModel *model;
     int nemin, nemax;
     ETree *left, *right;
 public:
-    ETree(double _emin, double _emax,Model *_model, int _nemin, int _nemax)
+    ETree(double _emin, double _emax,PhysicalModel *_model, int _nemin, int _nemax)
         : emin(_emin), emax(_emax), model(_model),
           nemin(_nemin), nemax(_nemax), left(0), right(0)
     {
@@ -55,7 +55,7 @@ public:
     }
 };
 
-void Model::findBoundStates()
+void PhysicalModel::findBoundStates()
 {
     double Umin = 1e300, Umax = -1e300;
     double q;
@@ -85,7 +85,7 @@ void Model::findBoundStates()
 /*************************************************
   k(n) = sqrt( 2*m(n)/h2*(E0-U(n)) );
 -------------------------------------------------*/
-void Model::build_k() /* input:m,E0,U --- result:k*/
+void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
 {
  restart:
     double a = 2/hbar2;
@@ -117,7 +117,7 @@ void Model::build_k() /* input:m,E0,U --- result:k*/
   TT=|t|^2*k(0)/k(N+1)*m(N+1)/m(0); в другую сторону
   RR=|r|^2
 -------------------------------------------------*/
-void Model::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
+void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
 {
     double aa = real(k(0))==0 ? 0 : m(N+1)/m(0);
 //    complex r = this->a(N+1)/this->b(N+1);
@@ -203,7 +203,7 @@ void Model::build_RT()
 /*-----------------------------------------------
   Makes U(x) = Ui(x) + Uc*x
 -------------------------------------------------*/
-void Model::build_U() /* input:Ub,Ui --- result:U */
+void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
 //    fix(N,0,MAXN);
     U(0) = Ui(0);
@@ -228,7 +228,7 @@ void Model::build_U() /* input:Ub,Ui --- result:U */
     }
     U(N+1) = Ui(N+1) + this->Ub;*/
 }
-void Model::XUscales() /* input:Ub,Ui --- result:U */
+void PhysicalModel::XUscales() /* input:Ub,Ui --- result:U */
 {
     double x,y;
     double ymin = 1e300, ymax = -1e300;
@@ -266,7 +266,7 @@ inline double module(complex& a){ return fabs(real(a))+fabs(imag(a)); }
 /*-----------------------------------------------
 This function calculates the coefficients a & b.
 -------------------------------------------------*/
-void Model::build_ab() /* u:r,k,d,m r:a,b */
+void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
 {
     /* set ..,0,1,0,.. and ..,r,r,r,.. */
     complex up,dn, aa, bb, zz;
@@ -325,7 +325,7 @@ void Model::build_ab() /* u:r,k,d,m r:a,b */
     }
 
 }
-void Model::norm()
+void PhysicalModel::norm()
 {
     double s=0.5*(squaremod(this->b(0))/imag(this->k(0))+squaremod(this->a(this->N+1))/imag(this->k(this->N+1)));
     for (int n = 1; n <= this->N; n++)
@@ -362,7 +362,7 @@ void Model::norm()
 /*-----------------------------------------------
 Calculates Psi(x) at x.
 -------------------------------------------------*/
-void Model::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
+void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
 {
 //   psi(x)=a(i)*exp(ik_j*(x-x_{j-1})+b(i)*exp(-ik_j*(x-x_{j-1})
 //   x_{j-1}<=x<=x_j
@@ -396,7 +396,7 @@ void Model::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
 /*-----------------------------------------------
 Calculates Phi(p) at p.
 -------------------------------------------------*/
-void Model::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
+void PhysicalModel::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
 {
         this->norm();
         double xr=0.;
@@ -440,7 +440,7 @@ void Model::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
         Phi_real=real(phi);
         Phi_imag=imag(phi);
        }
-int Model::zeroPsi()
+int PhysicalModel::zeroPsi()
 {
     int Nmax, nzero, nzero_i, n_total;
     Nmax = getN ();
@@ -479,7 +479,7 @@ int Model::zeroPsi()
     }
         return nzero;
 }
-int Model::findNumberOfLevels(double E)
+int PhysicalModel::findNumberOfLevels(double E)
 {       
         int Nmax, nzero;
         Nmax = getN ();
@@ -495,7 +495,7 @@ int Model::findNumberOfLevels(double E)
         else
         {return nzero;}
 }
- double Model::findOneLevel(double emin, double emax)
+ double PhysicalModel::findOneLevel(double emin, double emax)
 {
         double E =(emin +emax)*.5;
         this->set_E0(E);
@@ -533,7 +533,7 @@ int Model::findNumberOfLevels(double E)
         return this->E0;
 }
 
-UAsMW Model::getUAsMW() const
+UAsMW PhysicalModel::getUAsMW() const
 {
     UAsMW u;
     u.numberOfWells = 1;
@@ -545,7 +545,7 @@ UAsMW Model::getUAsMW() const
     return u;
 }
 
-void Model::setUAsMW(const UAsMW& u)
+void PhysicalModel::setUAsMW(const UAsMW& u)
 {
     this->set_N(2*u.numberOfWells - 1);
     this->m(0) = 0.5;
@@ -569,7 +569,7 @@ void Model::setUAsMW(const UAsMW& u)
     emit(potentialChanged());
 }
 
-Model::Model(QObject *parent)
+PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
   N(0), E0(0), psi(0), Ub(0), x(0), 
  Xmin(0),Xmax(0),Umin(0),Umax(0),

@@ -2,7 +2,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QList>
-#include "model.h"
+#include "PhysicalModel.h"
 
 class DraggableLine;
 
@@ -13,7 +13,7 @@ public:
     PotentialViewMovable(QWidget * parent = 0, Qt::WindowFlags f = 0);
     ~PotentialViewMovable(void);
 
-    void setModel(Model*);
+    void setModel(PhysicalModel*);
 
 public slots:
     void modelChanged();
@@ -22,7 +22,7 @@ protected slots:
     void updateModel();
 
 private:
-    Model *model;
+    PhysicalModel *model;
 
     QList<DraggableLine*> lines;
     QGraphicsScene *scene;

@@ -1,7 +1,7 @@
 #pragma once
 #include <QDialog>
 #include <QLineEdit>
-#include "model.h"
+#include "PhysicalModel.h"
 
 class PotentialViewMultiWell : public QDialog
 {
@@ -10,14 +10,14 @@ public:
     PotentialViewMultiWell(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~PotentialViewMultiWell(void);
 
-    void setModel(Model*);
+    void setModel(PhysicalModel*);
 
 public slots:
     void updateModel();
     void modelChanged();
 
 private:
-    Model *model;
+    PhysicalModel *model;
     UAsMW last;
 
     QLineEdit *leNumberOfWells;

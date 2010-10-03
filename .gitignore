@@ -5,3 +5,8 @@
 *.pdb
 *.suo
 *.vcproj.*.user
+/t1
+/t2
+Makefile*
+*.vcproj
+*.sln

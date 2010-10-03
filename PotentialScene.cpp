@@ -1,16 +1,16 @@
 #include <QMessageBox>
 #include "PotentialScene.h"
 #include "DraggableLine.h"
-#include "model.h"
+#include "PhysicalModel.h"
 
-PotentialScene::PotentialScene(Model *_model, QObject * parent)
+PotentialScene::PotentialScene(PhysicalModel *_model, QObject * parent)
     : QGraphicsScene(parent), model(_model)
 {
 	clearPotential();
 }
 
 
-void PotentialScene::setModel(Model *_model)
+void PotentialScene::setModel(PhysicalModel *_model)
 {
     model = _model;
 }
@@ -104,7 +104,7 @@ void PotentialScene::addNewSegment()
 	addItem(lineV);
 }
 
-static void my_compute(Model *model)
+static void my_compute(PhysicalModel *model)
 {
     int inner_N= model->getN ();
     model->d(0) = 0;

@@ -1,6 +1,6 @@
 #pragma once
 #include <QAbstractTableModel>
-#include "model.h"
+#include "PhysicalModel.h"
 
 class PotentialModel :
     public QAbstractTableModel
@@ -10,7 +10,7 @@ public:
     PotentialModel(QObject * parent = 0);
     ~PotentialModel(void);
 
-    void setPotential(Model *model);
+    void setPotential(PhysicalModel *model);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const;
     int columnCount(const QModelIndex& parent = QModelIndex()) const;
@@ -28,5 +28,5 @@ public slots:
     void invalidateModel();
 
 private:
-    Model *model;
+    PhysicalModel *model;
 };
