@@ -2,6 +2,7 @@
 #define MODEL_H_INCLUDED
 
 #include <QObject>
+#include <QVector>
 #include <vector>
 #include <complex>
 
@@ -99,15 +100,20 @@ public:
     int N;	 // actual number of inner intervals
     Vector<double> d;      /* [u_width]  0..N widths */
     Vector<double> m;      /* [u_mass]   0..N+1 masses */
+
+    //! Potential including bias
     Vector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
+
+    //! Heterostructural potential
     Vector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
+
     double E0;
     Vector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
     //    Vector<double> psi_phases_old, psi_phases_base;
     //    Vector<double> psi_phases;/* Psi phases in channels */
     Vector<complex> a,b;
-    std::vector<double> Ebound;
+    QVector<double> Ebound;
     std::vector<int> NumberofZero;
     complex psi;
     complex phi;

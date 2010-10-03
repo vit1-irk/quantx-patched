@@ -6,25 +6,20 @@
 #include "PhysicalModel.h"
 
 class DraggableLine;
+
 class PotentialScene: public QGraphicsScene
 {
 	Q_OBJECT
 public:
-
     PotentialScene(PhysicalModel *, QObject * parent = 0);
 
-    void setModel(PhysicalModel*);
-
 public slots:
-	void clearPotential();
+	//void clearPotential();
 	void calculateEnergies();
 	void addNewSegment();
     void modelChanged();
 
 protected:
-	void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-	void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
 	void drawBackground(QPainter * painter, const QRectF & rect);
 
     /* graphical representation */

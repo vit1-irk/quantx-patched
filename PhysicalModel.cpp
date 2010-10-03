@@ -20,7 +20,7 @@ public:
         if(right) delete right;
     }
 
-    void compute(std::vector<double>& E)
+    void compute(QVector<double>& E)
     {
         double e,emid;
         int nlevels;

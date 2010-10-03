@@ -1,76 +1,36 @@
-#include <QGraphicsItem>
+#include <QGraphicsLineItem>
 #include <QPainter>
+#include <QGraphicsSceneMouseEvent>
+#include <QPen>
 
 class PotentialScene;
 
-class DraggableLine: public QGraphicsItem
+class DraggableLine : public QGraphicsLineItem
 {
 public: 
-	DraggableLine(PhysicalModel *,qreal len,PotentialScene * p);
-	virtual void SetStart(QPointF point) = 0;
-	virtual void SetEnd(QPointF point) = 0;
-	virtual bool CheckStart(QPointF point);
-	virtual bool CheckEnd(QPointF point);
+	DraggableLine(QGraphicsScene * p);
+	void SetLeft(DraggableLine * l) { left = l; } 
+    void SetRight(DraggableLine * r) { right = r; }
+	DraggableLine * GetLeft() const { return left; } 
+	DraggableLine * GetRight() const { return right; } 
+
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem *option,QWidget *);
 protected:
-	virtual QPointF RestrictMotion(QPointF point) = 0;
-
-	QVariant itemChange(GraphicsItemChange change, const QVariant &value);	
-
-    /* model reference */
-    PhysicalModel *model;
-
-	qreal length;
-	qreal adj;
 	DraggableLine * left;
 	DraggableLine * right;
-	PotentialScene * parent;
-public:
-	virtual void SetLeft(DraggableLine * l); 
-	virtual void SetRight(DraggableLine * r); 
-	DraggableLine * GetLeft() {return left;} 
-	DraggableLine * GetRight() {return right;} 
-	qreal GetLength(){return length;}
-	void SetLength(qreal len);
 };
 
 class HDraggableLine: public DraggableLine 
 {
 public:
-	HDraggableLine(PhysicalModel *,qreal len,PotentialScene * p);
-	QRectF boundingRect() const;
-	void paint(QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget);
-protected:
-    /* model reference */
-    PhysicalModel *model;
-
-    QPointF RestrictMotion(QPointF point);
-	virtual void SetStart(QPointF point);
-	virtual void SetEnd(QPointF point);
-	virtual bool CheckStart(QPointF point);
-	virtual bool CheckEnd(QPointF point);
+    HDraggableLine(QPointF at,qreal other_end_x,QGraphicsScene *p);
+    QPointF rightEnd() const;
+    QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 };
 
 class VDraggableLine: public DraggableLine
 {
 public:
-	VDraggableLine(qreal len,PotentialScene * p);
-	QRectF boundingRect() const;
-	void paint(QPainter * painter, const QStyleOptionGraphicsItem * option,QWidget * widget);
-protected:
-	QPointF RestrictMotion(QPointF point);
-	virtual void SetStart(QPointF point);
-	virtual void SetEnd(QPointF point);
+    VDraggableLine(QPointF at,qreal other_end_y,QGraphicsScene *p);
+    QPointF lastEnd() const;
 };
-
-class InfDraggableLine: public HDraggableLine 
-{
-public:
-	InfDraggableLine(PhysicalModel *,PotentialScene * p);
-protected:
-    PhysicalModel *model;
-	virtual void SetStart(QPointF point);
-	virtual void SetEnd(QPointF point);
-	virtual bool CheckStart(QPointF point);
-	virtual bool CheckEnd(QPointF point);
-};
-

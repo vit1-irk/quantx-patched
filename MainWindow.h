@@ -7,8 +7,9 @@
 #include "myparam.h"
 #include "PotentialViewMultiWell.h"
 #include "PotentialModel.h"
-struct PhysicalModel;
-
+#include "PhysicalModel.h"
+#include "PotentialScene.h"
+#include "PotentialViewMovable.h"
 
 struct WPE
 {
@@ -35,6 +36,7 @@ signals:
     void closed();
 
 private slots:
+    void updateMouseMovedTo(QPointF);
 //    void createToolBars();
     void slotIntN();
     void slotIntE();
@@ -114,8 +116,8 @@ private:
     QGroupBox *gbIntervals;
     QGroupBox *gbNumrange;
     QToolBox * toolBox;
-	QGraphicsScene * scene;
-	QGraphicsView * view;
+    PotentialViewMovable *potentialViewMovable;
+    PotentialScene *scene;
 //    QGraphicsView *gv;
     QGroupBox *GBplots, *gbScaleX, *gbScaleZ, *gbScalePsi, *gbScaleP;
     QGroupBox  *gbIntN,*gbIntE, *gbWP,*gbWPl, *gbWPr;
@@ -177,6 +179,8 @@ private:
     QTableView *tableView;
     QTableView *tableViewEn;
 //    QListWidget *listEn;
+    QLabel *mouseAtX;
+    QLabel *mouseAtY;
 };
 
 int getBreakStatus(int newStatus = 0);

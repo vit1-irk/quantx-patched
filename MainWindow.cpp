@@ -7,6 +7,7 @@
 #include "LevelModel.h"
 #include "PotentialViewMultiWell.h"
 #include "LineEditDelegate.h"
+#include "PotentialViewMovable.h"
 
 
 class DoubleValidator : public QRegExpValidator
@@ -486,6 +487,14 @@ void MainWindow::Uxz(double z)
     }
 }
 
+void MainWindow::updateMouseMovedTo(QPointF f)
+{
+    QString x,y;
+    x.sprintf("%lg",f.x());
+    y.sprintf("%lg",f.y());
+    this->mouseAtX->setText(x);
+    this->mouseAtY->setText(y);
+}
 void MainWindow::initControlDockWindow()
 {
     control = new QWidget();
@@ -500,12 +509,13 @@ void MainWindow::initControlDockWindow()
     {    
         QVBoxLayout *vl = new QVBoxLayout();
         scene = new PotentialScene(model,this);
-        view = new QGraphicsView(scene);
-        vl->addWidget(view);
+        potentialViewMovable = new PotentialViewMovable(scene);
+        vl->addWidget(potentialViewMovable);
 
         QHBoxLayout *hl = new QHBoxLayout();
         QPushButton * reset = new QPushButton("&Reset Potential");	
-        connect(reset,SIGNAL(clicked()),scene,SLOT(clearPotential()));
+        //connect(reset,SIGNAL(clicked()),scene,SLOT(clearPotential()));
+        connect(reset,SIGNAL(clicked()),scene,SLOT(modelChanged()));
         hl->addWidget(reset);		
 
         QPushButton * addseg = new QPushButton("&Add Potential Segment");	
@@ -524,7 +534,21 @@ void MainWindow::initControlDockWindow()
         hla->addWidget(butEn);
 
         vl->addLayout(hla);
+
+        QHBoxLayout *hl3 = new QHBoxLayout();
+
+        mouseAtX = new QLabel("x-coord");
+        hl3->addWidget(mouseAtX);
+        mouseAtY = new QLabel("y-coord");
+        hl3->addWidget(mouseAtY);
+
+        vl->addLayout(hl3);
+
+        connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
+            this,SLOT(updateMouseMovedTo(QPointF)));
+
         gbview->setLayout(vl);
+
 
     }
 
@@ -790,7 +814,7 @@ setCentralWidget(widget);
 void MainWindow::resizeEvent (QResizeEvent * event)
 {
     QWidget::resizeEvent(event);
-    view->fitInView(scene->sceneRect());
+    //XXX view->fitInView(scene->sceneRect());
 }
 void MainWindow::compute()
 {
@@ -1217,7 +1241,7 @@ void MainWindow::compute_En()
     numOfCurveUx=0;
     this->showU();
     this->numOfCurveUx=1;
-    for(int i=0;i<model->Ebound.size(); i++)
+    for (int i=0; i<model->Ebound.size(); i++)
     {
         double En=model->Ebound[i];
         this->E0=En;
@@ -1227,11 +1251,11 @@ void MainWindow::compute_En()
     compute_Psin();
 }
 typedef  std::vector<double> mycurve;
-typedef  std::vector<mycurve> curveSet;
+typedef  QVector<mycurve> curveSet;
 
-static void updateCurves(curveSet& cs, const std::vector<double>& Ebound, double z)
+static void updateCurves(curveSet& cs, const QVector<double>& Ebound, double z)
 {
-    for(int i=0; i < Ebound.size(); i++)
+    for (int i=0; i < Ebound.size(); i++)
     {
         if (i >= cs.size())
         {
@@ -1889,7 +1913,7 @@ void MainWindow::initPlotUx()
 
 static void setSomeInitialU(PhysicalModel *m)
 {
-    UAsMW u = { 1, 5, 1, -10, 0 , 0};
+    UAsMW u = { 2, 5, 1, -10, 0 , 0};
     m->setUAsMW( u );
 }
 
@@ -1905,10 +1929,10 @@ tableView(0),gbScales(0),gbIntervals(0),dialogUAsMW(0),tableViewEn(0), gbScaleX(
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0) 
 {
     this->model = new PhysicalModel();
-    UAsMW u1 = { 1, 0.1, 1, -10, 0 , 0};
+    UAsMW u1 = { 2, 0.1, 1, -10, 0 , 0};
     model->setUAsMW( u1 );
     this->slotU1();
-    UAsMW u2 = { 1, 5, 1, -10, 0 ,0};
+    UAsMW u2 = { 2, 5, 1, -10, 0 ,0};
     model->setUAsMW( u2 );
     this->slotU2();
     setSomeInitialU(this->model);
