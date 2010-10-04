@@ -13,7 +13,7 @@ using namespace std;
 void Plotter::moveButtons()
 {
     const int sep = 1;
-    int lx = sep;
+    int lx = 200+sep;
 
     zoomAllButton->move(lx, sep); 
     lx += zoomAllButton->width() + sep;
@@ -28,7 +28,8 @@ void Plotter::moveButtons()
     lx += scaleXButton->width() + sep;
 */
     scaleYButton->move(lx, sep); 
-//    lx += scaleYButton->width() + sep;
+    lx += scaleYButton->width() + sep;
+
 }
 
 Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
@@ -73,11 +74,26 @@ Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
     zoomAllButton->adjustSize();
     zoomAllButton->show();
     connect(zoomAllButton, SIGNAL(clicked()), this, SLOT(zoomAll()));
-
+    
     setPlotSettings(PlotSettings());
     setMouseTracking(true);
 }
 
+/*void Plotter::initStatusBar()
+{
+//    createStatusBar();
+    this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold )); 
+    this->mouseAtX = new QLabel("x: --------------",
+            this->statusBar());
+    this->statusBar()->addWidget(this->mouseAtX);
+
+    this->mouseAtY = new QLabel("y: --------------",
+            this->statusBar());
+    this->statusBar()->addWidget(this->mouseAtY);
+    connect(this,SIGNAL(infoMouseMovedTo(QPoint)),
+            this->statusBar(),SLOT(updateMouseMovedTo(QPoint)));
+}
+*/
 void Plotter::setPlotSettings(const PlotSettings &settings)
 {
     zoomStack.resize(1);

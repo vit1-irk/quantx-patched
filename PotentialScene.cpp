@@ -25,33 +25,29 @@ void PotentialScene::modelChanged()
 
     int inner_N = model->getN();
 
-    HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->Ui(0)), 0, this);
+    HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->Ui(0)), 0);
     addItem(lasth);
     VDraggableLine *lastv = 0;
     for (int i = 1; i <= inner_N; ++i)
     {
-        lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(i),this);
-        QLineF lv = lastv->line();
+        lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(i));
         addItem(lastv);
         lasth->SetRight(lastv);
         lastv->SetLeft(lasth);
 
         QPointF le = lastv->lastEnd();
-        lasth = new HDraggableLine( le, le.x() + model->d(i), this);
-        QLineF lh = lasth->line();
+        lasth = new HDraggableLine( le, le.x() + model->d(i));
         addItem(lasth);
         lastv->SetRight(lasth);
         lasth->SetLeft(lastv);
     }
-    lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(inner_N+1),this);
-    QLineF lv = lastv->line();
+    lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(inner_N+1));
     addItem(lastv);
     lasth->SetRight(lastv);
     lastv->SetLeft(lasth);
 
     QPointF le = lastv->lastEnd();
-    lasth = new HDraggableLine( le, le.x()+1000, this);
-    QLineF lh = lasth->line();
+    lasth = new HDraggableLine( le, le.x()+1000);
     addItem(lasth);
     lasth->setFlags(lasth->flags() & ~QGraphicsItem::ItemIsMovable);
     lastv->SetRight(lasth);

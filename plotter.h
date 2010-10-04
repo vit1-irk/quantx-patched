@@ -30,6 +30,8 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
     bool scaleFixed;
+    void mouseMoveEvent(QMouseEvent *event);
+    void initStatusBar();
 
 signals:
     void infoMouseMovedTo(QPoint);
@@ -41,11 +43,11 @@ public slots:
     void zoomOut();
     void zoomAll();
     void clearAll();
+
 protected:
     void paintEvent(QPaintEvent *event);
     void resizeEvent(QResizeEvent *event);
     void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);

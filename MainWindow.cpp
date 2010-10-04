@@ -491,8 +491,8 @@ void MainWindow::Uxz(double z)
 void MainWindow::updateMouseMovedTo(QPointF f)
 {
     QString x,y;
-    x.sprintf("%lg",f.x());
-    y.sprintf("%lg",f.y());
+    x.sprintf("x=%lg",f.x());
+    y.sprintf("y=%lg",f.y());
     this->mouseAtX->setText(x);
     this->mouseAtY->setText(y);
 }
@@ -512,6 +512,19 @@ void MainWindow::initControlDockWindow()
         scene = new PotentialScene(model,this);
         potentialViewMovable = new PotentialViewMovable(scene);
         vl->addWidget(potentialViewMovable);
+
+        QHBoxLayout *hl3 = new QHBoxLayout();
+
+        mouseAtX = new QLabel("x-coord");
+        hl3->addWidget(mouseAtX);
+        mouseAtY = new QLabel("y-coord");
+        hl3->addWidget(mouseAtY);
+
+        vl->addLayout(hl3);
+
+        connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
+            this,SLOT(updateMouseMovedTo(QPointF)));
+
 
         QHBoxLayout *hl = new QHBoxLayout();
         QPushButton * reset = new QPushButton("&Reset Potential");	
@@ -536,17 +549,6 @@ void MainWindow::initControlDockWindow()
 
         vl->addLayout(hla);
 
-        QHBoxLayout *hl3 = new QHBoxLayout();
-
-        mouseAtX = new QLabel("x-coord");
-        hl3->addWidget(mouseAtX);
-        mouseAtY = new QLabel("y-coord");
-        hl3->addWidget(mouseAtY);
-
-        vl->addLayout(hl3);
-
-        connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
-            this,SLOT(updateMouseMovedTo(QPointF)));
 
         gbview->setLayout(vl);
 

@@ -1,5 +1,10 @@
 #pragma once
 #include <QtGui>
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QResizeEvent>
+#include <QMouseEvent>
+#include <QPointF>
 
 class PotentialViewMovable : public QGraphicsView
 {

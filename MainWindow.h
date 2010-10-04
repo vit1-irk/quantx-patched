@@ -173,7 +173,8 @@ private:
     QLabel *dispT; // Display of Ttot
     QLabel *dispR; // Display of Rtot
     QLabel *dispRT; // Display of Rtot+Ttot
-    QDialog *winPlotNE, *wPlotT, *wPlotPsi2, *wPlotPhi, *wPlotUx, *wPlotEnz;
+    QDialog *winPlotNE, *wPlotPsi2, *wPlotPhi, *wPlotUx, *wPlotEnz;
+    QDialog *wPlotT;
 //    QWidget *winTableUx;
 //    QDialog *winTableUx;
     QTableView *tableView;
