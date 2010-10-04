@@ -92,8 +92,11 @@ QVariant VDraggableLine::itemChange(GraphicsItemChange change, const QVariant & 
         QPointF newpos = value.toPointF();
         newpos.setY( pos().y() );
         qreal newx = p1.x() + newpos.x();
-        if (newx>right->p2.x()) newx=right->p2.x(); 
-        if (newx<left->p1.x()) newx=left->p1.x(); 
+
+        if (newx > right->p2.x()) newx = right->p2.x(); 
+        if (newx < left->p1.x()) newx = left->p1.x(); 
+        newpos.setX( newx - p1.x() );
+
         if (left)  left->SetP2(  QPointF( newx, left->p1.y() ) );
         if (right) right->SetP1( QPointF( newx, right->p1.y() ) );
         return newpos;
