@@ -8,6 +8,7 @@
 #include "PotentialViewMultiWell.h"
 #include "LineEditDelegate.h"
 #include "PotentialViewMovable.h"
+#include "PlotterDialog.h"
 
 
 class DoubleValidator : public QRegExpValidator
@@ -1833,20 +1834,14 @@ void MainWindow::initPlotNofE()
     layout->addWidget(this->plotNE);
     layout->addWidget(labelNE);
 }
+
 void MainWindow::initPlotT() 
 {
-    wPlotT = new QDialog(this);
-//    wPlotT -> setFocus();
-    QVBoxLayout *layT=new QVBoxLayout(wPlotT);
-    QLabel *labelT = new QLabel("Transmission");
-    labelT->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelT->setAlignment(Qt::AlignCenter);
-    labelT->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotterT= new Plotter(wPlotT);
-    this->plotterT->setCurveData(1, this->plotdataT);
-    layT->addWidget(this->plotterT);
-    layT->addWidget(labelT);
+    wPlotT = new PlotterDialog(this);
+    this->plotterT = ((PlotterDialog*)wPlotT)->plotter();
+    wPlotT->setWindowTitle(tr("Transmission"));
 }
+
 void MainWindow::initPlotEnz() 
 {
     wPlotEnz = new QDialog(this);

@@ -30,7 +30,11 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
     bool scaleFixed;
- public slots:
+
+signals:
+    void infoMouseMovedTo(QPoint);
+
+public slots:
     void scaleX();
     void scaleY();
     void zoomIn();

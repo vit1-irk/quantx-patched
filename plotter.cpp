@@ -32,7 +32,9 @@ void Plotter::moveButtons()
 }
 
 Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
-: QWidget(parent, flags)
+:   QWidget(parent, flags), 
+    scaleFixed(true),
+    eraseButton(0)
 {   
 //    setBackgroundRole(QPalette::Dark);
     setBackgroundRole(QPalette::Text); //was!!!1.
@@ -49,6 +51,7 @@ Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
     scaleXButton->show();
     connect(scaleXButton, SIGNAL(clicked()), this, SLOT(scaleX()));
 */
+
     scaleYButton = new QToolButton(this);
     scaleYButton->setIcon(QIcon("images/sizev.png"));
     scaleYButton->adjustSize();
@@ -72,6 +75,7 @@ Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
     connect(zoomAllButton, SIGNAL(clicked()), this, SLOT(zoomAll()));
 
     setPlotSettings(PlotSettings());
+    setMouseTracking(true);
 }
 
 void Plotter::setPlotSettings(const PlotSettings &settings)
@@ -232,6 +236,8 @@ void Plotter::mousePressEvent(QMouseEvent *event)
 }
 void Plotter::mouseMoveEvent(QMouseEvent *event)
 {
+    QPoint f = event->pos();
+    emit(infoMouseMovedTo(f));
     if (event->buttons() & Qt::LeftButton)
     {
         updateRubberBandRegion();
@@ -239,6 +245,7 @@ void Plotter::mouseMoveEvent(QMouseEvent *event)
         updateRubberBandRegion();
     }
 }
+
 void Plotter::enterEvent ( QEvent * event )
 {
     setFocus();
