@@ -32,6 +32,8 @@ PotentialModel::setPotential(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(potentialChanged()),this,SLOT(invalidateModel()));
+    connect(this,SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)),
+        model,SIGNAL(potentialChanged()));
 }
 
 QVariant 

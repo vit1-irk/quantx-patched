@@ -7,6 +7,7 @@
 PotentialScene::PotentialScene(PhysicalModel *_model, QObject * parent)
     : QGraphicsScene(parent), model(_model)
 {
+    connect(model,SIGNAL(potentialChanged()),this,SLOT(modelChanged()));
     modelChanged();
 }
 
