@@ -436,30 +436,32 @@ void  MainWindow::slotWPacket()
 */
 void MainWindow::slotU1()
 {
-    U1.resize(0,model->N+1);
-    d1.resize(0,model->N);
+    const int N = model->getN();
+    U1.resize(0,N+1);
+    d1.resize(0,N);
 //    int MU = model->Ui.size();
 //    int Md = model->d.size();
 //    int M=model->N;
-    for(int n=1; n<=model->N; n++)
+    for(int n=1; n<=N; n++)
     {
       U1(n)= model->Ui(n);
       d1(n)= model->d(n);
     }
-    U1(model->N+1)=model->Ui(model->N+1);
+    U1(N+1)=model->Ui(N+1);
     U1(0)=model->Ui(0);
     d1(0)=0;
 }
 void MainWindow::slotU2()
 {
-    U2.resize(0,model->N+1);
-    d2.resize(0,model->N);
-    for(int n=1; n<=model->N; n++)
+    const int N = model->getN();
+    U2.resize(0,N+1);
+    d2.resize(0,N);
+    for(int n=1; n<=N; n++)
     {
       U2(n)= model->Ui(n);
       d2(n)= model->d(n);
     }
-    U2(model->N+1)=model->Ui(model->N+1);
+    U2(N+1)=model->Ui(N+1);
     U2(0)=model->Ui(0);
     d2(0)=0;
 }
@@ -881,7 +883,8 @@ void MainWindow::compute()
     model->E0 = this->E0;
     model->build_k();
     model->build_ab();
-    if(model->E0-model->U(model->N+1)>0)        model->build_RT();
+    if(model->E0 - model->U(model->getN()+1) > 0)
+        model->build_RT();
     else
     {
         model->RR=1;
@@ -924,7 +927,7 @@ void MainWindow::updateValues()
     this->dispBias->setText(s);
     this->dispBias->update();
 
-    if(model->E0-model->U(model->N+1)>0) 
+    if(model->E0-model->U(model->getN() + 1)>0) 
     {
 //    double R0=model->RR; 
     double T0=model->TT;
@@ -1240,7 +1243,7 @@ void MainWindow::compute_BE()
         this->E0=E;
         model->E0=E;
         compute();
-        y=real(model->b(model->N+1));
+        y=real(model->b(Nmax +1));
         if(y>1.) y =1+log(y);
         if(y<-1.) y =-1-log(-y);
         data.push_back(y+0.5*xmax);
@@ -1259,11 +1262,12 @@ void MainWindow::compute_BE()
 }
 static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
 {
+    const int N = model->getN();
     std::vector<double> dataUx;
     double x,y;
     x=xmin;
     int nmin=0;
-    int nmax=model->N;
+    int nmax = N;
     if(nmin==0) 
     {
         y=yscale*model->U(0);
@@ -1294,11 +1298,11 @@ static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, 
         dataUx.push_back(y);
     }
     dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(model->N+1));
+    dataUx.push_back(yscale*model->U(N+1));
     if(xmax<x) xmax=x; 
     else x =xmax;
     dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(model->N+1));
+    dataUx.push_back(yscale*model->U(N+1));
     plotter->setCurveData(0,dataUx);
 }
 
@@ -1448,6 +1452,7 @@ void MainWindow::compute_Phi_n()
 }
 void MainWindow::showU()
 {
+    const int N = model->getN();
     wPlotUx->show();
     wPlotUx->raise();
     wPlotUx->activateWindow();
@@ -1470,7 +1475,7 @@ void MainWindow::showU()
     x=0;
     data.push_back(x);
     data.push_back(y);
-    for(int n=1;n<=model->N;n++)
+    for(int n=1; n <= N; n++)
     {
         double y=model->U(n);
         data.push_back(x);
@@ -1480,11 +1485,11 @@ void MainWindow::showU()
         data.push_back(y);
     }
     data.push_back(x);
-    data.push_back(model->U(model->N+1));
+    data.push_back(model->U(N+1));
     if(this->xmax<x) this->xmax=x; 
     else x =this->xmax;
     data.push_back(x);
-    data.push_back(model->U(model->N+1));
+    data.push_back(model->U(N+1));
     this->plotterUx->setCurveData(numOfCurveUx,data);
     this->numOfCurveUx++;
 }
@@ -1570,6 +1575,7 @@ void MainWindow::compute_Psi()
 */
 void MainWindow::compute_Psin()
 {
+    const int N = model->getN();
     wPlotPsi2->show();
     wPlotPsi2->raise();
     std::vector<double> data;
@@ -1618,7 +1624,7 @@ void MainWindow::compute_Psin()
         double E=model->Ebound[n];
         this->E0=E;
         compute();
-        model->b(model->N+1)=0;
+        model->b(N+1)=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
@@ -2603,6 +2609,8 @@ WavePacket MainWindow::buildWPpE()
 }
 void MainWindow::WavePacketXoft()
 {
+    const int N = model->getN();
+
     WavePacket result;
     std::vector<double> data;
     std::vector<complex> expt;
@@ -2649,16 +2657,16 @@ void MainWindow::WavePacketXoft()
     }
 
     int M=result.size();
-    Matrix<complex> kp(0, M-1, 0, model->N+1);
-    Matrix<complex> ap(0, M-1, 0, model->N+1);
-    Matrix<complex> bp(0, M-1, 0, model->N+1);
+    Matrix<complex> kp(0, M-1, 0, N+1);
+    Matrix<complex> ap(0, M-1, 0, N+1);
+    Matrix<complex> bp(0, M-1, 0, N+1);
     expt.resize(M);
     for(int p=0;p<M;p++)
     {
         model->E0= result[p].E;
         model->build_k();
         model->build_ab();
-        for(int n=0;n<=model->N+1;n++)
+        for(int n=0; n <= N+1; n++)
         {
             kp(p,n)=model->k(n);
             ap(p,n)=model->a(n);
@@ -2680,7 +2688,7 @@ void MainWindow::WavePacketXoft()
         {
 
             complex c = exp(-complex(0, result[p].E*t));
-            if(result[p].E- model->U(model->N+1) >0) c = c*exp(complex(0,real(kp(p,model->N+1))*this->xmax) );
+            if(result[p].E- model->U(N+1) >0) c = c*exp(complex(0,real(kp(p,N+1))*this->xmax) );
             //            if(wpEi[p]- model->U(0) >0) c = c*exp(-complex(0,real(kp(p,0))*this->xmin) );
             expt[p]=c;
         }
@@ -2692,13 +2700,14 @@ void MainWindow::WavePacketXoft()
             for(int p=0;p<M;p++)
             {
                 model->E0= result[p].E;
-                for(int n=0;n<=model->N+1;n++)
+                for(int n=0; n <= N+1; n++)
                 {
                     model->k(n)=kp(p,n);
                     model->a(n)=ap(p,n);
                     model->b(n)=bp(p,n);
                 }
-                if(model->E0<model->U(model->N+1))model->b(model->N+1)=0.; 
+                if (model->E0 < model->U(N+1))
+                    model->b(N+1)=0.; 
                 model->build_Psi();
                 complex yy=model->psi;
                 Psit += model->psi*result[p].w*expt[p];
@@ -2738,16 +2747,18 @@ void MainWindow::WavePacketPoft()
  // E_n
         result=buildWPmE();  
     int M=result.size();
-    Matrix<complex> kp(0, M-1, 0, model->N+1);
-    Matrix<complex> ap(0, M-1, 0, model->N+1);
-    Matrix<complex> bp(0, M-1, 0, model->N+1);
+    const int N = model->getN();
+
+    Matrix<complex> kp(0, M-1, 0, N+1);
+    Matrix<complex> ap(0, M-1, 0, N+1);
+    Matrix<complex> bp(0, M-1, 0, N+1);
     expt.resize(M);
     for(int p=0;p<M;p++)
     {
         model->E0= result[p].E;
         model->build_k();
         model->build_ab();
-        for(int n=0;n<=model->N+1;n++)
+        for(int n=0; n <= N+1; n++)
         {
             kp(p,n)=model->k(n);
             ap(p,n)=model->a(n);
@@ -2774,18 +2785,20 @@ void MainWindow::WavePacketPoft()
         }
         for(double kk=kmin; kk<=this->kmax; kk+=dk)
         {
+            int N = model->getN();
+
             complex Psit=(0.,0.);
             model->kwave=kk;
             for(int p=0;p<M;p++)
             {
                 model->E0= result[p].E;
-                for(int n=0;n<=model->N+1;n++)
+                for(int n=0; n <= N+1; n++)
                 {
                     model->k(n)=kp(p,n);
                     model->a(n)=ap(p,n);
                     model->b(n)=bp(p,n);
                 }
-                model->b(model->N+1)=0.; 
+                model->b(N+1) = 0.; 
                 model->build_Phi();
                 complex yy=model->phi;
                 Psit += model->phi*result[p].w*expt[p];

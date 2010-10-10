@@ -127,8 +127,9 @@ public slots:
     void slotPotentialChanged();
 
 
-public:
+private:
     int N;	 // actual number of inner intervals
+public:
     Vector<double> d;      /* [u_width]  0..N widths */
     Vector<double> m;      /* [u_mass]   0..N+1 masses */
 

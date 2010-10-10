@@ -12,7 +12,7 @@ PotentialModel::~PotentialModel(void)
 int
 PotentialModel::rowCount(const QModelIndex& /*parent*/) const
 {
-    return model->N + 2;
+    return model->getN() + 2;
 }
 
 int 
@@ -53,7 +53,7 @@ PotentialModel::data(const QModelIndex& index, int role) const
     switch (index.column())
     {
     case 0: // width
-        if (index.row()==0 || index.row() == model->N + 1)
+        if (index.row()==0 || index.row() == model->getN() + 1)
             return QVariant();
         else 
             return QVariant(model->d(index.row()));
@@ -100,21 +100,21 @@ PotentialModel::setData(const QModelIndex& index, const QVariant& value, int rol
     switch(index.column())
     {
     case 0: // width
-        if (index.row() < 1 || index.row() > model->N) 
+        if (index.row() < 1 || index.row() > model->getN()) 
             return false;
         model->d(index.row()) = value.toDouble();
         emit(dataChanged(index, index));
         return true;
 
     case 1: // U
-        if (index.row() < 0 || index.row() > model->N+1) 
+        if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
         model->Ui(index.row()) = value.toDouble();
         emit(dataChanged(index, index));
         return true;
 
     case 2: // mass
-        if (index.row() < 0 || index.row() > model->N+1) 
+        if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
         model->m(index.row()) = value.toDouble();
         emit(dataChanged(index, index));
@@ -133,7 +133,7 @@ PotentialModel::flags(const QModelIndex& index) const
     case 0: // d_i
     case 1: // U_i
     case 2: // m_i
-        if (index.row() < 0 || index.row() > model->N+1)
+        if (index.row() < 0 || index.row() > model->getN()+1)
             return Qt::NoItemFlags;
         else
             return Qt::ItemIsEditable | Qt::ItemIsEnabled;
