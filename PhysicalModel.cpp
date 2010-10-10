@@ -79,8 +79,7 @@ void PhysicalModel::findBoundStates()
     ETree *mytree = new ETree(Umin, Umax, this, nmin, nmax);
     mytree->compute(this->Ebound);
     delete mytree;
-
-    emit(potentialChanged());
+    //emit(signalEboundChanged());
 }
 /*************************************************
   k(n) = sqrt( 2*m(n)/h2*(E0-U(n)) );
@@ -219,6 +218,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         U(n) = Ui(n) + pos/width * this->Ub;
         pos += this->d(n)/2.;
     }
+    U_d = d;
 //    U(N+1) = Ui(N+1) + this->Ub;
 /*    for(int n=1; n <= this->N; n++)
     {
@@ -226,7 +226,8 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         U(n) = Ui(n) + pos/width * this->Ub;
         pos += this->d(n)/2.;
     }
-    U(N+1) = Ui(N+1) + this->Ub;*/
+    U(N+1) = Ui(N+1) + this->Ub;
+*/
 }
 void PhysicalModel::XUscales() /* input:Ub,Ui --- result:U */
 {
@@ -566,7 +567,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
     this->Ui(this->N+1) = 0;
     this->m(this->N+1) = 0.5;
     this->build_U(); 
-    emit(potentialChanged());
+    //emit(signalPotentialChanged());
 }
 
 PhysicalModel::PhysicalModel(QObject *parent)
@@ -581,4 +582,23 @@ PhysicalModel::PhysicalModel(QObject *parent)
  width(5), height(5), scalex(1), scaley(1)
 // iwidth(0), iheight(0), scalex(1), scaley(1)
 {
+}
+
+void PhysicalModel::slotPotentialChanged()
+{
+    Vector<double> saveU = U;
+    Vector<double> saved = U_d;
+    build_U();
+//    XUscales();
+    if (saveU != U||saved != U_d)
+    {
+        emit(signalPotentialChanged());
+    }
+
+    QVector<double> saveEbound = Ebound;
+    findBoundStates();
+    if (saveEbound != Ebound)
+    {
+        emit(signalEboundChanged());
+    }
 }

@@ -28,8 +28,13 @@ public:
 //   ~MainWindow()
     ~MainWindow(){ }
 
+
 public slots:
     void help();
+//    void slotScaleX();
+//    void slotScaleZ();
+//    void slotIntE();
+//    void stopCalc();
 
 signals:
 	void potentialChanged();
@@ -174,7 +179,8 @@ private:
     QLabel *dispR; // Display of Rtot
     QLabel *dispRT; // Display of Rtot+Ttot
     QDialog *winPlotNE, *wPlotPsi2, *wPlotPhi, *wPlotUx, *wPlotEnz;
-    QDialog *wPlotT;
+    QWidget *wPlotT;
+//    QDialog *wPlotT;
 //    QWidget *winTableUx;
 //    QDialog *winTableUx;
     QTableView *tableView;

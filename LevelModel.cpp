@@ -32,7 +32,7 @@ void
 LevelModel::setLevels(PhysicalModel *_model)
 {
     this->model = _model;
-    connect(model,SIGNAL(potentialChanged()),this,SLOT(invalidateModel()));
+    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(invalidateModel()));
 }
 
 QVariant 

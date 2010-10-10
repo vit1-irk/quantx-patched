@@ -3,16 +3,23 @@
 #include "DraggableLine.h"
 #include "PhysicalModel.h"
 #include <QRectF>
+#include <QReadWriteLock>
+
 
 PotentialScene::PotentialScene(PhysicalModel *_model, QObject * parent)
     : QGraphicsScene(parent), model(_model)
 {
-    connect(model,SIGNAL(potentialChanged()),this,SLOT(modelChanged()));
-    modelChanged();
+    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(redrawU()));
+    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(redrawEn()));
+    connect(this,SIGNAL(changed(const QList<QRectF>&)),this,SLOT(updatePhysicalModel()));
+    redrawU();
 }
 
-void PotentialScene::modelChanged()
+void PotentialScene::redrawU()
 {
+    QList<QGraphicsItem*> hm = this->selectedItems();
+    if (hm.size()) return;
+
     model->XUscales();
     QRectF newSceneRect(
         model->Xmin,
@@ -21,41 +28,91 @@ void PotentialScene::modelChanged()
         model->Umax - model->Umin);
     setSceneRect(newSceneRect);
 
-    clear();
-    lines.clear();
+    for (int i = 0; i < linesU.size(); ++i)
+    {
+        linesU[i]->hide();
+        removeItem(linesU[i]);
+        delete linesU[i];
+    }
+    linesU.clear();
+
+    foreach (DraggableLine *v, linesV)
+    {
+        v->hide();
+        removeItem(v);
+        delete v;
+    }
+    linesV.clear();
 
     int inner_N = model->getN();
 
     HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->Ui(0)), 0);
+    linesU.push_back(lasth);
     addItem(lasth);
     VDraggableLine *lastv = 0;
     for (int i = 1; i <= inner_N; ++i)
     {
         lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(i));
+        linesV.push_back(lastv);
         addItem(lastv);
         lasth->SetRight(lastv);
         lastv->SetLeft(lasth);
 
         QPointF le = lastv->lastEnd();
         lasth = new HDraggableLine( le, le.x() + model->d(i));
+        linesU.push_back(lasth);
         addItem(lasth);
         lastv->SetRight(lasth);
         lasth->SetLeft(lastv);
     }
     lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(inner_N+1));
+    linesV.push_back(lastv);
     addItem(lastv);
     lasth->SetRight(lastv);
     lastv->SetLeft(lasth);
 
     QPointF le = lastv->lastEnd();
-    lasth = new HDraggableLine( le, le.x()+1000);
+    lasth = new HDraggableLine( le, le.x()+1000 );
+    linesU.push_back(lasth);
     addItem(lasth);
     lasth->setFlags(lasth->flags() & ~QGraphicsItem::ItemIsMovable);
     lastv->SetRight(lasth);
     lasth->SetLeft(lastv);
+//    model->slotPotentialChanged();
 }
+
+void PotentialScene::updatePhysicalModel()
+{
+    static int mycounter;
+    mycounter++;
+
+    if (model->getN() != linesU.size() - 2)
+        model->set_N(linesU.size() - 2);
+    QPointF p=linesU[0]->scenePos();
+    double u = p.y();
+    double x;
+    model->Ui(0) = u;
+    for (int i = 0; i < linesU.size(); ++i)
+    {
+        DraggableLine *l = linesU[i];
+        p = l->scenePos();
+        u = p.y();
+        double ddd = l->p1.y()+u;
+        double dde = l->p2.y();
+        model->Ui(i) = ddd;//(ddd + dde)/2.0;
+        if (model->m(i) == 0) model->m(i) = 0.5;
+        if (0 < i && i < linesU.size() - 1)
+        {
+            model->d(i) = l->p2.x() - l->p1.x();
+//            model->d(i) = linesU[i]->p2.x() - linesU[i]->p1.x();
+        }
+    }
+    model->slotPotentialChanged();
+}
+
+
 #if 0
-void PotentialScene__ clearPotential()
+ void PotentialScene__ clearPotential()
 {
 	clear();
 	lines.clear();
@@ -144,61 +201,33 @@ void PotentialScene::addNewSegment()
 #endif
 }
 
-static void my_compute(PhysicalModel *model)
+void PotentialScene::redrawEn()
 {
-    int inner_N= model->getN ();
-    model->d(0) = 0;
-    model->m(0) = 0.5;
-    model->Ui( inner_N + 1 ) = 0.;
-    model->m( inner_N + 1 ) = 0.5;
-    for(int i=1; i <= inner_N; i++)
+//    model->XUscales();
+    QRectF newSceneRect(
+        model->Xmin,
+        model->Umin,
+        model->Xmax - model->Xmin,
+        model->Umax - model->Umin);
+    setSceneRect(newSceneRect);
+
+    for (int i = 0 ; i < linesEn.size(); ++i)
     {
-        model->m(inner_N+1-i) = 0.5;
+        linesEn[i]->hide();
+        removeItem(linesEn[i]);
+        delete linesEn[i];
     }
-    model->build_U();
-    model->findBoundStates();
-}
+    linesEn.clear();
 
-void PotentialScene::calculateEnergies()
-{
-#if 0
-    // Fill pdata from visual appearance of potential
-	DraggableLine * line = last->GetLeft()->GetLeft();
-	int i = 1;
-    int inner_N= model->getN ();
-	while(line != first)
+    double xmin = model->Xmin;
+    double xmax = model->Xmax;
+ 	for (int i=0; i<model->Ebound.size(); i++)
 	{
-        model->Ui(inner_N+1-i) = (last->pos().y() - line->pos().y())/model->scaley;
-//        pdata->u[i] = (last->pos().y() - line->pos().y())/model->scaley;//Added 30.09
-//        pdata->u[i] = (first->pos().y() - line->pos().y())/model->scaley;
-		model->d(inner_N+1-i)= line->GetLength()/model->scalex; //pdata->l[i] = line->GetLength()/model->scalex;
-		i++;
-		line = line->GetLeft()->GetLeft();
-	}
-       model->Ui(0) = (last->pos().y() - line->pos().y())/model->scaley;//pdata->Uwleft = (last->pos().y() - line->pos().y())/model->scaley;//Added 30.09
-
-    my_compute(model);
-
-	//Drawing levels
-    double y, y1;
-    double xmin=model->scalex*model->Xmin;
-    double xmax=model->scalex*model->Xmax;
-//    int ixmin=model->scalex*model->Xmin;
-//    int ixmax=model->scalex*model->Xmax;
-	for(i=0; i<model->Ebound.size(); i++)
-	{
-		y1 = model->Ebound[i];//eld->energies[i];
-		y = last->pos().y();//Added 30.09
-//		y = first->pos().y();
-        y=y-y1*model->scaley;
-        if(i >= lines.size()) lines.push_back(addLine(xmin,y,xmax,y));
-		else {lines[i]->setLine(xmin,y,xmax,y); lines[i]->setVisible(true);}
-//        if(i >= lines.size()) lines.push_back(addLine(ixmin,y,ixmax,y));
-//		else {lines[i]->setLine(ixmin,y,ixmax,y); lines[i]->setVisible(true);}
-	}
-	for(i=model->Ebound.size();i<lines.size();i++) lines[i]->setVisible(false);
-//	for(i=eld->nlevels;i<lines.size();i++) lines[i]->setVisible(false);
-#endif
+        double U = model->Ebound[i];
+        QGraphicsLineItem *last = new QGraphicsLineItem(xmin,U,xmax,U,0,this);
+        linesEn.push_back(last);
+    }
+    update();
 }
 
 void PotentialScene::drawBackground(QPainter *, const QRectF &)

@@ -13,7 +13,7 @@ using namespace std;
 void Plotter::moveButtons()
 {
     const int sep = 1;
-    int lx = 200+sep;
+    int lx = sep;
 
     zoomAllButton->move(lx, sep); 
     lx += zoomAllButton->width() + sep;
@@ -217,6 +217,7 @@ void Plotter::paintEvent(QPaintEvent *event)
 {
     QVector<QRect> rects = event->region().rects();
     QPainter painter(this);
+//    PlotSettings settings = zoomStack[curZoom];
    for(int i=0; i<(int)rects.size();++i)
         painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
     if(rubberBandIsShown)
@@ -252,8 +253,16 @@ void Plotter::mousePressEvent(QMouseEvent *event)
 }
 void Plotter::mouseMoveEvent(QMouseEvent *event)
 {
+    QRect rect(Margin, Margin,
+        width() - 2*Margin,height() - 2*Margin);
+        double xx,yy;
+    PlotSettings settings = zoomStack[curZoom];
     QPoint f = event->pos();
-    emit(infoMouseMovedTo(f));
+    xx=((f.x()-rect.left())*settings.spanX())/(rect.width()-1)+settings.minX;
+    yy=-((f.y()-rect.bottom())*settings.spanY())/(rect.height()-1)+settings.minY;
+    QPointF ff;
+    ff=QPointF(xx,yy);
+     emit(infoMouseMovedTo(ff));
     if (event->buttons() & Qt::LeftButton)
     {
         updateRubberBandRegion();

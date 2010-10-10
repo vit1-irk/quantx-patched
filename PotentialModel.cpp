@@ -31,9 +31,8 @@ void
 PotentialModel::setPotential(PhysicalModel *_model)
 {
     this->model = _model;
-    connect(model,SIGNAL(potentialChanged()),this,SLOT(invalidateModel()));
-    connect(this,SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)),
-        model,SIGNAL(potentialChanged()));
+    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(invalidateModel()));
+    connect(this,SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)),model,SLOT(slotPotentialChanged()));
 }
 
 QVariant 
@@ -104,25 +103,26 @@ PotentialModel::setData(const QModelIndex& index, const QVariant& value, int rol
         if (index.row() < 1 || index.row() > model->N) 
             return false;
         model->d(index.row()) = value.toDouble();
-        break;
+        emit(dataChanged(index, index));
+        return true;
 
     case 1: // U
         if (index.row() < 0 || index.row() > model->N+1) 
             return false;
         model->Ui(index.row()) = value.toDouble();
-        break;
+        emit(dataChanged(index, index));
+        return true;
 
     case 2: // mass
         if (index.row() < 0 || index.row() > model->N+1) 
             return false;
         model->m(index.row()) = value.toDouble();
-		break;
+        emit(dataChanged(index, index));
+        return true;
 
     default:
         return false;
     }
-    emit(dataChanged(index, index));
-    return true;
 }
 
 Qt::ItemFlags 

@@ -34,7 +34,7 @@ public:
     void initStatusBar();
 
 signals:
-    void infoMouseMovedTo(QPoint);
+    void infoMouseMovedTo(QPointF);
 
 public slots:
     void scaleX();

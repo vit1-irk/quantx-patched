@@ -13,25 +13,27 @@ class PotentialScene: public QGraphicsScene
 public:
     PotentialScene(PhysicalModel *, QObject * parent = 0);
 
+signals:
+    void draggableLineMoved();
+
 public slots:
-	//void clearPotential();
-	void calculateEnergies();
 	void addNewSegment();
-    void modelChanged();
+
+    void updatePhysicalModel();
+    void redrawU();
+    void redrawEn();
+
+    void emitDraggableLineMoved() { emit(draggableLineMoved()); }
 
 protected:
 	void drawBackground(QPainter * painter, const QRectF & rect);
 
     /* graphical representation */
-	int nhlines;
-	DraggableLine * first;
-	DraggableLine * last;
-	QList<QGraphicsLineItem *> lines;
+	QVector<DraggableLine *> linesU;
+    QVector<DraggableLine *> linesV;
+	QVector<QGraphicsLineItem *> linesEn;
 
     /* model reference */
     PhysicalModel *model;
-//	Elevdata * eld; // energy levels
-//	PotData * pdata; // definition of potential
-//	void realloc();
 };
 #endif /* INCLUDED_POTENTIALSCENE_H */

@@ -3,7 +3,8 @@
 #include <QLabel>
 #include "Plotter.h"
 
-class PlotterDialog : public QDialog
+class PlotterDialog : public QWidget
+//class PlotterDialog : public QDialog
 {
     Q_OBJECT
 
@@ -12,8 +13,7 @@ public:
     Plotter *plotter() const { return _plotter; }
 
 protected slots:
-    void processInfoMouseMovedTo(QPoint);
-
+    void processInfoMouseMovedTo(QPointF);
 private:
     Plotter *_plotter;
     QLabel *label;

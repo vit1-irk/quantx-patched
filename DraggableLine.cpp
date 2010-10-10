@@ -24,19 +24,6 @@ void DraggableLine::paint(QPainter * painter, const QStyleOptionGraphicsItem *op
 
     painter->drawLine(QLineF( p1, p2 ));
 }
-#if 0
-QVariant DraggableLine::itemChange(GraphicsItemChange change, const QVariant &value)
-{
-    if (change == ItemPositionChange && isSelected() ) 
-    {
-        QRectF sceneRect = scene()->sceneRect();
-        QPointF posf = value.toPointF();
-        if(!sceneRect.contains(posf)) return pos();
-        return RestrictMotion(posf);
-    }
-    return QGraphicsItem::itemChange(change, value);
-}
-#endif
 //*************** Concrete Classes ****************************
 HDraggableLine::HDraggableLine(QPointF at, qreal other_end_x, QGraphicsItem *parent)
 : DraggableLine(parent)
@@ -54,17 +41,17 @@ QRectF HDraggableLine::boundingRect() const
     return QRectF( p1.x()-adj, p1.y()-adj, abs(p2.x() - p1.x()) + 2*adj, 2*adj );
 }
 
-
 QVariant HDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
 {
     if (change == ItemPositionChange)
     {
         QPointF newpos = value.toPointF();
         newpos.setX( pos().x() );
-        qreal newy = p1.y() + newpos.y();
+        qreal newy = p2.y() + newpos.y();
 
         if (left)  left->SetP2(  QPointF( left->p1.x(), newy) );
         if (right) right->SetP1( QPointF( right->p2.x(), newy) );
+        static_cast<PotentialScene*>(this->scene())->emitDraggableLineMoved();
         return newpos;
     }
     return value;
@@ -99,11 +86,10 @@ QVariant VDraggableLine::itemChange(GraphicsItemChange change, const QVariant & 
 
         if (left)  left->SetP2(  QPointF( newx, left->p1.y() ) );
         if (right) right->SetP1( QPointF( newx, right->p1.y() ) );
+        static_cast<PotentialScene*>(this->scene())->emitDraggableLineMoved();
         return newpos;
     }
     return value;
-//    parent->calculateEnergies();
-
 }
 
 #if 0

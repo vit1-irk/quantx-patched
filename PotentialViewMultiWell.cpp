@@ -79,8 +79,8 @@ void PotentialViewMultiWell::setModel(PhysicalModel *_model)
 {
     model = _model;
     int N=model->N;
-    double Ua=model->Ui(1);
-    double wa=model->d(1);
+//    double Ua=model->Ui(1);
+//    double wa=model->d(1);
 }
 
 void PotentialViewMultiWell::modelChanged()

@@ -9,7 +9,7 @@ class PotentialScene;
 class DraggableLine : public QGraphicsItem
 {
 public: 
-	DraggableLine(QGraphicsItem *parent=0);
+	DraggableLine(QGraphicsItem *parent = 0);
 	void SetLeft(DraggableLine * l) { left = l; } 
     void SetRight(DraggableLine * r) { right = r; }
     void SetP1(QPointF p1) { prepareGeometryChange(); this->p1 = p1; }
@@ -26,8 +26,9 @@ protected:
 class HDraggableLine: public DraggableLine 
 {
 public:
-    HDraggableLine(QPointF at,qreal other_end_x,QGraphicsItem *parent=0);
+    HDraggableLine(QPointF at,qreal other_end_x,QGraphicsItem *parent = 0);
     QPointF rightEnd() const { return p2; }
+
 
     //reimplementations
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
@@ -37,7 +38,7 @@ public:
 class VDraggableLine: public DraggableLine
 {
 public:
-    VDraggableLine(QPointF at,qreal other_end_y,QGraphicsItem *parent=0);
+    VDraggableLine(QPointF at,qreal other_end_y,QGraphicsItem *parent = 0);
     QPointF lastEnd() const { return p2; }
 
     //reimplementations

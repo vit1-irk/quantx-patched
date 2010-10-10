@@ -17,6 +17,23 @@ public:
     {
         v.resize(_u-_l+1);
     }
+    Vector(const Vector& other) : l(other.l), u(other.u)
+    {
+        resize(l,u);
+        for (int i = 0; i < other.size(); ++i)
+        {
+            v[i] = other.v[i];
+        }
+    }
+    Vector& operator = (const Vector& other)
+    {
+        resize(other.l,other.u);
+        for (int i = 0; i < other.size(); ++i)
+        {
+            v[i] = other.v[i];
+        }
+        return *this;
+    }
     ~Vector() {}
     void resize(int _l, int _u) 
     { 
@@ -30,6 +47,14 @@ public:
     void swap(Vector<T>& a) { v.swap(a.v); } 
     T& operator()(int i) { return v[i - l]; }
     void zero() { std::fill(v.begin(), v.end(), T(0)); }
+    int operator != (const Vector<T>& other) const
+    {
+        for (int i = 0; i < v.size(); ++i)
+        {
+            if (v[i] != other.v[i]) return 1;
+        }
+        return 0;
+    }
 private:
     std::vector<T> v;
     int l, u;
@@ -88,21 +113,28 @@ struct UAsMW
 struct PhysicalModel : public QObject
 {
     Q_OBJECT
-signals:
-    void potentialChanged();
-
 public:
     PhysicalModel(QObject * parent = 0);
 
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
 
+signals:
+    void signalPotentialChanged();
+    void signalEboundChanged();
+
+public slots:
+    void slotPotentialChanged();
+
+
+public:
     int N;	 // actual number of inner intervals
     Vector<double> d;      /* [u_width]  0..N widths */
     Vector<double> m;      /* [u_mass]   0..N+1 masses */
 
     //! Potential including bias
     Vector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
+    Vector<double> U_d;
 
     //! Heterostructural potential
     Vector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
