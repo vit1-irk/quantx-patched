@@ -26,4 +26,5 @@ void PotentialViewMovable::mouseMoveEvent(QMouseEvent *e)
     QPointF f = mapToScene(e->pos());
     emit(infoMouseMovedTo(f));
     QGraphicsView::mouseMoveEvent(e);
+
 }

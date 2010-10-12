@@ -11,15 +11,20 @@ PotentialScene::PotentialScene(PhysicalModel *_model, QObject * parent)
 {
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(redrawU()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(redrawEn()));
-    connect(this,SIGNAL(changed(const QList<QRectF>&)),this,SLOT(updatePhysicalModel()));
+    //connect(this,SIGNAL(draggableLineMoved()),this,SLOT(updatePhysicalModel()));
     redrawU();
+    redrawEn();
 }
 
 void PotentialScene::redrawU()
 {
+#if 0
     QList<QGraphicsItem*> hm = this->selectedItems();
-    if (hm.size()) return;
+    int hmsz = hm.size();
+    if (hmsz) return;
+#endif
 
+    model->build_U();
     model->XUscales();
     QRectF newSceneRect(
         model->Xmin,
@@ -46,26 +51,26 @@ void PotentialScene::redrawU()
 
     int inner_N = model->getN();
 
-    HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->Ui(0)), 0);
+    HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->get_Ui(0)), 0);
     linesU.push_back(lasth);
     addItem(lasth);
     VDraggableLine *lastv = 0;
     for (int i = 1; i <= inner_N; ++i)
     {
-        lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(i));
+        lastv = new VDraggableLine( lasth->rightEnd(), model->get_Ui(i));
         linesV.push_back(lastv);
         addItem(lastv);
         lasth->SetRight(lastv);
         lastv->SetLeft(lasth);
 
         QPointF le = lastv->lastEnd();
-        lasth = new HDraggableLine( le, le.x() + model->d(i));
+        lasth = new HDraggableLine( le, le.x() + model->get_d(i));
         linesU.push_back(lasth);
         addItem(lasth);
         lastv->SetRight(lasth);
         lasth->SetLeft(lastv);
     }
-    lastv = new VDraggableLine( lasth->rightEnd(), model->Ui(inner_N+1));
+    lastv = new VDraggableLine( lasth->rightEnd(), model->get_Ui(inner_N+1));
     linesV.push_back(lastv);
     addItem(lastv);
     lasth->SetRight(lastv);
@@ -91,7 +96,7 @@ void PotentialScene::updatePhysicalModel()
     QPointF p=linesU[0]->scenePos();
     double u = p.y();
     double x;
-    model->Ui(0) = u;
+    model->set_Ui(0, u);
     for (int i = 0; i < linesU.size(); ++i)
     {
         DraggableLine *l = linesU[i];
@@ -99,11 +104,12 @@ void PotentialScene::updatePhysicalModel()
         u = p.y();
         double ddd = l->p1.y()+u;
         double dde = l->p2.y();
-        model->Ui(i) = ddd;//(ddd + dde)/2.0;
-        if (model->m(i) == 0) model->m(i) = 0.5;
+        model->set_Ui(i, ddd);
+        if (model->get_m(i) == 0)
+            model->set_m(i, 0.5);
         if (0 < i && i < linesU.size() - 1)
         {
-            model->d(i) = l->p2.x() - l->p1.x();
+            model->set_d(i, l->p2.x() - l->p1.x());
 //            model->d(i) = linesU[i]->p2.x() - linesU[i]->p1.x();
         }
     }
@@ -203,6 +209,7 @@ void PotentialScene::addNewSegment()
 
 void PotentialScene::redrawEn()
 {
+    model->findBoundStates();
 //    model->XUscales();
     QRectF newSceneRect(
         model->Xmin,

@@ -13,17 +13,12 @@ class PotentialScene: public QGraphicsScene
 public:
     PotentialScene(PhysicalModel *, QObject * parent = 0);
 
-signals:
-    void draggableLineMoved();
-
 public slots:
 	void addNewSegment();
 
     void updatePhysicalModel();
     void redrawU();
     void redrawEn();
-
-    void emitDraggableLineMoved() { emit(draggableLineMoved()); }
 
 protected:
 	void drawBackground(QPainter * painter, const QRectF & rect);

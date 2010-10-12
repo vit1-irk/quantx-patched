@@ -43,6 +43,7 @@ signals:
 private slots:
     void updateMouseMovedTo(QPointF);
 //    void createToolBars();
+    void slotBound_States();
     void slotIntN();
     void slotIntE();
 //    void slotIntT();
@@ -99,8 +100,8 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
-    void slotWindows();
     void slotWindowsActivated(int);
+    void slotWindows();
     void initPlotT(); 
     void initPlotPhik(); 
     void initPlotPsix(); 
@@ -143,7 +144,7 @@ private:
     MyParamD Ubiasmin,Ubiasmax,hUbias, wpE_lo, wpE_hi, wpN;
     MyParamD Psi2, Refl,Trans,totalRT,tmin, tmax,htime;
 //    MyParamD Psi2, psi_phasehth, psit_real,psit_imag;
-    QCheckBox *flgScale, *flgErase, *flgUx;
+    QCheckBox *flgScale, *flgErase, *flgUx, *flgEraseT;
 //    int Erase, wave_packet_type;
     Vector<double> U1; //!< Inital potential values for z-animations
     Vector<double> U2; //!< Final potential values for z-animations
@@ -153,6 +154,7 @@ private:
     QGroupBox *grrb;
     QRadioButton *rad1,*rad2;
     QButtonGroup *bgR;
+    QPushButton *butEn;
     int numOfCurveR,numOfCurveT,numOfCurveNE, numOfCurve, numOfCurveUx, numOfCurveEn;
     Plotter *plotterUx1;
     Plotter *plotterUx;

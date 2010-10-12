@@ -51,8 +51,11 @@ QVariant HDraggableLine::itemChange(GraphicsItemChange change, const QVariant & 
 
         if (left)  left->SetP2(  QPointF( left->p1.x(), newy) );
         if (right) right->SetP1( QPointF( right->p2.x(), newy) );
-        static_cast<PotentialScene*>(this->scene())->emitDraggableLineMoved();
         return newpos;
+    }
+    if (change == ItemPositionHasChanged)
+    {
+        static_cast<PotentialScene*>(scene())->updatePhysicalModel();
     }
     return value;
 }
@@ -86,8 +89,11 @@ QVariant VDraggableLine::itemChange(GraphicsItemChange change, const QVariant & 
 
         if (left)  left->SetP2(  QPointF( newx, left->p1.y() ) );
         if (right) right->SetP1( QPointF( newx, right->p1.y() ) );
-        static_cast<PotentialScene*>(this->scene())->emitDraggableLineMoved();
         return newpos;
+    }
+    if (change == ItemPositionHasChanged)
+    {
+        static_cast<PotentialScene*>(scene())->updatePhysicalModel();
     }
     return value;
 }

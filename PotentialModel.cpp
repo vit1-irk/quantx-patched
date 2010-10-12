@@ -56,11 +56,11 @@ PotentialModel::data(const QModelIndex& index, int role) const
         if (index.row()==0 || index.row() == model->getN() + 1)
             return QVariant();
         else 
-            return QVariant(model->d(index.row()));
+            return QVariant(model->get_d(index.row()));
     case 1: // U
-        return QVariant(model->Ui(index.row()));
+        return QVariant(model->get_Ui(index.row()));
     case 2: // mass
-        return QVariant(model->m(index.row()));
+        return QVariant(model->get_m(index.row()));
     default:
         return QVariant();
     }
@@ -102,21 +102,21 @@ PotentialModel::setData(const QModelIndex& index, const QVariant& value, int rol
     case 0: // width
         if (index.row() < 1 || index.row() > model->getN()) 
             return false;
-        model->d(index.row()) = value.toDouble();
+        model->set_d(index.row(), value.toDouble());
         emit(dataChanged(index, index));
         return true;
 
     case 1: // U
         if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
-        model->Ui(index.row()) = value.toDouble();
+        model->set_Ui(index.row(), value.toDouble());
         emit(dataChanged(index, index));
         return true;
 
     case 2: // mass
         if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
-        model->m(index.row()) = value.toDouble();
+        model->set_m(index.row(), value.toDouble());
         emit(dataChanged(index, index));
         return true;
 

@@ -439,17 +439,14 @@ void MainWindow::slotU1()
     const int N = model->getN();
     U1.resize(0,N+1);
     d1.resize(0,N);
-//    int MU = model->Ui.size();
-//    int Md = model->d.size();
-//    int M=model->N;
     for(int n=1; n<=N; n++)
     {
-      U1(n)= model->Ui(n);
-      d1(n)= model->d(n);
+        U1(n) = model->get_Ui(n);
+        d1(n) = model->get_d(n);
     }
-    U1(N+1)=model->Ui(N+1);
-    U1(0)=model->Ui(0);
-    d1(0)=0;
+    U1(N+1) = model->get_Ui(N+1);
+    U1(0) = model->get_Ui(0);
+    d1(0) = 0;
 }
 void MainWindow::slotU2()
 {
@@ -458,35 +455,37 @@ void MainWindow::slotU2()
     d2.resize(0,N);
     for(int n=1; n<=N; n++)
     {
-      U2(n)= model->Ui(n);
-      d2(n)= model->d(n);
+        U2(n) = model->get_Ui(n);
+        d2(n) = model->get_d(n);
     }
-    U2(N+1)=model->Ui(N+1);
-    U2(0)=model->Ui(0);
-    d2(0)=0;
+    U2(N+1) = model->get_Ui(N+1);
+    U2(0) = model->get_Ui(0);
+    d2(0) = 0;
 }
 void MainWindow::Uxz(double z)
 {
     if(U1.size()==U2.size())
     {
-        int M=U1.size()-2;        
-        if (M < 0) return;
-        model->set_N ( M );
-//        int M1=model->N;
-        model->Ui.resize(0,M+1);
-        model->d.resize(0,M);
-        model->m.resize(0,M+1);
-        for(int n=1; n<=M; n++)
+        int N = U1.size()-2;        
+        if (N < 0) return;
+
+        QVector<double> Ui(1+N+1);
+        QVector<double> d(1+N);
+        QVector<double> m(1+N+1);
+        
+        d[0] = 0;
+        m[0] = 0.5;
+        Ui[0] = U1(0) + z*(U2(0)-U1(0));
+        for(int n=1; n<=N; n++)
         {
-            model->Ui(n)= U1(n)+z*(U2(n)-U1(n));
-            model->d(n)= d1(n)+z*(d2(n)-d1(n));
-            model->m(n)=0.5;
+            Ui[n] = U1(n) + z*(U2(n)-U1(n));
+            d[n] = d1(n) + z*(d2(n)-d1(n));
+            m[n] = 0.5;
         }
-        model->Ui(M+1)=U1(M+1)+z*(U2(M+1)-U1(M+1));
-        model->Ui(0)=U1(0)+z*(U2(0)-U1(0));
-        model->d(0)=0.;
-        model->m(0)=0.5;
-        model->m(M+1)=0.5;
+        Ui[N+1] = 0;
+        m[N+1] = 0.5;
+        
+        model->set_Ui_d_m(Ui,d,m);
         model->build_U();
     }
 }
@@ -502,14 +501,14 @@ void MainWindow::updateMouseMovedTo(QPointF f)
 void MainWindow::initControlDockWindow()
 {
     control = new QWidget();
+    control->setMaximumWidth(500);
     QVBoxLayout *vl0 = new QVBoxLayout();
     
     QVBoxLayout * leftLayout = new QVBoxLayout;
     QGroupBox *gbview = new QGroupBox("Graphic definition of potential");
     leftLayout->addWidget(gbview);
 //	gbview->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
-	gbview->setMinimumHeight(250);
-
+	gbview->setMinimumHeight(350);
     {    
         QVBoxLayout *vl = new QVBoxLayout();
         scene = new PotentialScene(model,this);
@@ -529,30 +528,38 @@ void MainWindow::initControlDockWindow()
             this,SLOT(updateMouseMovedTo(QPointF)));
 
 
-        QHBoxLayout *hl = new QHBoxLayout();
+//        QHBoxLayout *hl = new QHBoxLayout();
         QPushButton * reset = new QPushButton("&Reset Potential");	
         //connect(reset,SIGNAL(clicked()),scene,SLOT(clearPotential()));
         connect(reset,SIGNAL(clicked()),scene,SLOT(redrawU()));
         connect(reset,SIGNAL(clicked()),scene,SLOT(redrawEn()));
-        hl->addWidget(reset);		
+//        hl->addStretch();
+//        hl->addWidget(reset);		
+        vl->addWidget(reset);		
 
         QPushButton * addseg = new QPushButton("&Add Potential Segment");	
         connect(addseg,SIGNAL(clicked()),scene,SLOT(addNewSegment()));
-        hl->addWidget(addseg);
-        hl->addStretch();
-        vl->addLayout(hl);
+//        hl->addWidget(addseg);
+        vl->addWidget(addseg);
+//        hl->addStretch();
+//        vl->addLayout(hl);
 
-        QHBoxLayout *hla = new QHBoxLayout();
-        QPushButton * fl = new QPushButton("Find Levels");	
-        fl->setDisabled(true);
+//        QHBoxLayout *hla = new QHBoxLayout();
+//        hla->addStretch();
+//        QPushButton * fl = new QPushButton("Find Levels");	
+//        fl->setDisabled(true);
         //connect(fl,SIGNAL(clicked()),scene,SLOT(calculateEnergies()));
-        hla->addWidget(fl);
+//        vl->addWidget(fl);
+//        hla->addWidget(fl);
 
-        QPushButton *butEn = new QPushButton(tr("List of Energy &Levels")); 
+        QPushButton *butEn = new QPushButton(tr("En-Table")); 
+//        QPushButton *butEn = new QPushButton(tr("List of Energy &Levels")); 
         connect(butEn, SIGNAL(clicked()), this, SLOT(slotSetEn()));
-        hla->addWidget(butEn);
+        vl->addWidget(butEn);
+//        hla->addWidget(butEn);
+//        hla->addStretch();
 
-        vl->addLayout(hla);
+//        vl->addLayout(hla);
 
         gbview->setLayout(vl);
 
@@ -561,18 +568,23 @@ void MainWindow::initControlDockWindow()
 
     {    
         QGroupBox *gbp = new QGroupBox("Numeric definition of potential");
-        QHBoxLayout *hl = new QHBoxLayout;
-        QPushButton *butUxt = new QPushButton(tr("Table &view")); 
+        QVBoxLayout *vl = new QVBoxLayout;
+//        QHBoxLayout *hl = new QHBoxLayout;
+//        hl->addStretch();
+        QPushButton *butUxt = new QPushButton(tr("U-Table")); 
 //        butUxt->setDefault(true);
         connect(butUxt, SIGNAL(clicked()), this, SLOT(slotSetUxt()));
-        hl->addWidget(butUxt);
+        vl->addWidget(butUxt);
+//        hl->addWidget(butUxt);
 
-        QPushButton *butUmwb = new QPushButton(tr("&Multi-barrier/well potential")); 
+        QPushButton *butUmwb = new QPushButton(tr("Barriers/wells")); 
 //        butUmwb->setDefault(true);
         connect(butUmwb, SIGNAL(clicked()), this, SLOT(slotSetUmwb()));
-        hl->addWidget(butUmwb);
-        hl->addStretch();
-        gbp->setLayout(hl);
+        vl->addWidget(butUmwb);
+//        hl->addWidget(butUmwb);
+//        hl->addStretch();
+        gbp->setLayout(vl);
+//        gbp->setLayout(hl);
         leftLayout->addWidget(gbp);
 //	gbp->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
 //	gbp->setMinimumWidth(250);
@@ -583,10 +595,11 @@ void MainWindow::initControlDockWindow()
 
                     QVBoxLayout *vl = new QVBoxLayout;
                 {
-                    QHBoxLayout *hl = new QHBoxLayout;
-                    QPushButton *butUx = new QPushButton(tr("Potential &U")); 
+//                    QHBoxLayout *hl = new QHBoxLayout;
+//                    hl->addStretch();
+                    QPushButton *butUx = new QPushButton(tr("Bound states")); 
                     connect(butUx, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
-                    hl->addWidget(butUx);
+                    vl->addWidget(butUx);
 
                     //           QPushButton *butEn = new QPushButton(tr("&Find levels")); 
                     //           connect(butEn, SIGNAL(clicked()), this, SLOT(Bound_States()));
@@ -595,19 +608,22 @@ void MainWindow::initControlDockWindow()
 
                     QPushButton *butPsix = new QPushButton("Wave functions");
                     connect(butPsix, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-                    hl->addWidget(butPsix);
-                    vl->addLayout(hl);
+                    vl->addWidget(butPsix);
+                 //   hl->addStretch();
+                  //  vl->addLayout(hl);
                 }
                 {
-                    QHBoxLayout *hl = new QHBoxLayout;
-                    QPushButton *butPhi = new QPushButton(tr("Impulse distribution")); 
+                //    QHBoxLayout *hl = new QHBoxLayout;
+                //    hl->addStretch();
+                    QPushButton *butPhi = new QPushButton(tr("Momentum distribution")); 
                     connect(butPhi, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-                    hl->addWidget(butPhi);
+                    vl->addWidget(butPhi);
 
                     QPushButton *butT = new QPushButton(tr("Transmission &D")); 
                     connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
-                    hl->addWidget(butT);
-                    vl->addLayout(hl);
+                    vl->addWidget(butT);
+          //          hl->addStretch();
+          //          vl->addLayout(hl);
                 }
                 gb01->setLayout(vl);
                 vl0->addWidget(gb01);
@@ -1063,10 +1079,17 @@ void MainWindow::compute_T()
     if(this->Emin<0) this->Emin=0.01;
     if(this->Emax<0) this->Emax=20.;
     if(this->E0<0) this->E0=0.01;
-    if(this->flgErase->isChecked()) 
+    
+    bool flgEr=flgEraseT->isChecked();
+    if(flgEr) 
+//    if(this->flgErase->isChecked()) 
     {
         plotterT->clearAll();
-        this->numOfCurveT=0;
+        this->numOfCurveT=1;
+    }
+    else 
+    {
+        this->numOfCurveT++;
     }
     int ii = this->T_type->QComboBox::currentIndex();
     switch(ii)
@@ -1091,11 +1114,15 @@ void MainWindow::compute_T()
 void MainWindow::compute_TE()
 {
     std::vector<double> dataT;
-    if(this->flgErase->isChecked()) 
+    bool flgEr=flgEraseT->isChecked();
+    if(flgEr) 
     {
-        this->numOfCurveT=0;
+        this->numOfCurveT=1;
     }
-    else this->numOfCurveT++;
+    else
+    {
+        this->numOfCurveT++;
+    }
     double Emn=this->Emin;
     double Emx=this->Emax;
 //    if(this->E0<0&&this->hE>0) this->E0=Emn;
@@ -1128,17 +1155,20 @@ void MainWindow::compute_TE()
     }
     this->plotterT->setCurveData(this->numOfCurveT,dataT);
     this->E0=this->E0+this->hE;
-
+    this->numOfCurveT++;
 }
 
 void MainWindow::compute_Tz()
 {
     std::vector<double> dataT;
-    if(this->flgErase->isChecked()) 
+    if(this->flgEraseT->isChecked()) 
     {
         this->numOfCurveT=0;
     }
-    else this->numOfCurveT++;
+    else 
+    {
+        this->numOfCurveT++;
+    }
     if(this->zmin<0) this->zmax=0.0;
     if(this->zmax<0) this->zmax=1.;
     double zmn=this->zmin;
@@ -1223,7 +1253,7 @@ void MainWindow::compute_BE()
     for (int i = 0; i < Nmax+1; ++i)
     {   
         q = model->U(i);
-        x+=model->d(i);
+        x += model->get_d(i);
         if (q > Umax) Umax = q; 
         if (q < Umin) Umin = q;
     }
@@ -1282,7 +1312,7 @@ static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, 
         y=yscale*model->U(nmin+1);
         x=0;
         for(int n=1;n<=nmin+1;n++) 
-            x +=model->d(n);
+            x += model->get_d(n);
         dataUx.push_back(xmin);
         dataUx.push_back(y);
         dataUx.push_back(x);
@@ -1293,7 +1323,7 @@ static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, 
         double y=yscale*model->U(n);
         dataUx.push_back(x);
         dataUx.push_back(y);
-        x +=model->d(n);
+        x += model->get_d(n);
         dataUx.push_back(x);
         dataUx.push_back(y);
     }
@@ -1424,7 +1454,9 @@ void MainWindow::compute_Phi_n()
         plotterPhi->clearAll();
         this->numOfCurve=0;
     }
-    else this->numOfCurve++;
+    else {
+        this->numOfCurve++;
+    }
     if(kmax<=0) kmax=10.;
     double dk=kmax/500;
     int imax=this->nmaxLevel;
@@ -1480,7 +1512,7 @@ void MainWindow::showU()
         double y=model->U(n);
         data.push_back(x);
         data.push_back(y);
-        x +=model->d(n);
+        x += model->get_d(n);
         data.push_back(x);
         data.push_back(y);
     }
@@ -1920,7 +1952,7 @@ void MainWindow::initPlotNofE()
     vl->addWidget(wNE);
     winPlotNE->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
     QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton *butNE = new QPushButton(tr("RUN")); 
+    QPushButton *butNE = new QPushButton(tr("RUN N(E)")); 
     connect(butNE, SIGNAL(clicked()), this, SLOT(compute_NE()));
     hl->addWidget(butNE);
     hl->addStretch();
@@ -1944,31 +1976,33 @@ void MainWindow::initPlotT()
         QPushButton * bsz = new QPushButton("&z scale");	
         connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
         hl->addWidget(bsz);	
+
+        flgEraseT= new QCheckBox("Erase",wPlotT);
+        flgEraseT->setChecked(true);
+        hl->addWidget(flgEraseT);
+
         hl->addStretch();
   //      vl->addLayout(hl);
  //   }
  //   {
  //       QHBoxLayout *hl = new QHBoxLayout;
+        QPushButton *butT = new QPushButton(tr("RUN D")); 
+        connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
+        hl->addWidget(butT);
+
         T_type = new QComboBox(this);
-        T_type->addItem(tr("D(E)"));
-        T_type->addItem(tr("D(z)"));
-        T_type->addItem(tr("D(E,z)"));
-        T_type->addItem(tr("D(z,E)"));
+        T_type->addItem(tr("(E)"));
+        T_type->addItem(tr("(z)"));
+        T_type->addItem(tr("(E,z)"));
+        T_type->addItem(tr("(z,E)"));
         T_type->setCurrentIndex(0);
         hl->addWidget(T_type);
 
-        QPushButton *butT = new QPushButton(tr("RUN")); 
-        connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
-        hl->addWidget(butT);
 
         QPushButton *stopB = new QPushButton(tr("STOP")); 
         stopB->setShortcut(tr("Alt+S"));
         connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
         hl->addWidget(stopB);
-
-        flgErase= new QCheckBox("Erase",wPlotT);
-        flgErase->setChecked(true);
-        hl->addWidget(flgErase);
 
         hl->addStretch();
 
@@ -2046,20 +2080,19 @@ void MainWindow::initPlotEnz()
     QVBoxLayout *vl=new QVBoxLayout(wPlotEnz);
     PlotterDialog *wEnz = new PlotterDialog(wPlotEnz);
     wPlotEnz->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
-
     wPlotEnz->setWindowTitle(tr("Energy spectrum deformation on z"));
     this->plotterEnz=((PlotterDialog*)wEnz)->plotter();
     vl->addWidget(wEnz);
 
     QHBoxLayout *hl = new QHBoxLayout();
+    QPushButton *bRun = new QPushButton(tr("RUN En(z)")); 
+    connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Enz()));
+    hl->addWidget(bRun);
+
     QPushButton * bsz = new QPushButton("&z scale");	
     connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
     hl->addWidget(bsz);		
     hl->addStretch();
-
-    QPushButton *bRun = new QPushButton(tr("RUN")); 
-    connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Enz()));
-    hl->addWidget(bRun);
 
     vl->addLayout(hl);
 
@@ -2091,6 +2124,14 @@ void MainWindow::initPlotPsix()
         flgScale->setChecked(true);
         hl->addWidget(flgScale);
 
+        flgUx= new QCheckBox("add U(x)",wPlotPsi2);
+        flgUx->setChecked(true);
+        hl->addWidget(flgUx);
+        hl->addStretch();
+
+        flgErase= new QCheckBox("Erase",wPlotPsi2);
+        flgErase->setChecked(true);
+        hl->addWidget(flgErase);
         hl->addStretch();
 
         QPushButton * bsz = new QPushButton("&z scale");	
@@ -2113,13 +2154,17 @@ void MainWindow::initPlotPsix()
             QString sum=QChar(0x2211);
 
             QString psi=QChar(0x03C8);
-            QString Psi=QChar(0x03A8);
+               QString Psi=QChar(0x03A8);
             QString to2=QChar(0x00B2);
             QString psiofx=psi+"(x)";
             QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
 //            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
 
             QHBoxLayout *hl = new QHBoxLayout;
+            QPushButton *bRun = new QPushButton(tr("RUN")); 
+            connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Psi()));
+            hl->addWidget(bRun);
+
             psi_type = new QComboBox(this);
             psi_type->addItem(mod_psiofx);
             psi_type->addItem("real "+psi);
@@ -2128,16 +2173,17 @@ void MainWindow::initPlotPsix()
             hl->addWidget(psi_type);
 
             psix_var = new QComboBox(this);
-            psix_var->addItem(psi+"_n(x,n)");
-            psix_var->addItem(psi+"(x,E)");
-            psix_var->addItem(psiofx);
-            psix_var->addItem(sum+Psi+"_n(x,t)");
+            psix_var->addItem("n");
+            psix_var->addItem("E");
+            psix_var->addItem("--");
+            psix_var->addItem("t");
+//            psix_var->addItem(psi+"_n(x,n)");
+//            psix_var->addItem(psi+"(x,E)");
+//            psix_var->addItem(psiofx);
+//            psix_var->addItem(sum+Psi+"_n(x,t)");
             psix_var->setCurrentIndex(0);
             hl->addWidget(psix_var);
 
-            flgUx= new QCheckBox("add U(x)",wPlotPsi2);
-            flgUx->setChecked(true);
-            hl->addWidget(flgUx);
             hl->addStretch();
      //       vl->addLayout(hl);
       //  }
@@ -2145,9 +2191,6 @@ void MainWindow::initPlotPsix()
             //    QString run=QChar(0x2B55);//(0x25C9);//(0x25BC);
             //   QPushButton *butPsix = new QPushButton("run "+psi);
         //    QHBoxLayout *hl = new QHBoxLayout;
-            QPushButton *bRun = new QPushButton(tr("RUN")); 
-            connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-            hl->addWidget(bRun);
 
             QPushButton *stopB = new QPushButton(tr("STOP")); 
             stopB->setShortcut(tr("Alt+S"));
@@ -2155,10 +2198,6 @@ void MainWindow::initPlotPsix()
             hl->addWidget(stopB);
             vl->addLayout(hl);
 
-            flgErase= new QCheckBox("Erase",wPlotPsi2);
-            flgErase->setChecked(true);
-//            hl->addStretch();
-        hl->addWidget(flgErase);
         }
 
     }
@@ -2194,15 +2233,16 @@ void MainWindow::initPlotPhik()
         hl->addWidget(flgErase);
 
         hl->addStretch();
+        QPushButton *bRun = new QPushButton(tr("RUN |Phi_n(k)|^2")); 
+        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Phi()));
+        hl->addWidget(bRun);
+
         psip_var = new QComboBox(this);
-        psip_var->addItem(tr("Phi_n(k,n)"));
-        psip_var->addItem(tr("sum(Phi_n(k,t))"));
+        psip_var->addItem(tr("n"));
+        psip_var->addItem(tr("t"));
         psip_var->setCurrentIndex(0);
         hl->addWidget(psip_var);
 
-        QPushButton *bRun = new QPushButton(tr("RUN")); 
-        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-        hl->addWidget(bRun);
 
         QPushButton *stopB = new QPushButton(tr("STOP")); 
         stopB->setShortcut(tr("Alt+S"));
@@ -2216,8 +2256,8 @@ void MainWindow::initPlotPhik()
 }
 void MainWindow::initPlotUx() 
 {
-            wPlotUx = new QDialog(this);
-            QVBoxLayout *vl = new QVBoxLayout(wPlotUx);
+    wPlotUx = new QDialog(this);
+    QVBoxLayout *vl = new QVBoxLayout(wPlotUx);
     PlotterDialog *wUx = new PlotterDialog(wPlotUx);
     wPlotUx->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
     this->plotterUx = ((PlotterDialog*)wUx)->plotter();
@@ -2236,61 +2276,76 @@ void MainWindow::initPlotUx()
         flgScale= new QCheckBox("Fixed y-scales",wPlotUx);
         flgScale->setChecked(true);
         hl->addWidget(flgScale);
+
+        flgErase= new QCheckBox("Erase",wPlotUx);
+        flgErase->setChecked(true);
+        hl->addWidget(flgErase);
         hl->addStretch();
-        QPushButton * bsz = new QPushButton("&z scale");	
-        connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-        hl->addWidget(bsz);		
-
-        U_type = new QComboBox(wPlotUx);
-        U_type->addItem(tr("U(x)"));
-        U_type->addItem(tr("U(x,z)"));
-        U_type->setCurrentIndex(0);
-        hl->addWidget(U_type);
-
-        QPushButton *bRun = new QPushButton(tr("Show U")); 
-        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
-        hl->addWidget(bRun);
-
-//        QPushButton *stopB = new QPushButton(tr("STOP")); 
-//        stopB->setShortcut(tr("Alt+S"));
-//        connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
-//        hl->addWidget(stopB);
-//        hl->addStretch();
         vl->addLayout(hl);
 
     }
 
-            {
- //           QGroupBox *gb = new QGroupBox(tr("Bound States: E<0"));
-//            QVBoxLayout *vl = new QVBoxLayout;
-            QHBoxLayout *hl = new QHBoxLayout;
-            En_type = new QComboBox(this);
-            En_type->addItem(tr("E_n & Psi_n"));
-            En_type->addItem(tr("N(E)-step"));
-            En_type->addItem(tr("B_{N+1}(E)"));
-            En_type->addItem(tr("En(z)"));
-            En_type->setCurrentIndex(0);
-            hl->addWidget(En_type);
+    {
+        //           QGroupBox *gb = new QGroupBox(tr("Bound States: E<0"));
+        //            QVBoxLayout *vl = new QVBoxLayout;
+        QHBoxLayout *hl = new QHBoxLayout;
 
-            QPushButton *butEn = new QPushButton(tr("RUN")); 
-            connect(butEn, SIGNAL(clicked()), this, SLOT(Bound_States()));
-            hl->addWidget(butEn);
+        QPushButton *bRun = new QPushButton(tr("Show U(x)")); 
+        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
+        hl->addWidget(bRun);
 
-            flgErase= new QCheckBox("Erase",wPlotUx);
-            flgErase->setChecked(true);
-            hl->addWidget(flgErase);
+        U_type = new QComboBox(wPlotUx);
+        U_type->addItem(tr("--"));
+        U_type->addItem(tr("z"));
+        U_type->setCurrentIndex(0);
+        hl->addWidget(U_type);
 
-            hl->addStretch();
-            vl->addLayout(hl);
+//        if(this->U_type->QComboBox::currentIndex()==1)
+//        {
+            QPushButton * bsz = new QPushButton("&z scale");	
+            connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
+            hl->addWidget(bsz);
+//            if(this->U_type->QComboBox::currentIndex()==0)bsz->setVisible(false);
+//            else bsz->setVisible(true);
+//        }
+        hl->addStretch();
 
-        }
+        butEn = new QPushButton(tr("RUN")); 
+        connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
+        hl->addWidget(butEn);
 
-//        gb->setLayout(vl);
+        En_type = new QComboBox(this);
+        En_type->addItem(tr("E_n & Psi_n"));
+        En_type->addItem(tr("N(E)-step"));
+        En_type->addItem(tr("B_{N+1}(E)"));
+        En_type->addItem(tr("En(z)"));
+        En_type->setCurrentIndex(0);
+        hl->addWidget(En_type);
+
+
+        hl->addStretch();
+        vl->addLayout(hl);
+
+    }
+
+    //        gb->setLayout(vl);
 
 }
+void MainWindow::slotBound_States()
+{
+    butEn->setText("STOP");
+    disconnect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
+    connect(butEn, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    Bound_States();
+    butEn->setText("RUN");
+    disconnect(butEn, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
+
+}
+
 static void setSomeInitialU(PhysicalModel *m)
 {
-    UAsMW u = { 2, 5, 1, -10, 0 , 0};
+    UAsMW u = { 1, 5, 1, -10, 0 , 0};
     m->setUAsMW( u );
 }
 

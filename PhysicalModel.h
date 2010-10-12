@@ -46,6 +46,7 @@ public:
     int upper() const { return u; }
     void swap(Vector<T>& a) { v.swap(a.v); } 
     T& operator()(int i) { return v[i - l]; }
+    T getAt(int i) const { return v[i - l]; }
     void zero() { std::fill(v.begin(), v.end(), T(0)); }
     int operator != (const Vector<T>& other) const
     {
@@ -56,7 +57,7 @@ public:
         return 0;
     }
 private:
-    std::vector<T> v;
+    QVector<T> v;
     int l, u;
 };
 
@@ -129,16 +130,28 @@ public slots:
 
 private:
     int N;	 // actual number of inner intervals
-public:
     Vector<double> d;      /* [u_width]  0..N widths */
     Vector<double> m;      /* [u_mass]   0..N+1 masses */
+    //! Heterostructural potential
+    Vector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
+    //! U bias over whole structure
+    double Ub;
+
+    bool need_build_U;
+
+public:
+    double get_Ui(int n) const { return Ui.getAt(n); }
+    void   set_Ui(int n, double v);
+    double get_d(int n) const { return d.getAt(n); }
+    void   set_d(int n, double v);
+    double get_m(int n) const { return m.getAt(n); }
+    void   set_m(int n, double v);
+    void set_Ui_d_m(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m);
+
 
     //! Potential including bias
     Vector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
     Vector<double> U_d;
-
-    //! Heterostructural potential
-    Vector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
 
     double E0;
     Vector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
@@ -150,7 +163,6 @@ public:
     std::vector<int> NumberofZero;
     complex psi;
     complex phi;
-    double Ub; // U bias over whole structure
     double	  x;	  /* [u_width] given point */
     double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
     double	  Time;

@@ -204,7 +204,9 @@ void Model::build_RT()
 -------------------------------------------------*/
 void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
-//    fix(N,0,MAXN);
+    if (! need_build_U)
+        return;
+
     U(0) = Ui(0);
     
     double width=0; 
@@ -228,7 +230,10 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     }
     U(N+1) = Ui(N+1) + this->Ub;
 */
+    need_build_U = false;
+    emit(signalPotentialChanged());
 }
+
 void PhysicalModel::XUscales() /* input:Ub,Ui --- result:U */
 {
     double x,y;
@@ -600,5 +605,66 @@ void PhysicalModel::slotPotentialChanged()
     if (saveEbound != Ebound)
     {
         emit(signalEboundChanged());
+    }
+}
+
+void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
+                               const QVector<double>& _d,
+                               const QVector<double>& _m)
+{
+    bool changed = false;
+
+    int _N = _Ui.size() - 2;
+    if (_N != Ui.size() - 2)
+    {
+        changed = true;
+        this->set_N(_N);
+    }
+    for (int n = 0; n <= _N+1; ++n)
+    {
+        if (Ui(n) != _Ui[n])
+        {
+            Ui(n) = _Ui[n];
+            changed = true;
+        }
+        if (m(n) != _m[n])
+        {
+            m(n) = _m[n];
+            changed = true;
+        }
+        if (0 < n && n <= N && d(n) != _d[n])
+        {
+            d(n) = _d[n];
+            changed = true;
+        }
+    }
+    if (changed)
+    {
+        need_build_U = true;
+    }
+}
+
+void PhysicalModel::set_d(int n, double v)
+{
+    if (d(n) != v)
+    {
+        d(n) = v;
+        need_build_U = true;
+    }
+}
+void PhysicalModel::set_Ui(int n, double v)
+{
+    if (Ui(n) != v)
+    {
+        Ui(n) = v;
+        need_build_U = true;
+    }
+}
+void PhysicalModel::set_m(int n, double v)
+{
+    if (m(n) != v)
+    {
+        m(n) = v;
+        need_build_U = true;
     }
 }
