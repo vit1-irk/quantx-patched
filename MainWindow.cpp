@@ -2161,9 +2161,9 @@ void MainWindow::initPlotPsix()
 //            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
 
             QHBoxLayout *hl = new QHBoxLayout;
-            QPushButton *bRun = new QPushButton(tr("RUN")); 
-            connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-            hl->addWidget(bRun);
+            bRunPsi = new QPushButton(tr("RUN")); 
+            connect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
+            hl->addWidget(bRunPsi);
 
             psi_type = new QComboBox(this);
             psi_type->addItem(mod_psiofx);
@@ -2192,15 +2192,21 @@ void MainWindow::initPlotPsix()
             //   QPushButton *butPsix = new QPushButton("run "+psi);
         //    QHBoxLayout *hl = new QHBoxLayout;
 
-            QPushButton *stopB = new QPushButton(tr("STOP")); 
-            stopB->setShortcut(tr("Alt+S"));
-            connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
-            hl->addWidget(stopB);
             vl->addLayout(hl);
 
         }
 
     }
+}
+void MainWindow::slotCompute_Psi()
+{
+    bRunPsi->setText("STOP");
+    disconnect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
+    connect(bRunPsi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    compute_Psi();
+    bRunPsi->setText("RUN");
+    disconnect(bRunPsi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    connect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
 }
 
 void MainWindow::initPlotPhik() 
@@ -2233,9 +2239,9 @@ void MainWindow::initPlotPhik()
         hl->addWidget(flgErase);
 
         hl->addStretch();
-        QPushButton *bRun = new QPushButton(tr("RUN |Phi_n(k)|^2")); 
-        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-        hl->addWidget(bRun);
+        bRunPhi = new QPushButton("RUN |Phi(k)|^2"); 
+        connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
+        hl->addWidget(bRunPhi);
 
         psip_var = new QComboBox(this);
         psip_var->addItem(tr("n"));
@@ -2244,16 +2250,22 @@ void MainWindow::initPlotPhik()
         hl->addWidget(psip_var);
 
 
-        QPushButton *stopB = new QPushButton(tr("STOP")); 
-        stopB->setShortcut(tr("Alt+S"));
-        connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
-        hl->addWidget(stopB);
-
 
         vl->addLayout(hl);
     }
 
 }
+void MainWindow::slotCompute_Phi()
+{
+    bRunPhi->setText("STOP |Phi(k)|^2");
+    disconnect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
+    connect(bRunPhi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    compute_Phi();
+    bRunPhi->setText("RUN |Phi(k)|^2");
+    disconnect(bRunPhi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
+}
+
 void MainWindow::initPlotUx() 
 {
     wPlotUx = new QDialog(this);

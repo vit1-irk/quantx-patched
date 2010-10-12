@@ -44,6 +44,8 @@ private slots:
     void updateMouseMovedTo(QPointF);
 //    void createToolBars();
     void slotBound_States();
+    void slotCompute_Psi();
+    void slotCompute_Phi();
     void slotIntN();
     void slotIntE();
 //    void slotIntT();
@@ -155,6 +157,8 @@ private:
     QRadioButton *rad1,*rad2;
     QButtonGroup *bgR;
     QPushButton *butEn;
+    QPushButton *bRunPsi;
+    QPushButton *bRunPhi;
     int numOfCurveR,numOfCurveT,numOfCurveNE, numOfCurve, numOfCurveUx, numOfCurveEn;
     Plotter *plotterUx1;
     Plotter *plotterUx;
