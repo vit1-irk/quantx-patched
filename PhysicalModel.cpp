@@ -207,7 +207,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     if (! need_build_U)
         return;
 
-    U(0) = Ui(0);
+    U(0) = Ui(0)+this->Ub;
     
     double width=0; 
     for (int n=1; n <= this->N; n++) 
@@ -230,7 +230,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     }
     U(N+1) = Ui(N+1) + this->Ub;
 */
-    need_build_U = false;
+    need_build_U = false;///!!!!!!!!!!!
     emit(signalPotentialChanged());
 }
 
@@ -571,6 +571,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
     }
     this->Ui(this->N+1) = 0;
     this->m(this->N+1) = 0.5;
+    need_build_U = true;
     this->build_U(); 
     //emit(signalPotentialChanged());
 }
@@ -608,13 +609,19 @@ void PhysicalModel::slotPotentialChanged()
     }
 }
 
-void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
+void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
                                const QVector<double>& _d,
-                               const QVector<double>& _m)
+                               const QVector<double>& _m, 
+                               const double& _Ub)
 {
     bool changed = false;
 
     int _N = _Ui.size() - 2;
+    if(_Ub!=Ub)
+    {
+    Ub=_Ub;
+    changed=true;
+    }
     if (_N != Ui.size() - 2)
     {
         changed = true;
@@ -638,6 +645,7 @@ void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
             changed = true;
         }
     }
+    
     if (changed)
     {
         need_build_U = true;
@@ -665,6 +673,14 @@ void PhysicalModel::set_m(int n, double v)
     if (m(n) != v)
     {
         m(n) = v;
+        need_build_U = true;
+    }
+}
+void PhysicalModel::set_Ub(double v)
+{
+    if (Ub != v)
+    {
+        Ub = v;
         need_build_U = true;
     }
 }

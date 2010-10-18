@@ -140,13 +140,15 @@ private:
     bool need_build_U;
 
 public:
+    double get_Ub() const { return Ub; }
+    void set_Ub(double _Ub);
     double get_Ui(int n) const { return Ui.getAt(n); }
     void   set_Ui(int n, double v);
     double get_d(int n) const { return d.getAt(n); }
     void   set_d(int n, double v);
     double get_m(int n) const { return m.getAt(n); }
     void   set_m(int n, double v);
-    void set_Ui_d_m(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m);
+    void set_Ui_d_m_Ub(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m, const double& Ub);
 
 
     //! Potential including bias

@@ -46,6 +46,7 @@ private slots:
     void slotBound_States();
     void slotCompute_Psi();
     void slotCompute_Phi();
+    void slotCompute_D();
     void slotIntN();
     void slotIntE();
 //    void slotIntT();
@@ -74,11 +75,13 @@ private slots:
     void compute_PsiXatE();
     void compute_Psin();
     void compute_Psi();
+    void compute_Psi_nz();
+    void compute_Psi_z();
     void compute_PsixE();
     void compute_PhiofP();
     void compute_Phi();
     void compute_NE();
-    void compute_T();
+    void compute_D();
     void compute_TE();
     void compute_Tz();
     WavePacket buildWPpE();
@@ -116,6 +119,7 @@ private:
     void initTable();
     void initTableEn();
     void updateValues();
+    void setScalesPsi();
 //    void initGraphicsView();
 //----------Kostia
     void resizeEvent(QResizeEvent * event);
@@ -141,9 +145,9 @@ private:
     QComboBox *T_type;
 //     std::vector<double> wpweightEi;
     MyParamI Nwb, nmaxLevel, nminLevel, nLevel,nmaxWP, nminWP,hnWP; 
-    MyParamD E0,time,Ua,aa,Ub,bb,xmin,xmax,Ubias,Emin,Emax,hE,Umin,Umax, kmax,hk;
+    MyParamD E0,time,Ua,aa,Ub,bb,xmin,xmax,Emin,Emax,hE,Umin,Umax, kmax,hk;
     MyParamD psixmin,psixmax,hx,zz,zmin,zmax,hz;
-    MyParamD Ubiasmin,Ubiasmax,hUbias, wpE_lo, wpE_hi, wpN;
+    MyParamD wpE_lo, wpE_hi, wpN;
     MyParamD Psi2, Refl,Trans,totalRT,tmin, tmax,htime;
 //    MyParamD Psi2, psi_phasehth, psit_real,psit_imag;
     QCheckBox *flgScale, *flgErase, *flgUx, *flgEraseT;
@@ -152,15 +156,19 @@ private:
     Vector<double> U2; //!< Final potential values for z-animations
     Vector<double> d1; //!< Initial potential step widths for z-animations
     Vector<double> d2; //!< Final potential step widths for z-animations
-
+    double Ubias; 
+    double Ub1,Ub2; 
     QGroupBox *grrb;
     QRadioButton *rad1,*rad2;
     QButtonGroup *bgR;
     QPushButton *butEn;
     QPushButton *bRunPsi;
     QPushButton *bRunPhi;
+    QPushButton *bRunD;
+    int countW;
     int numOfCurveR,numOfCurveT,numOfCurveNE, numOfCurve, numOfCurveUx, numOfCurveEn;
     Plotter *plotterUx1;
+    Plotter *plotterAddUx;
     Plotter *plotterUx;
     Plotter *plotNE;
     Plotter *plotterT;
@@ -184,7 +192,9 @@ private:
     QLabel *dispT; // Display of Ttot
     QLabel *dispR; // Display of Rtot
     QLabel *dispRT; // Display of Rtot+Ttot
-    QDialog *winPlotNE, *wPlotPsi2, *wPlotPhi, *wPlotUx, *wPlotEnz;
+    QDialog *winPlotNE, *wPlotPsi2, *wPlotPhi, *wPlotEnz;
+//    QDockWidget *wPlotUx;
+    QDialog *wPlotUx;
     QWidget *wPlotT;
 //    QDialog *wPlotT;
 //    QWidget *winTableUx;

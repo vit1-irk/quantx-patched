@@ -404,11 +404,6 @@ void Plotter::drawGrid(QPainter *painter)
             Qt::AlignRight | Qt::AlignVCenter,
             QString::number(label));
     } 
-//       const QString striptx="Potential U(x)"; 
-/*       painter->setPen(light);
-       int x = rect.left() + (rect.width()-1)/2.3;
-       int y = rect.bottom()+0.6*Margin;
-       painter->drawText(x, y, captionx);*/
     painter->drawRect(rect);
 }
 

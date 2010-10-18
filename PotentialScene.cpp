@@ -11,7 +11,7 @@ PotentialScene::PotentialScene(PhysicalModel *_model, QObject * parent)
 {
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(redrawU()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(redrawEn()));
-    //connect(this,SIGNAL(draggableLineMoved()),this,SLOT(updatePhysicalModel()));
+    connect(this,SIGNAL(draggableLineMoved()),this,SLOT(updatePhysicalModel()));
     redrawU();
     redrawEn();
 }
@@ -54,7 +54,7 @@ void PotentialScene::redrawU()
     HDraggableLine *lasth = new HDraggableLine(QPointF(-1000,model->get_Ui(0)), 0);
     linesU.push_back(lasth);
     addItem(lasth);
-    VDraggableLine *lastv = 0;
+     VDraggableLine *lastv=0;
     for (int i = 1; i <= inner_N; ++i)
     {
         lastv = new VDraggableLine( lasth->rightEnd(), model->get_Ui(i));

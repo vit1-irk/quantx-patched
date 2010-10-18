@@ -446,6 +446,7 @@ void MainWindow::slotU1()
     }
     U1(N+1) = model->get_Ui(N+1);
     U1(0) = model->get_Ui(0);
+    this->Ub1=model->get_Ub();
     d1(0) = 0;
 }
 void MainWindow::slotU2()
@@ -459,6 +460,7 @@ void MainWindow::slotU2()
         d2(n) = model->get_d(n);
     }
     U2(N+1) = model->get_Ui(N+1);
+    this->Ub2=model->get_Ub();
     U2(0) = model->get_Ui(0);
     d2(0) = 0;
 }
@@ -480,12 +482,13 @@ void MainWindow::Uxz(double z)
         {
             Ui[n] = U1(n) + z*(U2(n)-U1(n));
             d[n] = d1(n) + z*(d2(n)-d1(n));
+            this->Ubias=this->Ub1+z*(this->Ub2-this->Ub1);
             m[n] = 0.5;
         }
         Ui[N+1] = 0;
         m[N+1] = 0.5;
         
-        model->set_Ui_d_m(Ui,d,m);
+        model->set_Ui_d_m_Ub(Ui,d,m,this->Ubias);
         model->build_U();
     }
 }
@@ -620,7 +623,7 @@ void MainWindow::initControlDockWindow()
                     vl->addWidget(butPhi);
 
                     QPushButton *butT = new QPushButton(tr("Transmission &D")); 
-                    connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
+                    connect(butT, SIGNAL(clicked()), this, SLOT(compute_D()));
                     vl->addWidget(butT);
           //          hl->addStretch();
           //          vl->addLayout(hl);
@@ -886,6 +889,7 @@ mainLayout->addLayout(leftLayout);
 mainLayout->addWidget(control);
 QWidget * widget = new QWidget;
 widget->setLayout(mainLayout);
+widget->raise();
 setCentralWidget(widget);
 
 }
@@ -915,54 +919,43 @@ void MainWindow::updateValues()
     this->E0.updateDisplay();
     this->zz.updateDisplay();
     this->time.updateDisplay();
-    this->Ubias.updateDisplay();
+//    this->Ubias.updateDisplay();
     this->nLevel.updateDisplay();
 
     QString s;
     double E=this->E0;
     s.sprintf("Energy E: %.3lg",E);
-//    E = s.toDouble();
     this->dispEnergy->setText(s);
     this->dispEnergy->update();
 
     double z=this->zz;
     s.sprintf("z: %.3lg",z);
-//    z = s.toDouble();
     this->dispZ->setText(s);
     this->dispZ->update();
 
     double t=this->time;
     s.sprintf("Time: %.3lg",t);
-//    z = s.toDouble();
     this->dispTime->setText(s);
     this->dispTime->update();
 
     double Ub=this->Ubias;
     s.sprintf("Bias: %.3lg",Ub);
-//    z = s.toDouble();
     this->dispBias->setText(s);
     this->dispBias->update();
-
+/*
     if(model->E0-model->U(model->getN() + 1)>0) 
     {
-//    double R0=model->RR; 
     double T0=model->TT;
     double RTtotal=model->totalRT;
-/*    s.sprintf("R: %.3lg",R0);
-    z = s.toDouble();
-    this->dispR->setText(s);
-    this->dispR->update();
-*/
     s.sprintf("T: %.3lg",T0);
-//    z = s.toDouble();
     this->dispT->setText(s);
     this->dispT->update();
 
     s.sprintf("(R+T)tot: %.3lg",RTtotal);
-//    z = s.toDouble();
     this->dispRT->setText(s);
     this->dispRT->update();
     }
+*/
 }
 void MainWindow::initStatusBar()
 {
@@ -1070,19 +1063,16 @@ void MainWindow::compute_NE()
 //    this->plotNE->setCurveData(this->numOfCurveNE,this->dataNE);
 //    this->numOfCurveNE++;
 }
-void MainWindow::compute_T()
+void MainWindow::compute_D()
 {
     wPlotT->show();
     wPlotT->raise();
-//    plotterT->scaleFixed=false;
     model->build_U();
     if(this->Emin<0) this->Emin=0.01;
     if(this->Emax<0) this->Emax=20.;
     if(this->E0<0) this->E0=0.01;
     
-    bool flgEr=flgEraseT->isChecked();
-    if(flgEr) 
-//    if(this->flgErase->isChecked()) 
+    if(this->flgEraseT->isChecked()) 
     {
         plotterT->clearAll();
         this->numOfCurveT=1;
@@ -1125,8 +1115,6 @@ void MainWindow::compute_TE()
     }
     double Emn=this->Emin;
     double Emx=this->Emax;
-//    if(this->E0<0&&this->hE>0) this->E0=Emn;
-//    if(this->E0<0&&this->hE<0) this->E0=Emx;
     if(this->E0>=Emx&&this->hE>0) this->E0=Emn;
     if(this->E0<=Emn&&this->hE<0) this->E0=Emx;
     double EE=this->E0;
@@ -1147,6 +1135,7 @@ void MainWindow::compute_TE()
     }
     for(double E=EE; E>=Emn&&E<=Emx; E+=this->hE)
     {
+//        if (getBreakStatus(0)) return;
         this->E0=E;
         compute();
         double y=model->TT;
@@ -1173,8 +1162,6 @@ void MainWindow::compute_Tz()
     if(this->zmax<0) this->zmax=1.;
     double zmn=this->zmin;
     double zmx=this->zmax;
-//    if(this->zz<0&&this->hz>0) this->zz=zmn;
-//    if(this->zz<0&&this->hz<0) this->zz=zmx;
     if(this->zz>=this->zmax&&this->hE>0) this->zz=zmn;
     if(this->zz<=this->zmin&&this->hz<0) this->zz=zmx;
     double z0=this->zz;
@@ -1193,7 +1180,7 @@ void MainWindow::compute_Tz()
     }
     for(double z=z0; z>=zmn&&z<=zmx; z+=this->hz)
     {
-
+//        if (getBreakStatus(0)) return;
         this->zz=z;
         Uxz(z);
         compute();
@@ -1290,7 +1277,7 @@ void MainWindow::compute_BE()
     this->numOfCurveUx++;
 
 }
-static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
+/*static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
 {
     const int N = model->getN();
     std::vector<double> dataUx;
@@ -1333,6 +1320,35 @@ static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, 
     else x =xmax;
     dataUx.push_back(x);
     dataUx.push_back(yscale*model->U(N+1));
+    plotter->setCurveData(0,dataUx);
+}
+*/
+static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter)
+{
+    const int N = model->getN();
+    std::vector<double> dataUx;
+    double x;
+    dataUx.push_back(xmin);
+    dataUx.push_back(model->U(0));
+    x=0;
+    dataUx.push_back(0);
+    dataUx.push_back(model->U(0));
+    for(int n=1; n <= N; n++)
+    {
+        double y=model->U(n);
+        dataUx.push_back(x);
+        dataUx.push_back(y);
+        x += model->get_d(n);
+        dataUx.push_back(x);
+        dataUx.push_back(y);
+    }
+    dataUx.push_back(x);
+    dataUx.push_back(model->U(N+1));
+    if(xmax>x)
+    { 
+    dataUx.push_back(xmax);
+    dataUx.push_back(model->U(N+1));
+    }
     plotter->setCurveData(0,dataUx);
 }
 
@@ -1387,6 +1403,7 @@ void MainWindow::compute_Uxz()
         Uxz(z);
         showU();
     }
+    
 }
 
 void MainWindow::compute_Enz()
@@ -1421,9 +1438,50 @@ void MainWindow::compute_Enz()
             updateCurves(cs, model->Ebound, z);
             myrepaint(plotterEnz,cs);
             compute_Psin(); 
+            compute_Phi_n();
             nmxold=nmx;
         }
 }
+void MainWindow::compute_Psi_nz()
+{   
+        int nmxold=-1;
+        for(double z=this->zmin;z<=this->zmax; z+=this->hz)
+        { 
+            if (getBreakStatus(0)) 
+                return;
+            Uxz(z);
+            model->findBoundStates();
+            int nmx=this->nmaxLevel;
+            int nmn=this->nminLevel;
+            if(nmx>=model->Ebound.size()) nmx=model->Ebound.size()-1;
+            if(nmn<0) nmn=0;
+            if(nmxold==-1) 
+            {
+                nmxold=nmx;
+                plotterPsi2x->clearAll();
+            }
+            if(nmx<nmxold)
+            {
+                for(int id=nmx+2; id<=nmxold+2; id++)
+                    this->plotterPsi2x->clearCurve(id);
+            }
+
+            compute_Psin(); 
+            nmxold=nmx;
+        }
+}
+void MainWindow::compute_Psi_z()
+{   
+    model->E0 = this->E0;
+    for(double z=this->zmin;z<=this->zmax; z+=this->hz)
+    { 
+        if (getBreakStatus(0)) 
+            return;
+        Uxz(z);
+        compute_PsiXatE();
+    }
+}
+
 void MainWindow::compute_Phi()
 {       
 
@@ -1451,7 +1509,7 @@ void MainWindow::compute_Phi_n()
     plotterPhi->scaleFixed=false;
     if(this->flgErase->isChecked()) 
     {
-        plotterPhi->clearAll();
+//         plotterPhi->clearAll();
         this->numOfCurve=0;
     }
     else {
@@ -1554,72 +1612,49 @@ void MainWindow::compute_Psi()
             this->compute_PsiXatE();
             break;
         case 3: 
+            this->compute_Psi_z();
+            break;
+        case 4: 
+            this->compute_Psi_nz();
+            break;
+        case 5: 
             this->WavePacketXoft();
             break;
         default:
             break; 
         }
 }
-/*static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
+void MainWindow::setScalesPsi()
 {
-    std::vector<double> dataUx;
-    double x,y;
-    x=xmin;
-    int nmin=0;
-    int nmax=model->N;
-    if(nmin==0) 
+    PlotSettings ps,psUx;
+    bool flg=flgScale->isChecked();
+    plotterPsi2x->scaleFixed=flg;
+    if(flg)
     {
-        y=model->Ui(0);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-        dataUx.push_back(0.);
-        dataUx.push_back(y);
-        x=0;
+        ps.minX = this->xmin;
+        ps.maxX = this->xmax;
+        psUx.maxX = this->xmax;
+        psUx.minX = this->xmin;
+        ps.minY = psixmin;
+        ps.maxY = psixmax;
+        psUx.minY = this->Umin;
+        psUx.maxY = this->Umax;
+        ps.numYTicks = 5;
+        ps.numXTicks = 5;
+        plotterAddUx->setPlotSettings(psUx);
+        plotterPsi2x->setPlotSettings(ps);
     }
-    else 
-    {
-        y=yscale*model->U(nmin+1);
-        x=0;
-        for(int n=1;n<=nmin+1;n++) 
-            x +=model->d(n);
-        dataUx.push_back(xmin);
-        dataUx.push_back(y);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-    }
-    for(int n=nmin+1;n<=nmax;n++)
-    {
-        double y=yscale*model->U(n);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-        x +=model->d(n);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-    }
-    dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(model->N+1));
-    if(xmax<x) xmax=x; 
-    else x =xmax;
-    dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(model->N+1));
-    plotter->setCurveData(0,dataUx);
+    addUx(this->xmin, this->xmax, model, plotterAddUx);
+
 }
-*/
 void MainWindow::compute_Psin()
 {
     const int N = model->getN();
     wPlotPsi2->show();
     wPlotPsi2->raise();
     std::vector<double> data;
-/*        if(this->flgErase->isChecked()) 
-    {
-        plotterPsi2x->clearAll();
-        this->numOfCurve=0;
-    }
-    else this->numOfCurve++;
-    */
-//    model->XUscales();
-    PlotSettings ps;
+    setScalesPsi();
+/*    PlotSettings ps,psUx;
     bool flg=flgScale->isChecked();
     plotterPsi2x->scaleFixed=flg;
     if(flg)
@@ -1630,7 +1665,6 @@ void MainWindow::compute_Psin()
     ps.maxY = psixmax;
     ps.numYTicks = 5;
     ps.numXTicks = 5;
-//    ps.adjust();
     plotterPsi2x->setPlotSettings(ps);
     }
         if(this->flgUx->isChecked()) 
@@ -1640,10 +1674,10 @@ void MainWindow::compute_Psin()
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
+    addUx(this->xmin, this->xmax, model, plotterAddUx);
         }
+        */
     double dx=this->hx;
-//    double dx=(this->xmax-this->xmin)/300.;
     int ii=psi_type->QComboBox::currentIndex();
     int numCurve=2;
     int nmx=this->nmaxLevel;
@@ -1688,7 +1722,7 @@ void MainWindow::compute_PsixE()
     wPlotPsi2->show();
     wPlotPsi2->raise();
     double y;
-        if(this->flgErase->isChecked()) 
+    if(this->flgErase->isChecked()) 
     {
         plotterPsi2x->clearAll();
         this->numOfCurve=1;
@@ -1696,100 +1730,37 @@ void MainWindow::compute_PsixE()
     else this->numOfCurve++;
     int ii=psi_type->QComboBox::currentIndex();
     std::vector<double> data;
-//    plotterPsi2x->scaleFixed=this->FlagScale;
-    PlotSettings ps;
+    setScalesPsi();
+/*    PlotSettings ps;
     bool flg=flgScale->isChecked();
     plotterPsi2x->scaleFixed=flg;
     if(flg)
     {
-    ps.minX = this->xmin;
-    ps.maxX = this->xmax;
-    ps.minY = psixmin;
-    ps.maxY = psixmax;
-    ps.numYTicks = 5;
-    ps.numXTicks = 5;
-    plotterPsi2x->setPlotSettings(ps);
+        ps.minX = this->xmin;
+        ps.maxX = this->xmax;
+        ps.minY = psixmin;
+        ps.maxY = psixmax;
+        ps.numYTicks = 5;
+        ps.numXTicks = 5;
+        plotterPsi2x->setPlotSettings(ps);
     }
     double ymax=abs(this->Umin);
     if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
-//    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-    //    if(this->Emin<0) model->Xmax=model->Xmax*1.1/1.3;
-//    double dx=(this->xmax-this->xmin)/2000.;
+    */
     double dx=this->hx;//(this->xmax-model->Xmin)/2000.;
-//    this->plotterPsi2x->clearAll();
-//    for(double E=this->Emin; E<=this->Emax; E+=this->hE)
     double Emn=this->Emin;
     double Emx=this->Emax;
     if(this->E0>=Emx&&this->hE>0) this->E0=Emn;
     if(this->E0<=Emn&&this->hE<0) this->E0=Emx;
     for(double E=this->E0; E>=this->Emin&&E<=this->Emax; E+=this->hE)
     {
-    this->E0=E;
+        this->E0=E;
         if(getBreakStatus(0)) 
             return;
-    compute();
-//    this->plotterPsi2x->clearCurve(2);
-    data.clear();
-    for(double x=this->xmin; x<=this->xmax; x+=dx)
-//    for(double x=model->Xmin; x<=model->Xmax; x+=dx)
-    {
-        model->x=x;
-        model->build_Psi();
-        switch(ii)
-        {
-        case 0: 
-            y=model->Psi2;
-            break; 
-        case 1: 
-            y=model->psi_real;
-            break;
-        case 2: 
-            y=model->psi_imag;
-            break;
-        default:
-            break; 
-        }
-        data.push_back(x);
-        data.push_back(y);
-    }
-            if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-    this->plotterPsi2x->setCurveData(this->numOfCurve,data);
-    }
-    this->E0=this->E0+this->hE;
-    }
-/*
-
- /*   void MainWindow::compute_Psin()
-{
-    wPlotPsi2->show();
-    wPlotPsi2->raise();
-    std::vector<double> data;
-//    model->XUscales();
-    double ymax=abs(this->Umin);
-    if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-    if(ymax==0) ymax=1;
-    double scaleU=psixmax/ymax;
-    if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-//  addUx(model, plotterPsi2x);
-//    double dx=(model->Xmax-model->Xmin)/300.;
-    double dx=(this->xmax-this->xmin)/300.;
-    int ii=psi_type->QComboBox::currentIndex();
-    int numCurve=2;
-    int nmx=this->nmaxLevel;
-    int nmn=this->nminLevel;
-    if(nmx>=model->Ebound.size()) nmx=model->Ebound.size()-1;
-    if(nmn<0) nmn=0;
-    double x,y;
-    for(int n=nmn;n<=nmx; n++)
-    {
-        double E=model->Ebound[n];
-        this->E0=E;
         compute();
-        model->b(model->N+1)=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
@@ -1799,7 +1770,7 @@ void MainWindow::compute_PsixE()
             {
             case 0: 
                 y=model->Psi2;
-                break;
+                break; 
             case 1: 
                 y=model->psi_real;
                 break;
@@ -1812,64 +1783,56 @@ void MainWindow::compute_PsixE()
             data.push_back(x);
             data.push_back(y);
         }
-        this->plotterPsi2x->setCurveData(numCurve,data);
-        numCurve++;
+//        if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, scaleU, model, plotterAddUx);
+//        if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, model, plotterPsi2x);
+        this->plotterPsi2x->setCurveData(this->numOfCurve,data);
     }
+    this->numOfCurve++;
+    this->E0=this->E0+this->hE;
 }
-*/
 void MainWindow::compute_PsiXatE()
 {
     wPlotPsi2->show();
     wPlotPsi2->raise();
     std::vector<double> data;
     std::vector<double> dataUx;
-        if(this->flgErase->isChecked()) 
+    if(this->flgErase->isChecked()) 
     {
         plotterPsi2x->clearAll();
         this->numOfCurve=1;
     }
     else this->numOfCurve++;
-//    data.clear(); ??????????
+    setScalesPsi();
+    /*
     PlotSettings ps;
     bool flg=flgScale->isChecked();
     plotterPsi2x->scaleFixed=flg;
     if(flg)
     {
-    ps.minX = this->xmin;
-    ps.maxX = this->xmax;
-    ps.minY = psixmin;
-    ps.maxY = psixmax;
-    ps.numYTicks = 5;
-    ps.numXTicks = 5;
-//    ps.adjust();
-    plotterPsi2x->setPlotSettings(ps);
+        ps.minX = this->xmin;
+        ps.maxX = this->xmax;
+        ps.minY = psixmin;
+        ps.maxY = psixmax;
+        ps.numYTicks = 5;
+        ps.numXTicks = 5;
+        plotterPsi2x->setPlotSettings(ps);
     }
-            if(this->flgUx->isChecked()) 
+    if(this->flgUx->isChecked()) 
     {
-    double ymax=abs(this->Umin);
-    if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-    if(ymax==0) ymax=1;
-    double scaleU=psixmax/ymax;
-    if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-            }
+        double ymax=abs(this->Umin);
+        if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
+        if(ymax==0) ymax=1;
+        double scaleU=psixmax/ymax;
+        if(scaleU==0) scaleU=0.05;
+        addUx(this->xmin, this->xmax, model, plotterPsi2x);
+    }
+    */
     double y;
     double dx=this->hx;//(this->xmax-this->xmin)/300.;
-//    double dx=(this->xmax-this->xmin)/300.;
-//    if(dx>this->hx) dx=this->hx;
     int ii=psi_type->QComboBox::currentIndex();
-//    int ivar=psix_var->QComboBox::currentIndex();
-//    double E=model->Ebound[this->nLevel];
-//    this->E0=E;
     model->E0=this->E0;
     compute();
-//    int NZ=model->zeroPsi();
-//    int NL=model->findNumberOfLevels(this->E0);
-//     int Nx=0;
-//    double yRold=0.1;
-//    model->b(model->N+1)=0;
     for(double x=this->xmin; x<=this->xmax; x+=dx)
-//    for(double x=model->Xmin; x<=model->Xmax; x+=dx)
     {
         model->x=x;
         model->build_Psi();
@@ -1887,17 +1850,6 @@ void MainWindow::compute_PsiXatE()
         default:
             break; 
         } 
-/*        if(ivar==2)
-        {
-            double yR=model->psi_real;
-            if(yR>0&&yRold<0||yR<0&&yRold>0) Nx=Nx+1;
-            yRold=yR;
-            if(Nx>NL-1)
-            {
-                y=0;
-            }
-        }
-*/
         data.push_back(x);
         data.push_back(y);
     }
@@ -1924,24 +1876,8 @@ void MainWindow::compute_PhiofP()
         data.push_back(y);
     }
     this->plotterPhi->setCurveData(this->numOfCurve,data);
-//    this->numOfCurve++;
 }
 
-/*void MainWindow::initPlotNofE() 
-{
-    winPlotNE = new QDialog(this);
-//    winPlotNE->setFocus();
-    QVBoxLayout *layout=new QVBoxLayout(winPlotNE);
-    QLabel *labelNE = new QLabel("Number of levels on energy E");
-    labelNE->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelNE->setAlignment(Qt::AlignCenter);
-    labelNE->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotNE= new Plotter(winPlotNE);
-    this->plotNE->setCurveData(1, this->dataNE);
-    layout->addWidget(this->plotNE);
-    layout->addWidget(labelNE);
-}
-*/
 void MainWindow::initPlotNofE() 
 {
     winPlotNE = new QDialog(this);
@@ -1969,6 +1905,20 @@ void MainWindow::initPlotT()
     vl->addWidget(wT);
     {
         QHBoxLayout *hl = new QHBoxLayout();
+        bRunD = new QPushButton(tr("RUN D")); 
+        connect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
+        hl->addWidget(bRunD);
+
+        T_type = new QComboBox(this);
+        T_type->addItem(tr("(E)"));
+        T_type->addItem(tr("(z)"));
+        T_type->addItem(tr("(E,z)"));
+        T_type->addItem(tr("(z,E)"));
+        T_type->setCurrentIndex(0);
+        hl->addWidget(T_type);
+
+        hl->addStretch();
+
         QPushButton * bsE = new QPushButton("&E scale");	
         connect(bsE,SIGNAL(clicked()),this,SLOT(slotIntE()));
         hl->addWidget(bsE);		
@@ -1982,29 +1932,6 @@ void MainWindow::initPlotT()
         hl->addWidget(flgEraseT);
 
         hl->addStretch();
-  //      vl->addLayout(hl);
- //   }
- //   {
- //       QHBoxLayout *hl = new QHBoxLayout;
-        QPushButton *butT = new QPushButton(tr("RUN D")); 
-        connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
-        hl->addWidget(butT);
-
-        T_type = new QComboBox(this);
-        T_type->addItem(tr("(E)"));
-        T_type->addItem(tr("(z)"));
-        T_type->addItem(tr("(E,z)"));
-        T_type->addItem(tr("(z,E)"));
-        T_type->setCurrentIndex(0);
-        hl->addWidget(T_type);
-
-
-        QPushButton *stopB = new QPushButton(tr("STOP")); 
-        stopB->setShortcut(tr("Alt+S"));
-        connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
-        hl->addWidget(stopB);
-
-        hl->addStretch();
 
         vl->addLayout(hl);
 
@@ -2012,68 +1939,17 @@ void MainWindow::initPlotT()
 
 
 }
+void MainWindow::slotCompute_D()
+{
+    bRunD->setText("STOP D");
+    disconnect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
+    connect(bRunD, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    compute_D();
+    bRunD->setText("RUN D");
+    disconnect(bRunD, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    connect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
+}
 
-/*void MainWindow::initPlotEnz() 
-{
-    wPlotEnz = new QDialog(this);
-//    wPlotEnz -> setFocus();
-    wPlotEnz->activateWindow();
-    QVBoxLayout *layT=new QVBoxLayout(wPlotEnz);
-    QLabel *labelT = new QLabel("En(z)");
-    labelT->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelT->setAlignment(Qt::AlignCenter);
-    labelT->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotterEnz= new Plotter(wPlotEnz);
-    this->plotterEnz->setCurveData(1, this->plotdataEnz);
-    layT->addWidget(this->plotterEnz);
-    layT->addWidget(labelT);
-}
-*/
-/*void MainWindow::initPlotPsix() 
-{
-    wPlotPsi2 = new QDialog(this);
-//    wPlotPsi2->setFocus();
-    QVBoxLayout *layPsi2x=new QVBoxLayout(wPlotPsi2);
-    QLabel *labelPsi2 = new QLabel("Wave function/Probability density on x");
-    labelPsi2->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelPsi2->setAlignment(Qt::AlignCenter);
-    labelPsi2->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotterPsi2x= new Plotter(wPlotPsi2);
-    this->plotterPsi2x->setCurveData(1, this->plotdataPsi2);
-    layPsi2x->addWidget(this->plotterPsi2x);
-    layPsi2x->addWidget(labelPsi2);
-}
-*/
-/*
-void MainWindow::initPlotPhik() 
-{
-    wPlotPhi = new QDialog(this);
-//    wPlotPhi->setFocus();
-    QVBoxLayout *layPhi=new QVBoxLayout(wPlotPhi);
-    QLabel *labelPhi = new QLabel("Impulse distribution");
-    labelPhi->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelPhi->setAlignment(Qt::AlignCenter);
-    labelPhi->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotterPhi= new Plotter(wPlotPhi);
-    this->plotterPhi->setCurveData(1, this->plotdataPhi);
-    layPhi->addWidget(this->plotterPhi);
-    layPhi->addWidget(labelPhi);
-}*/
-/*void MainWindow::initPlotUx() 
-{
-    wPlotUx = new QDialog(this);
-//    wPlotUx->setFocus();
-    QVBoxLayout *layUx=new QVBoxLayout(wPlotUx); 
-    QLabel *labelUx = new QLabel("Potential U(x)");
-    labelUx->setFont(QFont("Serif", 16, QFont::Bold )); 
-    labelUx->setAlignment(Qt::AlignCenter);
-    labelUx->setFrameStyle(QFrame::Panel | QFrame::Raised); 
-    this->plotterUx= new Plotter(wPlotUx);
-    this->plotterUx->setCurveData(1, this->plotdataUx);
-    layUx->addWidget(this->plotterUx);
-    layUx->addWidget(labelUx);
-}
-*/
 void MainWindow::initPlotEnz() 
 {
     wPlotEnz = new QDialog(this);
@@ -2101,11 +1977,17 @@ void MainWindow::initPlotEnz()
 void MainWindow::initPlotPsix() 
 {
     wPlotPsi2 = new QDialog(this);
-    QVBoxLayout *vl=new QVBoxLayout(wPlotPsi2);
-    PlotterDialog *wPsi = new PlotterDialog(wPlotPsi2);
     wPlotPsi2->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
-    this->plotterPsi2x = ((PlotterDialog*)wPsi)->plotter();
     wPlotPsi2->setWindowTitle(tr("Coordinate distribution"));
+    QVBoxLayout *vl=new QVBoxLayout(wPlotPsi2);
+
+    PlotterDialog *wUx = new PlotterDialog(wPlotPsi2);
+//    this->plotterUx = ((PlotterDialog*)wUx)->plotter();
+    this->plotterAddUx = ((PlotterDialog*)wUx)->plotter();
+    vl->addWidget(wUx);
+
+    PlotterDialog *wPsi = new PlotterDialog(wPlotPsi2);
+    this->plotterPsi2x = ((PlotterDialog*)wPsi)->plotter();
     vl->addWidget(wPsi);
     {
         QHBoxLayout *hl = new QHBoxLayout();
@@ -2134,18 +2016,6 @@ void MainWindow::initPlotPsix()
         hl->addWidget(flgErase);
         hl->addStretch();
 
-        QPushButton * bsz = new QPushButton("&z scale");	
-        connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-        hl->addWidget(bsz);		
-
-        QPushButton * btn = new QPushButton("level &n");	
-        connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
-        hl->addWidget(btn);		
-
-        QPushButton * btwp = new QPushButton("time &t");	
-        connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
-        hl->addWidget(btwp);	
-//        hl->addStretch();
         vl->addLayout(hl);
     }
     {
@@ -2176,6 +2046,8 @@ void MainWindow::initPlotPsix()
             psix_var->addItem("n");
             psix_var->addItem("E");
             psix_var->addItem("--");
+            psix_var->addItem("z");
+            psix_var->addItem("n,z");
             psix_var->addItem("t");
 //            psix_var->addItem(psi+"_n(x,n)");
 //            psix_var->addItem(psi+"(x,E)");
@@ -2192,6 +2064,21 @@ void MainWindow::initPlotPsix()
             //   QPushButton *butPsix = new QPushButton("run "+psi);
         //    QHBoxLayout *hl = new QHBoxLayout;
 
+        QPushButton * btn = new QPushButton("&n");	
+        connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
+        hl->addWidget(btn);		
+
+        QPushButton * bsE = new QPushButton("&E");	
+        connect(bsE,SIGNAL(clicked()),this,SLOT(slotIntE()));
+        hl->addWidget(bsE);		
+
+        QPushButton * bsz = new QPushButton("&z");	
+        connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
+        hl->addWidget(bsz);		
+
+        QPushButton * btwp = new QPushButton("&t");	
+        connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
+        hl->addWidget(btwp);	
             vl->addLayout(hl);
 
         }
@@ -2216,7 +2103,7 @@ void MainWindow::initPlotPhik()
     PlotterDialog *wPhi = new PlotterDialog(wPlotPhi);
     wPlotPhi->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
     this->plotterPhi = ((PlotterDialog*)wPhi)->plotter();
-    wPlotPhi->setWindowTitle(tr("Impulse distribution"));
+    wPlotPhi->setWindowTitle(tr("Momentum distribution"));
     vl->addWidget(wPhi);
     {
         QHBoxLayout *hl = new QHBoxLayout();
@@ -2225,14 +2112,6 @@ void MainWindow::initPlotPhik()
         hl->addWidget(bsk);		
 
         hl->addStretch();
-
-        QPushButton * btn = new QPushButton("level &n");	
-        connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
-        hl->addWidget(btn);		
-
-        QPushButton * btwp = new QPushButton("time &t");	
-        connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
-        hl->addWidget(btwp);
 
         flgErase= new QCheckBox("Erase",wPlotPhi);
         flgErase->setChecked(true);
@@ -2249,6 +2128,13 @@ void MainWindow::initPlotPhik()
         psip_var->setCurrentIndex(0);
         hl->addWidget(psip_var);
 
+        QPushButton * btn = new QPushButton("&n");	
+        connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
+        hl->addWidget(btn);		
+
+        QPushButton * btwp = new QPushButton("&t");	
+        connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
+        hl->addWidget(btwp);
 
 
         vl->addLayout(hl);
@@ -2266,6 +2152,23 @@ void MainWindow::slotCompute_Phi()
     connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
 }
 
+/*void MainWindow::initPlotUx() 
+{
+    wPlotUx = new QDockWidget(tr("Window %1").arg(++countW),this);
+    wPlotUx->setAllowedAreas(Qt::RightDockWidgetArea);
+    QVBoxLayout *vl = new QVBoxLayout(wPlotUx);
+    PlotterDialog *wUx = new PlotterDialog(wPlotUx);
+    wPlotUx->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    this->plotterUx = ((PlotterDialog*)wUx)->plotter();
+    vl->addWidget(wUx);
+//    wPlotUx->setWindowTitle(tr("Stepwise U(x)"));
+//QVBoxLayout * mainLayout = new QVBoxLayout();
+//wPlotUx->setLayout(vl);
+//mainLayout->addLayout(vl);
+//mainLayout->addWidget(wPlotUx);
+
+}
+*/
 void MainWindow::initPlotUx() 
 {
     wPlotUx = new QDialog(this);
@@ -2298,30 +2201,7 @@ void MainWindow::initPlotUx()
     }
 
     {
-        //           QGroupBox *gb = new QGroupBox(tr("Bound States: E<0"));
-        //            QVBoxLayout *vl = new QVBoxLayout;
         QHBoxLayout *hl = new QHBoxLayout;
-
-        QPushButton *bRun = new QPushButton(tr("Show U(x)")); 
-        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
-        hl->addWidget(bRun);
-
-        U_type = new QComboBox(wPlotUx);
-        U_type->addItem(tr("--"));
-        U_type->addItem(tr("z"));
-        U_type->setCurrentIndex(0);
-        hl->addWidget(U_type);
-
-//        if(this->U_type->QComboBox::currentIndex()==1)
-//        {
-            QPushButton * bsz = new QPushButton("&z scale");	
-            connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-            hl->addWidget(bsz);
-//            if(this->U_type->QComboBox::currentIndex()==0)bsz->setVisible(false);
-//            else bsz->setVisible(true);
-//        }
-        hl->addStretch();
-
         butEn = new QPushButton(tr("RUN")); 
         connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
         hl->addWidget(butEn);
@@ -2334,13 +2214,29 @@ void MainWindow::initPlotUx()
         En_type->setCurrentIndex(0);
         hl->addWidget(En_type);
 
-
         hl->addStretch();
+
+        QPushButton *bRun = new QPushButton(tr("Show U(x)")); 
+        connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
+        hl->addWidget(bRun);
+
+        U_type = new QComboBox(wPlotUx);
+        U_type->addItem(tr("--"));
+        U_type->addItem(tr("z"));
+        U_type->setCurrentIndex(0);
+        hl->addWidget(U_type);
+
+        QPushButton * bsz = new QPushButton("&z");	
+        connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
+        hl->addWidget(bsz);
+        hl->addStretch();
+
         vl->addLayout(hl);
 
     }
-
-    //        gb->setLayout(vl);
+//QVBoxLayout * mainLayout = new QVBoxLayout(this);
+//mainLayout->addLayout(vl);
+//mainLayout->addWidget(wPlotUx);
 
 }
 void MainWindow::slotBound_States()
@@ -2367,7 +2263,7 @@ E0(-10.), hE(0.01),time(0.), tmin(0.), tmax(1000.0), htime(0.1),Psi2(0.),
 totalRT(1.),Ua(-10.0),aa(1.),Ub(0.),bb(0.8),xmin(-3.),xmax(8.),hx(0.01),
 Ubias(0.),Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
 psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
-QMainWindow(parent,f), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
+QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
 wpE_lo(5.), wpE_hi(15.), wpN(30), 
 tableView(0),gbScales(0),gbIntervals(0),dialogUAsMW(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
@@ -2683,28 +2579,37 @@ void MainWindow::WavePacketXoft()
     std::vector<complex> expt;
     wPlotPsi2->show();
     wPlotPsi2->raise();
+    setScalesPsi();
+    /*
     bool flg=flgScale->isChecked();
     plotterPsi2x->scaleFixed=flg;
     if(flg)
     {
-        PlotSettings ps;
+        PlotSettings ps,psUx;
         ps.minX = this->xmin;
         ps.maxX = this->xmax;
+        psUx.maxX = this->xmax;
+        psUx.minX = this->xmin;
         ps.minY = psixmin;
         ps.maxY = psixmax;
+        psUx.minY = this->Umin;
+        psUx.maxY = this->Umax;
         ps.numYTicks = 5;
         ps.numXTicks = 5;
         //    ps.adjust();
+        plotteraddUx->setPlotSettings(psUx);
         plotterPsi2x->setPlotSettings(ps);
     }
+    addUx(this->xmin, this->xmax, 1, model, plotterAddUx);
     if(flgUx->isChecked()){
     double ymax=abs(this->Umin);
     if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
     if(ymax==0) ymax=1;
     double scaleU=psixmax/ymax;
     if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
+//    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
     }
+    */
     double y;
     this->numOfCurve=0;
     int ii=psi_type->QComboBox::currentIndex();
