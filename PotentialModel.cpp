@@ -32,7 +32,7 @@ PotentialModel::setPotential(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(invalidateModel()));
-    connect(this,SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)),model,SLOT(slotPotentialChanged()));
+    //connect(this,SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)),model,SLOT(slotPotentialChanged()));
 }
 
 QVariant 
@@ -103,22 +103,22 @@ PotentialModel::setData(const QModelIndex& index, const QVariant& value, int rol
         if (index.row() < 1 || index.row() > model->getN()) 
             return false;
         model->set_d(index.row(), value.toDouble());
-        emit(dataChanged(index, index));
+        //emit(dataChanged(index, index));
         return true;
 
     case 1: // U
         if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
         model->set_Ui(index.row(), value.toDouble());
-        emit(dataChanged(index, index));
+        //emit(dataChanged(index, index));
         return true;
 
     case 2: // mass
         if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
         model->set_m(index.row(), value.toDouble());
-        emit(dataChanged(index, index));
-        return true;
+        //emit(dataChanged(index, index));
+        return true; 
 
     default:
         return false;
@@ -131,6 +131,10 @@ PotentialModel::flags(const QModelIndex& index) const
     switch(index.column())
     {
     case 0: // d_i
+        if (index.row() < 0 || index.row() > model->getN())
+            return Qt::NoItemFlags;
+        else
+            return Qt::ItemIsEditable | Qt::ItemIsEnabled;
     case 1: // U_i
     case 2: // m_i
         if (index.row() < 0 || index.row() > model->getN()+1)

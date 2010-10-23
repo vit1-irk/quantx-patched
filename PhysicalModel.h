@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QVector>
+#include <QRectF>
+#include <QPair>
 #include <vector>
 #include <complex>
 
@@ -45,8 +47,10 @@ public:
     int lower() const { return l; }
     int upper() const { return u; }
     void swap(Vector<T>& a) { v.swap(a.v); } 
-    T& operator()(int i) { return v[i - l]; }
-    T getAt(int i) const { return v[i - l]; }
+    T& operator()(int i) { return v[i]; }
+    T getAt(int i) const { return v[i]; }
+//    T& operator()(int i) { return v[i - l]; }
+//    T getAt(int i) const { return v[i - l]; }
     void zero() { std::fill(v.begin(), v.end(), T(0)); }
     int operator != (const Vector<T>& other) const
     {
@@ -124,10 +128,6 @@ signals:
     void signalPotentialChanged();
     void signalEboundChanged();
 
-public slots:
-    void slotPotentialChanged();
-
-
 private:
     int N;	 // actual number of inner intervals
     Vector<double> d;      /* [u_width]  0..N widths */
@@ -138,8 +138,12 @@ private:
     double Ub;
 
     bool need_build_U;
+    bool need_build_En;
+
+    void markUchanged(); 
 
 public:
+    double get_U(int n);
     double get_Ub() const { return Ub; }
     void set_Ub(double _Ub);
     double get_Ui(int n) const { return Ui.getAt(n); }
@@ -149,40 +153,53 @@ public:
     double get_m(int n) const { return m.getAt(n); }
     void   set_m(int n, double v);
     void set_Ui_d_m_Ub(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m, const double& Ub);
+    QVector<double> getEn();
+    double getEn(int n);
+    QPair<double,double> getUminUmax();
 
+    friend class ETree;
+
+    double E0;
+    void build_k();
+    void build_RT();
+    void build_ab();	 /* u:r,k,d,m,fZ			r:a,b */
+    double	 RR;   /* Total reflection */
+    double	 TT;   /* Total transmission */
+    Vector<complex> a,b;
+    double kwave;
+    void build_Phi();	 /* u:a,b,p,k,d 			r:Phi */
+    double	 Phi2;
+    double	  x;	  /* [u_width] given point */
+    double	 Psi2;
+    double	 psi_real;   /* real of total Psi */
+    double	 psi_imag;   /* real of total Psi */
+    void build_Psi();	 /* u:a,b,x,k,d 			r:Psi2 */
+    Vector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
+    complex psi;
+    complex phi;
+
+private:
 
     //! Potential including bias
     Vector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
     Vector<double> U_d;
 
-    double E0;
-    Vector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
     //    Vector<double> psi_phases_old, psi_phases_base;
     //    Vector<double> psi_phases;/* Psi phases in channels */
-    Vector<complex> a,b;
     QVector<double> Ebound;
     std::vector<int> NumberofZero;
-    complex psi;
-    complex phi;
-    double	  x;	  /* [u_width] given point */
-    double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
+    //double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
     double	  Time;
-    double kwave;
     int	  timeswitch;
-    double	 RR;   /* Total reflection */
-    double	 TT;   /* Total transmission */
     double	 totalRT;  /* sum of totalR and totalT */
     //    double   psi_phase_total_old,psi_phase_total_base;
-    double	 Psi2;
-    double	 Phi2;
     //    double	 psi_phasehth;	 /* Psi phase in h-th channel */
-    double	 psi_real;   /* real of total Psi */
     double	 Phi_real;   /* real of total Psi */
-    double	 psi_imag;   /* real of total Psi */
     double	 Phi_imag;   /* real of total Psi */
 
-    double width, height, scalex, scaley; 
+public:
+//    double width, height, scalex, scaley; 
 //    int iwidth, iheight, scalex, scaley; 
     int getN() const { return N; }
 
@@ -217,16 +234,13 @@ public:
 
     void set_E0(double e) { E0 = e; }	  /* [u_energy] incident wave energy */
     //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
-public:
-    void build_U();
-    void build_k();
-    void build_RT();
-    void XUscales();
-    void norm();
-    void build_ab();	 /* u:r,k,d,m,fZ			r:a,b */
-    void build_Psi();	 /* u:a,b,x,k,d 			r:Psi2 */
-    void build_Phi();	 /* u:a,b,p,k,d 			r:Phi */
+
+    QRectF getGoodViewportAtU() const;
     int findNumberOfLevels(double E);
+
+private:
+    void build_U();
+    void norm();
     int zeroPsi();
     double findOneLevel(double _emin, double _emax);
     void findBoundStates();

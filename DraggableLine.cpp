@@ -1,19 +1,25 @@
+#include "MainWindow.h"
 #include <QStyleOption>
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include "PhysicalModel.h"
 #include "PotentialScene.h"
+#include "PotentialViewMovable.h"
 #include "DraggableLine.h"
 #include <QLineF>
 #include <QPen>
 #include <QGraphicsItem>
 
-//***************** Base Class *******************************
+    //***************** Base Class *******************************
+///DraggableLine::DraggableLine(PotentialViewMovable *pVM)///
+///: PotentialViewMovable(pVM), left(0), right(0)///
 DraggableLine::DraggableLine(QGraphicsItem *parent)
 : QGraphicsItem(parent), left(0), right(0)
 {
     setFlag(QGraphicsItem::ItemIsMovable,true);		
     setFlag(QGraphicsItem::ItemIsSelectable,true);		
+    setCacheMode(DeviceCoordinateCache);///?
+    setZValue(1);///?
 }
 void DraggableLine::paint(QPainter * painter, const QStyleOptionGraphicsItem *option,QWidget *)
 {
@@ -37,27 +43,55 @@ HDraggableLine::HDraggableLine(QPointF at, qreal other_end_x, QGraphicsItem *par
 
 QRectF HDraggableLine::boundingRect() const
 {
-    const qreal adj = 0.1;
+    const qreal adj = 0.1; //todo
     return QRectF( p1.x()-adj, p1.y()-adj, abs(p2.x() - p1.x()) + 2*adj, 2*adj );
 }
-
 QVariant HDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
 {
-    if (change == ItemPositionChange)
+    switch (change)
     {
-        QPointF newpos = value.toPointF();
-        newpos.setX( pos().x() );
-        qreal newy = p2.y() + newpos.y();
+    case ItemPositionChange:
+        {
+            QPointF newpos = value.toPointF();
+            newpos.setX( 0 );//( pos().x() );
+            qreal newy = p2.y() + newpos.y();
+            qreal newp1y=p1.y();
+            qreal newp2y=p2.y();
+            //return newpos;
+            return QGraphicsItem::itemChange(change, newpos);
+            break;
+        }
+        //#if 1
+    case ItemPositionHasChanged:
+        {
+            QPointF pos1 = pos();
+            QPointF pos2 = value.toPointF();
+            QPointF pos3 = this->scenePos();
+            QPointF pos4 = mapToScene(pos1);
+            QPointF pos5 = this->mapFromScene(pos1);
 
-        if (left)  left->SetP2(  QPointF( left->p1.x(), newy) );
-        if (right) right->SetP1( QPointF( right->p2.x(), newy) );
-        return newpos;
-    }
-    if (change == ItemPositionHasChanged)
-    {
-        static_cast<PotentialScene*>(scene())->updatePhysicalModel();
-    }
-    return value;
+
+            //prepareGeometryChange();
+            p1.setY(p1.y() + pos().y());
+            p2.setY(p2.y() + pos().y());
+            qreal newp1y=p1.y();
+            qreal newp2y=p2.y();
+            qreal y20=left->p2.y();
+            qreal y10=right->p1.y();
+            if (left)  left->SetP2(  QPointF( left->p1.x(), p1.y() ) );
+            if (right) right->SetP1( QPointF( right->p2.x(), p2.y() ) );
+            qreal y2=left->p2.y();
+            qreal y1=right->p1.y();
+                        update();
+ //           update();
+//            static_cast<PotentialScene*>(scene())->updatePhysicalModel();
+        }
+        //#endif
+    default:
+        break;
+    };
+        return value;
+//    return QGraphicsItem::itemChange(change, value);
 }
 
 VDraggableLine::VDraggableLine(QPointF at, qreal other_end_y, QGraphicsItem *parent)
@@ -73,29 +107,41 @@ QRectF VDraggableLine::boundingRect() const
 {
     const qreal adj = 0.1;
     return QRectF( p1.x()-adj, min(p1.y(),p2.y())-adj, 2*adj, abs(p1.y() - p2.y()) +2*adj );
-}
+//       .normalized()
+//        .adjusted(-extra, -extra, extra, extra);
 
-QVariant VDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
+}
+QVariant VDraggableLine::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemPositionChange)
     {
         QPointF newpos = value.toPointF();
         newpos.setY( pos().y() );
         qreal newx = p1.x() + newpos.x();
+        qreal newp1x=p1.x();
+        qreal newp2x=p2.x();
 
         if (newx > right->p2.x()) newx = right->p2.x(); 
         if (newx < left->p1.x()) newx = left->p1.x(); 
         newpos.setX( newx - p1.x() );
 
-        if (left)  left->SetP2(  QPointF( newx, left->p1.y() ) );
-        if (right) right->SetP1( QPointF( newx, right->p1.y() ) );
         return newpos;
     }
     if (change == ItemPositionHasChanged)
     {
+        prepareGeometryChange();
+        p1.setX(p1.x() + pos().x());
+        p2.setX(p2.x() + pos().x());
+        qreal newp1x=p1.x();
+        qreal newp2x=p2.x();
+        if (left)  left->SetP2(  QPointF( p1.x(), left->p1.y() ) );
+        if (right) right->SetP1( QPointF( p2.x(), right->p1.y() ) );
+            update();
         static_cast<PotentialScene*>(scene())->updatePhysicalModel();
     }
-    return value;
+//    return value;
+    return QGraphicsItem::itemChange(change, value);
+
 }
 
 #if 0
@@ -181,3 +227,16 @@ bool InfDraggableLine::CheckEnd  (QPointF ) {return true;}
 void InfDraggableLine::SetStart(QPointF point) { setPos(point); }
 void InfDraggableLine::SetEnd(QPointF point)   {setPos(point+QPointF(-length,0));}
 #endif
+
+void DraggableLine::mouseReleaseEvent( QGraphicsSceneMouseEvent * event)
+{
+    setSelected(false);
+    update();
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+void DraggableLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    update();
+    QGraphicsItem::mousePressEvent(event);
+}
+

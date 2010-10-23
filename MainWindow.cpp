@@ -9,6 +9,10 @@
 #include "LineEditDelegate.h"
 #include "PotentialViewMovable.h"
 #include "PlotterDialog.h"
+#include <QList>
+#include <QRectF>
+#include <QGraphicsScene>
+
 
 
 class DoubleValidator : public QRegExpValidator
@@ -489,7 +493,7 @@ void MainWindow::Uxz(double z)
         m[N+1] = 0.5;
         
         model->set_Ui_d_m_Ub(Ui,d,m,this->Ubias);
-        model->build_U();
+        //model->build_U();
     }
 }
 
@@ -514,9 +518,20 @@ void MainWindow::initControlDockWindow()
 	gbview->setMinimumHeight(350);
     {    
         QVBoxLayout *vl = new QVBoxLayout();
+
         scene = new PotentialScene(model,this);
+        scene->setItemIndexMethod(QGraphicsScene::NoIndex);///?
         potentialViewMovable = new PotentialViewMovable(scene);
         vl->addWidget(potentialViewMovable);
+
+
+//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(resize()));
+//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateScene (const QList <QRectF>&)));
+//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateSceneRect (const QRectF&)));
+//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(invalidateScene(const QRectF&)));
+        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(update(const QRectF&)));
+
+    //   connect(scene,SIGNAL(sceneRectChanged()),potentialViewMovable,SLOT(resetMatrix()));
 
         QHBoxLayout *hl3 = new QHBoxLayout();
 
@@ -903,7 +918,7 @@ void MainWindow::compute()
     model->E0 = this->E0;
     model->build_k();
     model->build_ab();
-    if(model->E0 - model->U(model->getN()+1) > 0)
+    if(model->E0 > 0)
         model->build_RT();
     else
     {
@@ -911,7 +926,7 @@ void MainWindow::compute()
         model->TT=0;
     }
     updateValues();
-    }
+}
 //--------------
 void MainWindow::updateValues()
     {
@@ -942,20 +957,6 @@ void MainWindow::updateValues()
     s.sprintf("Bias: %.3lg",Ub);
     this->dispBias->setText(s);
     this->dispBias->update();
-/*
-    if(model->E0-model->U(model->getN() + 1)>0) 
-    {
-    double T0=model->TT;
-    double RTtotal=model->totalRT;
-    s.sprintf("T: %.3lg",T0);
-    this->dispT->setText(s);
-    this->dispT->update();
-
-    s.sprintf("(R+T)tot: %.3lg",RTtotal);
-    this->dispRT->setText(s);
-    this->dispRT->update();
-    }
-*/
 }
 void MainWindow::initStatusBar()
 {
@@ -991,23 +992,13 @@ void MainWindow::initStatusBar()
 void MainWindow::Bound_States()
 {
     int i = this->En_type->QComboBox::currentIndex();
-    double Umin = 1e300, Umax = -1e300;
     double q;
     int Nmax;
-    model->build_U();
-        Nmax = model->getN ();
-    for (int i = 0; i < Nmax+1; ++i)
-    {   
-        q = model->U(i);
-        if (q > Umax) Umax = q; 
-        if (q < Umin) Umin = q;
-    }
-    if(model->U(0)>model->U(Nmax+1)) Umax=model->U(Nmax+1);
-    else Umax=model->U(0);
-//    if(this->U(Nmax+1)>0) Umax=0.;
-//    else Umax=this->U(Nmax+1);
-    Umin=Umin+1e-8;
-    Umax=Umax-1e-6;
+
+    QPair<double,double> umin_umax = model->getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
+
     if(this->Emin>0) this->Emin=Umin;
     if(this->Emax>0) this->Emax=Umax;
     switch(i)
@@ -1030,24 +1021,15 @@ void MainWindow::Bound_States()
 }
 void MainWindow::compute_NE()
 {
-    double y,q,_dE;
+    double y,_dE;
     winPlotNE->show();
     winPlotNE->raise();
     plotNE->scaleFixed=false;
-    double Umin = 1e300, Umax = -1e300;
-    int Nmax;
-    Nmax = model->getN ();
     dataNE.clear();
-    for (int i = 0; i < Nmax+1; ++i)
-    {   
-        q = model->U(i);
-        if (q > Umax) Umax = q; 
-        if (q < Umin) Umin = q;
-    }
-        if(model->U(Nmax+1)>0) Umax=0.;
-        else Umax=model->U(Nmax+1);
-        Umin=Umin+1e-8;
-        Umax=Umax-1e-6;
+    QPair<double,double> umin_umax = model->getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
+
     _dE=this->hE;
     if(_dE<0) _dE=-this->hE;
     if(_dE==0) _dE=(Umax-Umin)/100;
@@ -1067,7 +1049,6 @@ void MainWindow::compute_D()
 {
     wPlotT->show();
     wPlotT->raise();
-    model->build_U();
     if(this->Emin<0) this->Emin=0.01;
     if(this->Emax<0) this->Emax=20.;
     if(this->E0<0) this->E0=0.01;
@@ -1232,23 +1213,13 @@ void MainWindow::compute_BE()
     this->wPlotUx->raise();
     std::vector<double> data;
     std::vector<double> data1;
-    double Umin = 1e300, Umax = -1e300;
-    double q;
-    int Nmax;
-    Nmax = model->getN ();
-    double x=0;
-    for (int i = 0; i < Nmax+1; ++i)
-    {   
-        q = model->U(i);
-        x += model->get_d(i);
-        if (q > Umax) Umax = q; 
-        if (q < Umin) Umin = q;
-    }
-    if(model->U(0)>model->U(Nmax+1)) Umax=model->U(Nmax+1);
-    else Umax=model->U(0);
-    double Emn=Umin+1e-8;
-    double Emx=Umax-1e-6;
-    double xmax=x;
+
+    QPair<double,double> umin_umax = model->getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
+
+    double Emn = Umin;
+    double Emx = Umax;
     double y;
 //    double Emn=this->Emin;
 //    double Emx=this->Emax;
@@ -1260,82 +1231,37 @@ void MainWindow::compute_BE()
         this->E0=E;
         model->E0=E;
         compute();
-        y=real(model->b(Nmax +1));
+        y = real(model->b(model->getN()+1));
         if(y>1.) y =1+log(y);
         if(y<-1.) y =-1-log(-y);
-        data.push_back(y+0.5*xmax);
+        data.push_back(y+0.5*(this->xmax-this->xmin));
         data.push_back(E);
     }
     this->E0=this->E0+this->hE;
     this->plotterUx->setCurveData(this->numOfCurveUx,data);
     this->numOfCurveUx++;
-    data1.push_back(0.5*xmax);
+    data1.push_back(0.5*(this->xmax-this->xmin));
     data1.push_back(Emn);
-    data1.push_back(0.5*xmax);
+    data1.push_back(0.5*(this->xmax-this->xmin));
     data1.push_back(Emx);
     this->plotterUx->setCurveData(this->numOfCurveUx,data1);
     this->numOfCurveUx++;
 
 }
-/*static void addUx(double xmin,double xmax, double yscale, PhysicalModel *model, Plotter *plotter)
-{
-    const int N = model->getN();
-    std::vector<double> dataUx;
-    double x,y;
-    x=xmin;
-    int nmin=0;
-    int nmax = N;
-    if(nmin==0) 
-    {
-        y=yscale*model->U(0);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-        dataUx.push_back(0.);
-        dataUx.push_back(y);
-        x=0;
-    }
-    else 
-    {
-        y=yscale*model->U(nmin+1);
-        x=0;
-        for(int n=1;n<=nmin+1;n++) 
-            x += model->get_d(n);
-        dataUx.push_back(xmin);
-        dataUx.push_back(y);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-    }
-    for(int n=nmin+1;n<=nmax;n++)
-    {
-        double y=yscale*model->U(n);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-        x += model->get_d(n);
-        dataUx.push_back(x);
-        dataUx.push_back(y);
-    }
-    dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(N+1));
-    if(xmax<x) xmax=x; 
-    else x =xmax;
-    dataUx.push_back(x);
-    dataUx.push_back(yscale*model->U(N+1));
-    plotter->setCurveData(0,dataUx);
-}
-*/
 static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter)
 {
     const int N = model->getN();
+
     std::vector<double> dataUx;
     double x;
     dataUx.push_back(xmin);
-    dataUx.push_back(model->U(0));
+    dataUx.push_back(model->get_U(0));
     x=0;
     dataUx.push_back(0);
-    dataUx.push_back(model->U(0));
+    dataUx.push_back(model->get_U(0));
     for(int n=1; n <= N; n++)
     {
-        double y=model->U(n);
+        double y=model->get_U(n);
         dataUx.push_back(x);
         dataUx.push_back(y);
         x += model->get_d(n);
@@ -1343,28 +1269,28 @@ static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter
         dataUx.push_back(y);
     }
     dataUx.push_back(x);
-    dataUx.push_back(model->U(N+1));
+    dataUx.push_back(model->get_U(N+1));
     if(xmax>x)
     { 
     dataUx.push_back(xmax);
-    dataUx.push_back(model->U(N+1));
+    dataUx.push_back(model->get_U(N+1));
     }
     plotter->setCurveData(0,dataUx);
 }
 
 void MainWindow::compute_En()
 {
-    model->findBoundStates();
     this->plotterPsi2x->clearAll(); 
     plotterPsi2x->scaleFixed=false;
     this->plotterUx->clearAll(); 
     numOfCurveUx=0;
     this->showU();
     this->numOfCurveUx=1;
-    for (int i=0; i<model->Ebound.size(); i++)
+    QVector<double> Ebound = model->getEn();
+    for (int i=0; i < Ebound.size(); i++)
     {
-        double En=model->Ebound[i];
-        this->E0=En;
+        double En = Ebound[i];
+        this->E0 = En;
         compute();
         this->showEn(En);
     } 
@@ -1419,10 +1345,10 @@ void MainWindow::compute_Enz()
             if (getBreakStatus(0)) 
                 return;
             Uxz(z);
-            model->findBoundStates();
             int nmx=this->nmaxLevel;
             int nmn=this->nminLevel;
-            if(nmx>=model->Ebound.size()) nmx=model->Ebound.size()-1;
+            QVector<double> Ebound = model->getEn();
+            if(nmx >= Ebound.size()) nmx = Ebound.size()-1;
             if(nmn<0) nmn=0;
             if(nmxold==-1) 
             {
@@ -1435,7 +1361,7 @@ void MainWindow::compute_Enz()
                     this->plotterPsi2x->clearCurve(id);
             }
 
-            updateCurves(cs, model->Ebound, z);
+            updateCurves(cs, Ebound, z);
             myrepaint(plotterEnz,cs);
             compute_Psin(); 
             compute_Phi_n();
@@ -1450,10 +1376,10 @@ void MainWindow::compute_Psi_nz()
             if (getBreakStatus(0)) 
                 return;
             Uxz(z);
-            model->findBoundStates();
+            QVector<double> Ebound = model->getEn();
             int nmx=this->nmaxLevel;
             int nmn=this->nminLevel;
-            if(nmx>=model->Ebound.size()) nmx=model->Ebound.size()-1;
+            if(nmx>=Ebound.size()) nmx=Ebound.size()-1;
             if(nmn<0) nmn=0;
             if(nmxold==-1) 
             {
@@ -1519,17 +1445,18 @@ void MainWindow::compute_Phi_n()
     double dk=kmax/500;
     int imax=this->nmaxLevel;
     int imin=this->nminLevel;
-    if(imax>=model->Ebound.size()) imax=model->Ebound.size()-1;
+    QVector<double> Ebound = model->getEn();
+    if(imax >= Ebound.size()) imax = Ebound.size()-1;
     if(imin<0) imin=0;
 //    this->numOfCurve=0;
     for(int i=imin;i<=imax; i++)
     {
-        this->E0=model->Ebound[i];
+        this->E0 = Ebound[i];
         compute();
         data.clear();
         for(double kk=kmin; kk<=kmax; kk+=dk)
         {
-            model->kwave=kk;
+            model->kwave = kk;
             model->build_Phi();
             y=model->Phi2;
             data.push_back(kk);
@@ -1559,7 +1486,7 @@ void MainWindow::showU()
     ps.maxY = this->Umax;//model->Umax;
     this->plotterUx->setPlotSettings(ps);
     x=this->xmin;//model->Xmin;
-    y=model->U(0);
+    y=model->get_U(0);
     data.push_back(x);
     data.push_back(y);
     x=0;
@@ -1567,7 +1494,7 @@ void MainWindow::showU()
     data.push_back(y);
     for(int n=1; n <= N; n++)
     {
-        double y=model->U(n);
+        double y=model->get_U(n);
         data.push_back(x);
         data.push_back(y);
         x += model->get_d(n);
@@ -1575,11 +1502,11 @@ void MainWindow::showU()
         data.push_back(y);
     }
     data.push_back(x);
-    data.push_back(model->U(N+1));
+    data.push_back(model->get_U(N+1));
     if(this->xmax<x) this->xmax=x; 
     else x =this->xmax;
     data.push_back(x);
-    data.push_back(model->U(N+1));
+    data.push_back(model->get_U(N+1));
     this->plotterUx->setCurveData(numOfCurveUx,data);
     this->numOfCurveUx++;
 }
@@ -1599,7 +1526,7 @@ void MainWindow::compute_Psi()
 {       
 
     int ii=psix_var->QComboBox::currentIndex();
-    model->build_U();
+    //model->build_U();
         switch(ii)
         {
         case 0: 
@@ -1654,47 +1581,25 @@ void MainWindow::compute_Psin()
     wPlotPsi2->raise();
     std::vector<double> data;
     setScalesPsi();
-/*    PlotSettings ps,psUx;
-    bool flg=flgScale->isChecked();
-    plotterPsi2x->scaleFixed=flg;
-    if(flg)
-    {
-    ps.minX = this->xmin;
-    ps.maxX = this->xmax;
-    ps.minY = psixmin;
-    ps.maxY = psixmax;
-    ps.numYTicks = 5;
-    ps.numXTicks = 5;
-    plotterPsi2x->setPlotSettings(ps);
-    }
-        if(this->flgUx->isChecked()) 
-    {
-    double ymax=abs(this->Umin);
-    if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-    if(ymax==0) ymax=1;
-    double scaleU=psixmax/ymax;
-    if(scaleU==0) scaleU=0.05;
-    addUx(this->xmin, this->xmax, model, plotterAddUx);
-        }
-        */
     double dx=this->hx;
     int ii=psi_type->QComboBox::currentIndex();
     int numCurve=2;
     int nmx=this->nmaxLevel;
     int nmn=this->nminLevel;
-    if(nmx>=model->Ebound.size()) nmx=model->Ebound.size()-1;
+    QVector<double> Ebound = model->getEn();
+    if(nmx >= Ebound.size()) nmx = Ebound.size()-1;
     if(nmn<0) nmn=0;
     double y;
     for(int n=nmn;n<=nmx; n++)
     {
-        double E=model->Ebound[n];
+        double E = Ebound[n];
         this->E0=E;
         compute();
         model->b(N+1)=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
-            model->x=x;
+            model->x = x;
             model->build_Psi();
             switch(ii)
             {
@@ -1731,25 +1636,6 @@ void MainWindow::compute_PsixE()
     int ii=psi_type->QComboBox::currentIndex();
     std::vector<double> data;
     setScalesPsi();
-/*    PlotSettings ps;
-    bool flg=flgScale->isChecked();
-    plotterPsi2x->scaleFixed=flg;
-    if(flg)
-    {
-        ps.minX = this->xmin;
-        ps.maxX = this->xmax;
-        ps.minY = psixmin;
-        ps.maxY = psixmax;
-        ps.numYTicks = 5;
-        ps.numXTicks = 5;
-        plotterPsi2x->setPlotSettings(ps);
-    }
-    double ymax=abs(this->Umin);
-    if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-    if(ymax==0) ymax=1;
-    double scaleU=psixmax/ymax;
-    if(scaleU==0) scaleU=0.05;
-    */
     double dx=this->hx;//(this->xmax-model->Xmin)/2000.;
     double Emn=this->Emin;
     double Emx=this->Emax;
@@ -1783,8 +1669,6 @@ void MainWindow::compute_PsixE()
             data.push_back(x);
             data.push_back(y);
         }
-//        if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, scaleU, model, plotterAddUx);
-//        if(this->flgUx->isChecked()) addUx(this->xmin, this->xmax, model, plotterPsi2x);
         this->plotterPsi2x->setCurveData(this->numOfCurve,data);
     }
     this->numOfCurve++;
@@ -1803,30 +1687,6 @@ void MainWindow::compute_PsiXatE()
     }
     else this->numOfCurve++;
     setScalesPsi();
-    /*
-    PlotSettings ps;
-    bool flg=flgScale->isChecked();
-    plotterPsi2x->scaleFixed=flg;
-    if(flg)
-    {
-        ps.minX = this->xmin;
-        ps.maxX = this->xmax;
-        ps.minY = psixmin;
-        ps.maxY = psixmax;
-        ps.numYTicks = 5;
-        ps.numXTicks = 5;
-        plotterPsi2x->setPlotSettings(ps);
-    }
-    if(this->flgUx->isChecked()) 
-    {
-        double ymax=abs(this->Umin);
-        if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-        if(ymax==0) ymax=1;
-        double scaleU=psixmax/ymax;
-        if(scaleU==0) scaleU=0.05;
-        addUx(this->xmin, this->xmax, model, plotterPsi2x);
-    }
-    */
     double y;
     double dx=this->hx;//(this->xmax-this->xmin)/300.;
     int ii=psi_type->QComboBox::currentIndex();
@@ -1981,10 +1841,11 @@ void MainWindow::initPlotPsix()
     wPlotPsi2->setWindowTitle(tr("Coordinate distribution"));
     QVBoxLayout *vl=new QVBoxLayout(wPlotPsi2);
 
-    PlotterDialog *wUx = new PlotterDialog(wPlotPsi2);
-//    this->plotterUx = ((PlotterDialog*)wUx)->plotter();
-    this->plotterAddUx = ((PlotterDialog*)wUx)->plotter();
-    vl->addWidget(wUx);
+//    PlotterDialog *wUx = new PlotterDialog(wPlotPsi2);
+//    this->plotterAddUx = ((PlotterDialog*)wUx)->plotter();
+//    vl->addWidget(wUx);
+    plotterAddUx= new Plotter(wPlotPsi2);
+    vl->addWidget(plotterAddUx);
 
     PlotterDialog *wPsi = new PlotterDialog(wPlotPsi2);
     this->plotterPsi2x = ((PlotterDialog*)wPsi)->plotter();
@@ -2151,24 +2012,6 @@ void MainWindow::slotCompute_Phi()
     disconnect(bRunPhi, SIGNAL(clicked()), this, SLOT(stopCalc()));
     connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
 }
-
-/*void MainWindow::initPlotUx() 
-{
-    wPlotUx = new QDockWidget(tr("Window %1").arg(++countW),this);
-    wPlotUx->setAllowedAreas(Qt::RightDockWidgetArea);
-    QVBoxLayout *vl = new QVBoxLayout(wPlotUx);
-    PlotterDialog *wUx = new PlotterDialog(wPlotUx);
-    wPlotUx->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
-    this->plotterUx = ((PlotterDialog*)wUx)->plotter();
-    vl->addWidget(wUx);
-//    wPlotUx->setWindowTitle(tr("Stepwise U(x)"));
-//QVBoxLayout * mainLayout = new QVBoxLayout();
-//wPlotUx->setLayout(vl);
-//mainLayout->addLayout(vl);
-//mainLayout->addWidget(wPlotUx);
-
-}
-*/
 void MainWindow::initPlotUx() 
 {
     wPlotUx = new QDialog(this);
@@ -2234,10 +2077,6 @@ void MainWindow::initPlotUx()
         vl->addLayout(hl);
 
     }
-//QVBoxLayout * mainLayout = new QVBoxLayout(this);
-//mainLayout->addLayout(vl);
-//mainLayout->addWidget(wPlotUx);
-
 }
 void MainWindow::slotBound_States()
 {
@@ -2368,8 +2207,8 @@ WavePacket MainWindow::buildWPmE()
 {
     WavePacket result;
     result.clear();
-    if(model->Ebound.size()==0) model->findBoundStates();
-    if(this->nmaxWP>=model->Ebound.size()) this->nmaxWP=model->Ebound.size()-1;
+    QVector<double> Ebound = model->getEn();
+    if(this->nmaxWP >= Ebound.size()) this->nmaxWP = Ebound.size()-1;
     if(this->nminWP<0) this->nminWP=0;
     int NwpEm=(this->nmaxWP-this->nminWP)/this->hnWP + 1;
     result.resize(NwpEm);
@@ -2377,7 +2216,7 @@ WavePacket MainWindow::buildWPmE()
     for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
     {
 //        if(j>=NwpEm) break;  
-        result[j].E = model->Ebound[i];
+        result[j].E = Ebound[i];
         j++;
     } 
     Emin=result[0].E;
@@ -2394,7 +2233,6 @@ WavePacket MainWindow::buildWPmE()
     j=0;
     for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
     {
-//    for(int i=0;i<NwpEm;i++)
         double z=(i-nc);z*=z*C;
         W += result[j].w = exp(-z);
         j++;
@@ -2403,132 +2241,6 @@ WavePacket MainWindow::buildWPmE()
         result[i].w /=W;
     return result;
 }
-/*WavePacket MainWindow::buildWPmE()
-{
-    WavePacket result;
-    result.clear();
-    if(model->Ebound.size()==0) model->findBoundStates();
-    if(this->nmaxWP>=model->Ebound.size()) this->nmaxWP=model->Ebound.size()-1;
-    if(this->nminWP<0) this->nminWP=0;
-    int NwpEm=(this->nmaxWP-this->nminWP)/this->hnWP + 1;
-    result.resize(NwpEm);
-    int j=0;
-    for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
-    {
-//        if(j>=NwpEm) break;  
-        result[j].E = model->Ebound[i];
-        j++;
-    } 
-    Emin=result[0].E;
-    Emax=result[NwpEm-1].E;
-    if(Emin==Emax) 
-    {
-        result[0].w =1.;
-        return result;
-    }
-    double W=0;
-    double Ec=0.5*(Emin+Emax);
-    double C=(Emax-Emin)/2;C*=C;C=6/C;
-    for(int i=0;i<NwpEm;i++)
-    {
-        double z=(result[i].E-Ec);z*=z*C;
-        W += result[i].w = exp(-z);
-    }
-    for(int i=0;i<NwpEm;i++)
-        result[i].w /=W;
-    return result;
-}*/
-/*
-WavePacket MainWindow::buildWPpE()
-{
-    std::vector<double> kN;
-    WavePacket result;
-    result.clear();
-    result.resize(this->wpN);
-    kN.resize(this->wpN);
-    if(this->wpE_hi==this->wpE_lo||this->wpN==1)
-    {
-    result.resize(1);
-    result[0].E=this->wpE_hi;
-    result[0].w=1.;
-    return result;
-    }
-    if(this->wpE_hi<this->wpE_lo)
-    {
-    double a=this->wpE_hi;
-    double b=this->wpE_lo;
-    this->wpE_hi=b;
-    this->wpE_lo=a;
-    }
-    double kNmin=sqrt(2/hbar2 * model->m(model->N+1) * ( this->wpE_lo) );
-    double kNmax=sqrt(2/hbar2 * model->m(model->N+1) * ( this->wpE_hi) );
-    double dk=(kNmax-kNmin)/(this->wpN-1);
-//    double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
-    double a = 2/hbar2;
-    for(int i=0;i<this->wpN;i++)
-    {
-        kN[i] = kNmin+dk*i;
-        double EE=kN[i]; EE*=EE; EE=EE/a/model->m(model->N+1);
-        result[i].E =EE;
-    } 
-    double W=0;
-    double C=(kN[wpN-1]-kN[0])/2;C*=C;C=3/C;
-    double kc=(kN[0]+kN[wpN-1])/2;
-//    wpweightEi.resize(this->wpN);
-    for(int i=0;i<wpN;i++)
-    {
-        double z=(kN[i]-kc);z*=z*C;
-        W += result[i].w = exp(-z);
-    }
-    for(int i=0;i<wpN;i++)
-        result[i].w /=W;
-    return result;
-}
-*/
-/*
-WavePacket MainWindow::buildWPpE()
-{
-    std::vector<double> kN;
-    WavePacket result;
-    result.clear();
-    result.resize(this->wpN);
-    kN.resize(this->wpN);
-    if(this->wpE_hi==this->wpE_lo||this->wpN==1)
-    {
-    result.resize(1);
-    result[0].E=this->wpE_hi;
-    result[0].w=1.;
-    return result;
-    }
-    if(this->wpE_hi<this->wpE_lo)
-    {
-    double a=this->wpE_hi;
-    double b=this->wpE_lo;
-    this->wpE_hi=b;
-    this->wpE_lo=a;
-    }
-    double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
-    double a = 2;///hbar2;
-    for(int i=0;i<this->wpN;i++)
-    {
-        result[i].E = this->wpE_lo+i*de;
-        double c = a * model->m(model->N+1) * ( result[i].E);
-        kN[i] = sqrt( c);
-    } 
-    double W=0;
-    double C=(kN[wpN-1]-kN[0])/2;C*=C;C=3/C;
-    double kc=(kN[0]+kN[wpN-1])/2;
-//    wpweightEi.resize(this->wpN);
-    for(int i=0;i<wpN;i++)
-    {
-        double z=(kN[i]-kc);z*=z*C;
-        W += result[i].w = exp(-z);
-    }
-    for(int i=0;i<wpN;i++)
-        result[i].w /=W;
-    return result;
-}
-*/ 
 WavePacket MainWindow::buildWPpE()
 {
     WavePacket result;
@@ -2580,36 +2292,6 @@ void MainWindow::WavePacketXoft()
     wPlotPsi2->show();
     wPlotPsi2->raise();
     setScalesPsi();
-    /*
-    bool flg=flgScale->isChecked();
-    plotterPsi2x->scaleFixed=flg;
-    if(flg)
-    {
-        PlotSettings ps,psUx;
-        ps.minX = this->xmin;
-        ps.maxX = this->xmax;
-        psUx.maxX = this->xmax;
-        psUx.minX = this->xmin;
-        ps.minY = psixmin;
-        ps.maxY = psixmax;
-        psUx.minY = this->Umin;
-        psUx.maxY = this->Umax;
-        ps.numYTicks = 5;
-        ps.numXTicks = 5;
-        //    ps.adjust();
-        plotteraddUx->setPlotSettings(psUx);
-        plotterPsi2x->setPlotSettings(ps);
-    }
-    addUx(this->xmin, this->xmax, 1, model, plotterAddUx);
-    if(flgUx->isChecked()){
-    double ymax=abs(this->Umin);
-    if(ymax<abs(this->Umax)) ymax=abs(this->Umax);
-    if(ymax==0) ymax=1;
-    double scaleU=psixmax/ymax;
-    if(scaleU==0) scaleU=0.05;
-//    addUx(this->xmin, this->xmax, scaleU, model, plotterPsi2x);
-    }
-    */
     double y;
     this->numOfCurve=0;
     int ii=psi_type->QComboBox::currentIndex();
@@ -2660,7 +2342,7 @@ void MainWindow::WavePacketXoft()
         {
 
             complex c = exp(-complex(0, result[p].E*t));
-            if(result[p].E- model->U(N+1) >0) c = c*exp(complex(0,real(kp(p,N+1))*this->xmax) );
+            if(result[p].E- model->get_U(N+1) >0) c = c*exp(complex(0,real(kp(p,N+1))*this->xmax) );
             //            if(wpEi[p]- model->U(0) >0) c = c*exp(-complex(0,real(kp(p,0))*this->xmin) );
             expt[p]=c;
         }
@@ -2678,7 +2360,7 @@ void MainWindow::WavePacketXoft()
                     model->a(n)=ap(p,n);
                     model->b(n)=bp(p,n);
                 }
-                if (model->E0 < model->U(N+1))
+                if (model->E0 < model->get_U(N+1))
                     model->b(N+1)=0.; 
                 model->build_Psi();
                 complex yy=model->psi;

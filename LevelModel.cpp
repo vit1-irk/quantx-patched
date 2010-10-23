@@ -12,7 +12,7 @@ LevelModel::~LevelModel(void)
 int
 LevelModel::rowCount(const QModelIndex& /*parent*/) const
 {
-    return model->Ebound.size();
+    return model->getEn().size();
 }
 
 
@@ -49,8 +49,8 @@ LevelModel::data(const QModelIndex& index, int role) const
     case 0: // En
         {
         int j = index.row();
-        if (j < model->Ebound.size())
-            return QVariant(model->Ebound[model->Ebound.size() - j - 1]);
+        if (j < model->getEn().size())
+            return QVariant(model->getEn(model->getEn().size() - j - 1));
         else 
             return QVariant();
         }
@@ -74,8 +74,8 @@ LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
         default: return QVariant();
         }
     case Qt::Vertical:
-        if (section >= 0 && section < model->Ebound.size())
-            return QVariant(model->Ebound.size() - section);
+        if (section >= 0 && section < model->getEn().size())
+            return QVariant(model->getEn().size() - section);
         else
             return QVariant();
     default:

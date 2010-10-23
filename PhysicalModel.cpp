@@ -1,5 +1,6 @@
 #include "PhysicalModel.h"
 #include <cmath>
+#include <QRectF>
 
 // Auxiliary class for finding energy levels
 class ETree
@@ -55,8 +56,13 @@ public:
     }
 };
 
-void PhysicalModel::findBoundStates()
+QPair<double,double> PhysicalModel::getUminUmax()
 {
+    if (need_build_U)
+    {
+        build_U();
+        need_build_U = false;
+    }
     double Umin = 1e300, Umax = -1e300;
     double q;
     int Nmax;
@@ -73,6 +79,14 @@ void PhysicalModel::findBoundStates()
 //    else Umax=this->U(Nmax+1);
     Umin=Umin+1e-8;
     Umax=Umax-1e-6;
+    return QPair<double,double>(Umin,Umax);
+}
+
+void PhysicalModel::findBoundStates()
+{
+    QPair<double,double> umin_umax = getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
     int nmax = this->findNumberOfLevels(Umax);
     int nmin = 0;
     this->Ebound.clear();
@@ -119,8 +133,6 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
 void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
 {
     double aa = real(k(0))==0 ? 0 : m(N+1)/m(0);
-//    complex r = this->a(N+1)/this->b(N+1);
-//    complex t = this->b(0)/this->b(N+1);
     complex r = this->a(N+1);
     complex t = this->b(0);
     double rr,tt;
@@ -157,45 +169,6 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
     
     totalRT = RR + TT;
 }
-/*
-void Model::build_RT() 
-{
-    double aa = real(k(0))==0 ? 0 : m(0)/m(N+1);
-    complex r = this->b(0);
-    complex t = this->a(N+1);
-    double rr,tt;
-    rr=squaremod(r);
-    tt=squaremod(t);
-
-    // k's are:
-    // k0 - incident wave vector
-    // kl - reflected vector (going to the left)
-    // kr - transmitted vector (going to the right)
-    double k0,kr;
-    if(this->E0<=this->U(0)) 
-    {
-        RR=1;
-        TT=0;
-    }
-    else
-    {
-        k0=real(k(0));
-        if(this->E0<this->U(this->N+1))
-        {
-            TT=0;
-            RR=1.;
-        }
-        else
-        {
-            kr=real(k(N+1));
-            TT=tt*kr/k0*aa;
-            RR=rr;  
-        }
-    }  
-    
-    totalRT = RR + TT;
-}
-*/
 
 //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
 
@@ -221,50 +194,34 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         pos += this->d(n)/2.;
     }
     U_d = d;
-//    U(N+1) = Ui(N+1) + this->Ub;
-/*    for(int n=1; n <= this->N; n++)
-    {
-        pos += this->d(n)/2.;
-        U(n) = Ui(n) + pos/width * this->Ub;
-        pos += this->d(n)/2.;
-    }
-    U(N+1) = Ui(N+1) + this->Ub;
-*/
     need_build_U = false;///!!!!!!!!!!!
-    emit(signalPotentialChanged());
 }
 
-void PhysicalModel::XUscales() /* input:Ub,Ui --- result:U */
+QRectF PhysicalModel::getGoodViewportAtU() const
 {
     double x,y;
     double ymin = 1e300, ymax = -1e300;
     x=0;
-    build_U(); 
-    for(int n=1;n<=this->N;n++)
+    //    build_U(); 
+    double Xmax, Xmin, Umax, Umin;
+    for (int n=1; n <= getN(); n++)
     {
-        x += d(n);
-        if(n==this->N) Xmax=x;
-        y = this->U(n);
+        x += get_d(n);
+        if (n == getN()) Xmax = x;
+        y = get_Ui(n);
         if (y > ymax) ymax = y; 
         if (y < ymin) ymin = y;
     }
-    if(this->U(this->N+1)>ymax) ymax=this->U(this->N+1);
+    if (get_Ui(getN()+1) > ymax)
+        ymax = get_Ui(getN()+1);
+
     Xmax=1.3*Xmax;
     Xmin=-0.3*Xmax;  
     Umax=1.1*ymax;
     Umin=1.1*ymin;
     if(Umax==0) Umax=0.5*abs(Umin);
     if(Umin==0) Umin=-0.1*abs(Umax);
-//--------------------------
-    this->width=(Xmax-Xmin);
-    this->height=(Umax-Umin);
-//    this->iwidth=300;
-//    this->iheight=250;
-//    this->scalex=this->iwidth/(Xmax-Xmin);
-//    this->scaley=this->iheight/(Umax-Umin);
-    this->scalex=this->width/(Xmax-Xmin);
-    this->scaley=this->height/(Umax-Umin);
-//------------------
+    return QRectF(QPointF(Xmin,Umin),QPointF(Xmax,Umax));
 }
 inline double module(complex& a){ return fabs(real(a))+fabs(imag(a)); }
 
@@ -276,33 +233,6 @@ void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
 {
     /* set ..,0,1,0,.. and ..,r,r,r,.. */
     complex up,dn, aa, bb, zz;
-    /*    if(this->E0-this->U(0)>0)
-    { 
-    a(N+1)=1;
-    b(N+1)=0;
-    for(int i=N+1; i>=1; i--)
-    {
-    up = 0.5*exp(complex(0.,1.)*this->k(i-1)*this->d(i-1));
-    dn = 0.5*exp(-complex(0.,1.)*this->k(i-1)*this->d(i-1));
-    complex K12= (this->k(i)/this->k(i-1))*(this->m(i-1)/this->m(i));
-    complex KPa= (complex(1.,0)+K12)*dn;
-    complex KMa= (complex(1.,0)-K12)*dn;
-    complex KPb= (complex(1.,0)+K12)*up;
-    complex KMb= (complex(1.,0)-K12)*up;
-    aa=a(i)*KPa+b(i)*KMa;        
-    bb=a(i)*KMb+b(i)*KPb;  
-    a(i-1)=aa;
-    b(i-1)=bb;
-    }
-    for(int i=N+1; i>=0; i--)
-    {
-    b(i)=b(i)/a(0);
-    a(i)=a(i)/a(0);
-    }
-    }
-
-    else
-    */
     {
         a(0)=0. ;
         b(0)=1.;
@@ -392,8 +322,6 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
     -------------------*/
          complex up=exp( complex(0,1)*(  k(n)*xt ) );
         complex dn=exp( complex(0,1)*( -k(n)*xt  ) );
-//        complex up=exp( complex(0,1)*(  k(n)*xt  ) );
-//        complex dn=exp( complex(0,1)*( -k(n)*xt  ) );
         this->psi = a(n)*up + b(n)*dn;
         Psi2 = squaremod(psi);
         psi_real=real(psi);
@@ -406,8 +334,6 @@ void PhysicalModel::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
 {
         this->norm();
         double xr=0.;
-//        double zr,zi;
-//        double zr,zi,z0,z1;
         double kw = this->kwave;
         this->phi=complex(0.,0.);
         complex exp_xr;
@@ -434,9 +360,6 @@ void PhysicalModel::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
                if(kw==-kj&&kw!=0) phi = phi + exp_xlp*(b(n)*d(n)+a(n)*exp_kwdjm*sin(kw*d(n))/kw);
                if(kw==kj && kw==0) phi = phi + d(n)*(a(n)+b(n));
            }
-           //}
-//  zr=real(phi);
-//  zi=imag(phi);
     }
        phi= phi+ b(0)/(imag(this->k(0))-complex(0,kw));//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
 //        phi= phi+complex(0.,1.)*b(0)/(this->k(0)+kw);//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
@@ -571,42 +494,18 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
     }
     this->Ui(this->N+1) = 0;
     this->m(this->N+1) = 0.5;
-    need_build_U = true;
-    this->build_U(); 
-    //emit(signalPotentialChanged());
+    markUchanged();
 }
 
 PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
   N(0), E0(0), psi(0), Ub(0), x(0), 
- Xmin(0),Xmax(0),Umin(0),Umax(0),
  Time(0), kwave(0),
  timeswitch(0),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),
- psi_imag(0), Phi_imag(0),
- width(5), height(5), scalex(1), scaley(1)
-// iwidth(0), iheight(0), scalex(1), scaley(1)
+ psi_imag(0), Phi_imag(0)
 {
-}
-
-void PhysicalModel::slotPotentialChanged()
-{
-    Vector<double> saveU = U;
-    Vector<double> saved = U_d;
-    build_U();
-//    XUscales();
-    if (saveU != U||saved != U_d)
-    {
-        emit(signalPotentialChanged());
-    }
-
-    QVector<double> saveEbound = Ebound;
-    findBoundStates();
-    if (saveEbound != Ebound)
-    {
-        emit(signalEboundChanged());
-    }
 }
 
 void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
@@ -617,10 +516,11 @@ void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
     bool changed = false;
 
     int _N = _Ui.size() - 2;
+
     if(_Ub!=Ub)
     {
-    Ub=_Ub;
-    changed=true;
+        Ub=_Ub;
+        changed=true;
     }
     if (_N != Ui.size() - 2)
     {
@@ -639,16 +539,19 @@ void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
             m(n) = _m[n];
             changed = true;
         }
-        if (0 < n && n <= N && d(n) != _d[n])
+        if (0 < n && n <= _N)
         {
-            d(n) = _d[n];
-            changed = true;
+            if( d(n) != _d[n])
+            {
+                d(n) = _d[n];
+                changed = true;
+            }
         }
     }
-    
+
     if (changed)
     {
-        need_build_U = true;
+        markUchanged();
     }
 }
 
@@ -657,15 +560,16 @@ void PhysicalModel::set_d(int n, double v)
     if (d(n) != v)
     {
         d(n) = v;
-        need_build_U = true;
+        markUchanged();
     }
 }
 void PhysicalModel::set_Ui(int n, double v)
 {
+    double t = Ui(n);
     if (Ui(n) != v)
     {
         Ui(n) = v;
-        need_build_U = true;
+        markUchanged();
     }
 }
 void PhysicalModel::set_m(int n, double v)
@@ -673,7 +577,7 @@ void PhysicalModel::set_m(int n, double v)
     if (m(n) != v)
     {
         m(n) = v;
-        need_build_U = true;
+        markUchanged();
     }
 }
 void PhysicalModel::set_Ub(double v)
@@ -681,6 +585,54 @@ void PhysicalModel::set_Ub(double v)
     if (Ub != v)
     {
         Ub = v;
-        need_build_U = true;
+        markUchanged();
     }
+}
+void PhysicalModel::markUchanged()
+{
+    need_build_U = true;
+    need_build_En = true;
+    emit(signalPotentialChanged());
+    emit(signalEboundChanged());
+}
+
+QVector<double> PhysicalModel::getEn()
+{
+    if (need_build_U)
+    {
+        build_U(); 
+        need_build_U = false;
+        need_build_En = true;
+    }
+    if (need_build_En)
+    {
+        findBoundStates();
+        need_build_En = false;
+    }
+    return Ebound;
+}
+
+double PhysicalModel::getEn(int n)
+{
+    if (need_build_U)
+    {
+        build_U(); 
+        need_build_U = false;
+        need_build_En = true;
+    }
+    if (need_build_En)
+    {
+        findBoundStates();
+        need_build_En = false;
+    }
+    return Ebound[n];
+}
+
+double PhysicalModel::get_U(int n)
+{
+    if (need_build_U)
+    {
+        build_U();
+    }
+    return U(n);
 }
