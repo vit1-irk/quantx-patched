@@ -441,32 +441,32 @@ void  MainWindow::slotWPacket()
 void MainWindow::slotU1()
 {
     const int N = model->getN();
-    U1.resize(0,N+1);
-    d1.resize(0,N);
+    U1.resize(1+N+1);
+    d1.resize(1+N);
     for(int n=1; n<=N; n++)
     {
-        U1(n) = model->get_Ui(n);
-        d1(n) = model->get_d(n);
+        U1[n] = model->get_Ui(n);
+        d1[n] = model->get_d(n);
     }
-    U1(N+1) = model->get_Ui(N+1);
-    U1(0) = model->get_Ui(0);
-    this->Ub1=model->get_Ub();
-    d1(0) = 0;
+    U1[N+1] = model->get_Ui(N+1);
+    U1[0] = model->get_Ui(0);
+    this->Ub1 = model->get_Ub();
+    d1[0] = 0;
 }
 void MainWindow::slotU2()
 {
     const int N = model->getN();
-    U2.resize(0,N+1);
-    d2.resize(0,N);
+    U2.resize(1+N+1);
+    d2.resize(1+N);
     for(int n=1; n<=N; n++)
     {
-        U2(n) = model->get_Ui(n);
-        d2(n) = model->get_d(n);
+        U2[n] = model->get_Ui(n);
+        d2[n] = model->get_d(n);
     }
-    U2(N+1) = model->get_Ui(N+1);
+    U2[N+1] = model->get_Ui(N+1);
     this->Ub2=model->get_Ub();
-    U2(0) = model->get_Ui(0);
-    d2(0) = 0;
+    U2[0] = model->get_Ui(0);
+    d2[0] = 0;
 }
 void MainWindow::Uxz(double z)
 {
@@ -481,12 +481,12 @@ void MainWindow::Uxz(double z)
         
         d[0] = 0;
         m[0] = 0.5;
-        Ui[0] = U1(0) + z*(U2(0)-U1(0));
+        Ui[0] = U1[0] + z*(U2[0]-U1[0]);
         for(int n=1; n<=N; n++)
         {
-            Ui[n] = U1(n) + z*(U2(n)-U1(n));
-            d[n] = d1(n) + z*(d2(n)-d1(n));
-            this->Ubias=this->Ub1+z*(this->Ub2-this->Ub1);
+            Ui[n] = U1[n] + z*(U2[n]-U1[n]);
+            d[n] = d1[n] + z*(d2[n]-d1[n]);
+            this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
             m[n] = 0.5;
         }
         Ui[N+1] = 0;
@@ -992,8 +992,6 @@ void MainWindow::initStatusBar()
 void MainWindow::Bound_States()
 {
     int i = this->En_type->QComboBox::currentIndex();
-    double q;
-    int Nmax;
 
     QPair<double,double> umin_umax = model->getUminUmax();
     double Umin = umin_umax.first;
@@ -1231,7 +1229,7 @@ void MainWindow::compute_BE()
         this->E0=E;
         model->E0=E;
         compute();
-        y = real(model->b(model->getN()+1));
+        y = real(model->b[model->getN()+1]);
         if(y>1.) y =1+log(y);
         if(y<-1.) y =-1-log(-y);
         data.push_back(y+0.5*(this->xmax-this->xmin));
@@ -1595,7 +1593,7 @@ void MainWindow::compute_Psin()
         double E = Ebound[n];
         this->E0=E;
         compute();
-        model->b(N+1)=0;
+        model->b[N+1]=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
@@ -2322,9 +2320,9 @@ void MainWindow::WavePacketXoft()
         model->build_ab();
         for(int n=0; n <= N+1; n++)
         {
-            kp(p,n)=model->k(n);
-            ap(p,n)=model->a(n);
-            bp(p,n)=model->b(n);
+            kp(p,n)=model->k[n];
+            ap(p,n)=model->a[n];
+            bp(p,n)=model->b[n];
         }
     }
     //-----------------------time-------
@@ -2356,12 +2354,12 @@ void MainWindow::WavePacketXoft()
                 model->E0= result[p].E;
                 for(int n=0; n <= N+1; n++)
                 {
-                    model->k(n)=kp(p,n);
-                    model->a(n)=ap(p,n);
-                    model->b(n)=bp(p,n);
+                    model->k[n]=kp(p,n);
+                    model->a[n]=ap(p,n);
+                    model->b[n]=bp(p,n);
                 }
                 if (model->E0 < model->get_U(N+1))
-                    model->b(N+1)=0.; 
+                    model->b[N+1]=0.; 
                 model->build_Psi();
                 complex yy=model->psi;
                 Psit += model->psi*result[p].w*expt[p];
@@ -2414,9 +2412,9 @@ void MainWindow::WavePacketPoft()
         model->build_ab();
         for(int n=0; n <= N+1; n++)
         {
-            kp(p,n)=model->k(n);
-            ap(p,n)=model->a(n);
-            bp(p,n)=model->b(n);
+            kp(p,n)=model->k[n];
+            ap(p,n)=model->a[n];
+            bp(p,n)=model->b[n];
         }
     }
 
@@ -2448,11 +2446,11 @@ void MainWindow::WavePacketPoft()
                 model->E0= result[p].E;
                 for(int n=0; n <= N+1; n++)
                 {
-                    model->k(n)=kp(p,n);
-                    model->a(n)=ap(p,n);
-                    model->b(n)=bp(p,n);
+                    model->k[n]=kp(p,n);
+                    model->a[n]=ap(p,n);
+                    model->b[n]=bp(p,n);
                 }
-                model->b(N+1) = 0.; 
+                model->b[N+1] = 0.; 
                 model->build_Phi();
                 complex yy=model->phi;
                 Psit += model->phi*result[p].w*expt[p];

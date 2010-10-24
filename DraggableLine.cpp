@@ -35,7 +35,7 @@ HDraggableLine::HDraggableLine(QPointF at, qreal other_end_x, QGraphicsItem *par
 : DraggableLine(parent)
 { 
     if (at.x() > other_end_x)
-        swap(at.rx(),other_end_x);
+        qSwap(at.rx(),other_end_x);
     p1 = at;
     p2 = QPointF(other_end_x, at.y());
     setCursor(Qt::SizeVerCursor);

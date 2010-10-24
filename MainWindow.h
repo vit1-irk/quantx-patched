@@ -152,10 +152,10 @@ private:
 //    MyParamD Psi2, psi_phasehth, psit_real,psit_imag;
     QCheckBox *flgScale, *flgErase, *flgUx, *flgEraseT;
 //    int Erase, wave_packet_type;
-    Vector<double> U1; //!< Inital potential values for z-animations
-    Vector<double> U2; //!< Final potential values for z-animations
-    Vector<double> d1; //!< Initial potential step widths for z-animations
-    Vector<double> d2; //!< Final potential step widths for z-animations
+    QVector<double> U1; //!< Inital potential values for z-animations
+    QVector<double> U2; //!< Final potential values for z-animations
+    QVector<double> d1; //!< Initial potential step widths for z-animations
+    QVector<double> d2; //!< Final potential step widths for z-animations
     double Ubias; 
     double Ub1,Ub2; 
     QGroupBox *grrb;

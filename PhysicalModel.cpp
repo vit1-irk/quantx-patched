@@ -69,12 +69,12 @@ QPair<double,double> PhysicalModel::getUminUmax()
     Nmax = getN ();
     for (int i = 0; i < Nmax+1; ++i)
     {   
-        q = this->U(i);
+        q = this->U[i];
         if (q > Umax) Umax = q; 
         if (q < Umin) Umin = q;
     }
-    if(this->U(0)>this->U(Nmax+1)) Umax=this->U(Nmax+1);
-    else Umax=this->U(0);
+    if(this->U[0] > this->U[Nmax+1]) Umax=this->U[Nmax+1];
+    else Umax=this->U[0];
 //    if(this->U(Nmax+1)>0) Umax=0.;
 //    else Umax=this->U(Nmax+1);
     Umin=Umin+1e-8;
@@ -105,7 +105,7 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
     for (int n = 0; n <= this->N + 1; n++)
     {
 //        this->k(n) = waveNumber(n);
-        double c = a * this->m(n) * (this->E0 - this->U(n) );
+        double c = a * this->m[n] * (this->E0 - this->U[n] );
         {
             if(fabs(c) < 1e-10) //TODO: process correctly the case when E0 = U(n)
             {
@@ -113,9 +113,9 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
                 goto restart;
             }
             if (c>0)
-                this->k(n) = complex(sqrt( c), 0);
+                this->k[n] = complex(sqrt( c), 0);
             else
-                this->k(n) = complex(0, sqrt(-c));
+                this->k[n] = complex(0, sqrt(-c));
         }
     }
 }
@@ -132,9 +132,9 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
 -------------------------------------------------*/
 void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
 {
-    double aa = real(k(0))==0 ? 0 : m(N+1)/m(0);
-    complex r = this->a(N+1);
-    complex t = this->b(0);
+    double aa = real(k[0])==0 ? 0 : m[N+1]/m[0];
+    complex r = this->a[N+1];
+    complex t = this->b[0];
     double rr,tt;
     rr=squaremod(r);
     tt=squaremod(t);
@@ -146,22 +146,22 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
     double k0,kr;
     RR=rr;
     TT=tt;
-    if(this->E0<=this->U(0)) 
+    if(this->E0 <= this->U[0]) 
     {
         RR=1;
         TT=0;
     }
     else
     {
-        k0=real(k(0));
-        if(this->E0<=this->U(this->N+1))
+        k0=real(k[0]);
+        if(this->E0 <= this->U[this->N+1])
         {
             TT=0;
             RR=1.;
         }
         else
         {
-            kr=real(this->k(this->N+1));
+            kr=real(this->k[this->N+1]);
             TT=tt*k0/kr*aa;
             RR=rr;  
         }
@@ -180,18 +180,18 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     if (! need_build_U)
         return;
 
-    U(0) = Ui(0)+this->Ub;
+    U[0] = Ui[0]+this->Ub;
     
     double width=0; 
     for (int n=1; n <= this->N; n++) 
-        width += this->d(n);
+        width += this->d[n];
 
     double pos=0;
     for(int n=this->N; n >= 0; n--)
     {
-        pos += this->d(n)/2.;
-        U(n) = Ui(n) + pos/width * this->Ub;
-        pos += this->d(n)/2.;
+        pos += this->d[n]/2.;
+        U[n] = Ui[n] + pos/width * this->Ub;
+        pos += this->d[n]/2.;
     }
     U_d = d;
     need_build_U = false;///!!!!!!!!!!!
@@ -234,28 +234,28 @@ void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
     /* set ..,0,1,0,.. and ..,r,r,r,.. */
     complex up,dn, aa, bb, zz;
     {
-        a(0)=0. ;
-        b(0)=1.;
+        a[0]=0. ;
+        b[0]=1.;
         for(int i=0; i<=N; i++)
         {
-            up = 0.5*exp(complex(0.,1.)*this->k(i)*this->d(i));
-            dn = 0.5*exp(-complex(0.,1.)*this->k(i)*this->d(i));
-            complex K12= (this->k(i)/this->k(i+1))*(this->m(i+1)/this->m(i));
+            up = 0.5*exp(complex(0.,1.)*this->k[i]*this->d[i]);
+            dn = 0.5*exp(-complex(0.,1.)*this->k[i]*this->d[i]);
+            complex K12= (this->k[i]/this->k[i+1])*(this->m[i+1]/this->m[i]);
             complex KPa= (complex(1.,0)+K12)*up;
             complex KMa= (complex(1.,0)-K12)*dn;
             complex KPb= (complex(1.,0)+K12)*dn;
             complex KMb= (complex(1.,0)-K12)*up;
-            complex aa=a(i)*KPa+b(i)*KMa;        
-            complex bb=a(i)*KMb+b(i)*KPb;  
-            a(i+1)=aa;
-            b(i+1)=bb;
+            complex aa=a[i]*KPa+b[i]*KMa;        
+            complex bb=a[i]*KMb+b[i]*KPb;  
+            a[i+1]=aa;
+            b[i+1]=bb;
         }
-        if(this->E0-this->U(N+1)>0)
+        if(this->E0 - this->U[N+1] > 0)
         {
             for(int i=0; i<=N+1; i++)
             {
-                a(i)=a(i)/b(N+1);
-                b(i)=b(i)/b(N+1);
+                a[i]=a[i]/b[N+1];
+                b[i]=b[i]/b[N+1];
             }
         }
     }
@@ -263,36 +263,39 @@ void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
 }
 void PhysicalModel::norm()
 {
-    double s=0.5*(squaremod(this->b(0))/imag(this->k(0))+squaremod(this->a(this->N+1))/imag(this->k(this->N+1)));
+    double s=0.5*(
+        squaremod(this->b[0])/imag(this->k[0])
+        +squaremod(this->a[this->N+1])/imag(this->k[this->N+1])
+        );
     for (int n = 1; n <= this->N; n++)
     {
-      complex aj=this->a(n);
-      complex bj=this->b(n);
-      double a= this->E0-this->U(n);
-      if(a>0)
-      {
-      double arg= real(this->k(n))*this->d(n);
-      if(arg!=0)
-      {
-      s = s + this->d(n)*(( squaremod(aj)+squaremod(bj) )+sin(arg)/arg*real(aj*conj(bj)*exp(complex(0,1.)*arg)+bj*conj(aj)*exp(-complex(0,1.)*arg)));
-      }
-      else s = s + this->d(n)*(( squaremod(aj)+squaremod(bj) )+real(aj*conj(bj)+bj*conj(aj)));
-      
-      }
-      else
-      {
-      double arg= imag(this->k(n))*this->d(n);
-      if(arg!=0)
-      {
-      s = s + this->d(n)*real((aj*conj(bj)+bj*conj(aj))+sinh(arg)/arg*(squaremod(aj)*exp(-arg)+squaremod(bj)*exp(arg)));
-      }
-      else s = s + this->d(n)*real((aj*conj(bj)+bj*conj(aj))+(squaremod(aj)+squaremod(bj)));
-      }
+        complex aj=this->a[n];
+        complex bj=this->b[n];
+        double a = this->E0 - this->U[n];
+        if(a>0)
+        {
+            double arg= real(this->k[n])*this->d[n];
+            if(arg!=0)
+            {
+                s = s + this->d[n]*(( squaremod(aj)+squaremod(bj) )+sin(arg)/arg*real(aj*conj(bj)*exp(complex(0,1.)*arg)+bj*conj(aj)*exp(-complex(0,1.)*arg)));
+            }
+            else s = s + this->d[n]*(( squaremod(aj)+squaremod(bj) )+real(aj*conj(bj)+bj*conj(aj)));
+
+        }
+        else
+        {
+            double arg= imag(this->k[n])*this->d[n];
+            if(arg!=0)
+            {
+                s = s + this->d[n]*real((aj*conj(bj)+bj*conj(aj))+sinh(arg)/arg*(squaremod(aj)*exp(-arg)+squaremod(bj)*exp(arg)));
+            }
+            else s = s + this->d[n]*real((aj*conj(bj)+bj*conj(aj))+(squaremod(aj)+squaremod(bj)));
+        }
     }
     for (int n = 0; n <= this->N + 1; n++)
     {
-     this->a(n)=this->a(n)/sqrt(s);
-     this->b(n)=this->b(n)/sqrt(s);
+        this->a[n]=this->a[n]/sqrt(s);
+        this->b[n]=this->b[n]/sqrt(s);
     }
 }
 /*-----------------------------------------------
@@ -308,21 +311,22 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
     double xt=x;
     int n;
     
-    if(this->E0-this->U(N+1) <0&&this->E0-this->U(0)) norm();
-    for(n=0;n<=N;n++)
+    if (this->E0 - this->U[N+1] < 0 && this->E0 - this->U[0])
+        norm();
+    for (n = 0; n <= N; n++)
     {
-        xt-=d(n);
+        xt -= d[n];
         if(xt<0)
         {
-            xt += d(n);
+            xt += d[n];
             break;
         }
     }
     /* obtain Psi2 at x
     -------------------*/
-         complex up=exp( complex(0,1)*(  k(n)*xt ) );
-        complex dn=exp( complex(0,1)*( -k(n)*xt  ) );
-        this->psi = a(n)*up + b(n)*dn;
+         complex up=exp( complex(0,1)*(  k[n]*xt ) );
+        complex dn=exp( complex(0,1)*( -k[n]*xt  ) );
+        this->psi = a[n]*up + b[n]*dn;
         Psi2 = squaremod(psi);
         psi_real=real(psi);
         psi_imag=imag(psi);
@@ -332,43 +336,43 @@ Calculates Phi(p) at p.
 -------------------------------------------------*/
 void PhysicalModel::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
 {
-        this->norm();
-        double xr=0.;
-        double kw = this->kwave;
-        this->phi=complex(0.,0.);
-        complex exp_xr;
-        for(int n=1; n<=this->N; n++)
-           {
-           xr+=d(n);
+    this->norm();
+    double xr=0.;
+    double kw = this->kwave;
+    this->phi=complex(0.,0.);
+    complex exp_xr;
+    for(int n=1; n<=this->N; n++)
+    {
+        xr += d[n];
 
-           complex kj=this->k(n);
-           complex kjdn=this->k(n)*d(n);
-           exp_xr = exp(-complex(0.,kw*xr));
-           complex exp_kjdjp=exp(complex(0,1)*kjdn);
-           complex exp_kwdjm=exp(complex(0,-kw*d(n)));
-           complex exp_kjdjm=exp(complex(0,-1)*kjdn);
-           complex exp_kwdjp=exp(complex(0,kw*d(n)));
-           if(kw!=kj&&kw!=-kj)
-           {
-               phi = phi + complex(0, -1.)*exp_xr*(a(n)*(exp_kjdjp-exp_kwdjp)/(kj-kw)-b(n)*(exp_kjdjm-exp_kwdjp)/(kj+kw));
-           }
-           else
-           {
-               complex exp_xlm = exp(complex(0.,-kw*(xr-d(n))));
-               complex exp_xlp = exp(complex(0.,kw*(xr-d(n))));
-               if(kw==kj&&kw!=0)  phi = phi + exp_xlm*(a(n)*d(n)+b(n)*exp_kwdjp*sin(kw*d(n))/kw);
-               if(kw==-kj&&kw!=0) phi = phi + exp_xlp*(b(n)*d(n)+a(n)*exp_kwdjm*sin(kw*d(n))/kw);
-               if(kw==kj && kw==0) phi = phi + d(n)*(a(n)+b(n));
-           }
+        complex kj=this->k[n];
+        complex kjdn=this->k[n]*d[n];
+        exp_xr = exp(-complex(0.,kw*xr));
+        complex exp_kjdjp=exp(complex(0,1)*kjdn);
+        complex exp_kwdjm=exp(complex(0,-kw*d[n]));
+        complex exp_kjdjm=exp(complex(0,-1)*kjdn);
+        complex exp_kwdjp=exp(complex(0,kw*d[n]));
+        if(kw!=kj&&kw!=-kj)
+        {
+            phi = phi + complex(0, -1.)*exp_xr*(a[n]*(exp_kjdjp-exp_kwdjp)/(kj-kw)-b[n]*(exp_kjdjm-exp_kwdjp)/(kj+kw));
+        }
+        else
+        {
+            complex exp_xlm = exp(complex(0.,-kw*(xr-d[n])));
+            complex exp_xlp = exp(complex(0.,kw*(xr-d[n])));
+            if(kw==kj&&kw!=0)  phi = phi + exp_xlm*(a[n]*d[n]+b[n]*exp_kwdjp*sin(kw*d[n])/kw);
+            if(kw==-kj&&kw!=0) phi = phi + exp_xlp*(b[n]*d[n]+a[n]*exp_kwdjm*sin(kw*d[n])/kw);
+            if(kw==kj && kw==0) phi = phi + d[n]*(a[n]+b[n]);
+        }
     }
-       phi= phi+ b(0)/(imag(this->k(0))-complex(0,kw));//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
-//        phi= phi+complex(0.,1.)*b(0)/(this->k(0)+kw);//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
-        phi= phi+a(N+1)*exp(complex(0.,-kw*xr))/(imag(this->k(N+1))+complex(0.,kw));
-        
-        Phi2 = squaremod(phi);
-        Phi_real=real(phi);
-        Phi_imag=imag(phi);
-       }
+    phi= phi+ b[0]/(imag(this->k[0])-complex(0,kw));//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
+    //        phi= phi+complex(0.,1.)*b(0)/(this->k(0)+kw);//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
+    phi= phi+a[N+1]*exp(complex(0.,-kw*xr))/(imag(this->k[N+1])+complex(0.,kw));
+
+    Phi2 = squaremod(phi);
+    Phi_real=real(phi);
+    Phi_imag=imag(phi);
+}
 int PhysicalModel::zeroPsi()
 {
     int Nmax, nzero, nzero_i, n_total;
@@ -377,71 +381,71 @@ int PhysicalModel::zeroPsi()
     for (int i = 1; i <= Nmax; ++i)
     {
         nzero_i=0; 
-        if(this->E0>this->U(i))
+        if (this->E0 > this->U[i])
         {
-        double arg = real(k(i))*d(i); 
-        double  psi_j   = real(a(i)*exp(complex(0.,arg))+ b(i)*exp(complex(0.,-arg)));
-        double cj = psi_j/real(a(i)+b(i));
-        double cs = cos(arg);
-        double sn = sin(arg);
-        double phase_j= atan((cs-cj)/sn);
-        double arg_j=arg+phase_j;
-        int j=0;
-            while(arg_j>0.5*M_PI*(1+2*j))
+            double arg = real(k[i])*d[i]; 
+            double  psi_j   = real(a[i]*exp(complex(0.,arg))+ b[i]*exp(complex(0.,-arg)));
+            double cj = psi_j/real(a[i]+b[i]);
+            double cs = cos(arg);
+            double sn = sin(arg);
+            double phase_j= atan((cs-cj)/sn);
+            double arg_j=arg+phase_j;
+            int j=0;
+            while(arg_j > 0.5*M_PI*(1+2*j))
             {
-              j++;
-             }
+                j++;
+            }
             nzero_i=j;
-         nzero=nzero+nzero_i;
+            nzero=nzero+nzero_i;
         }
         else 
         {
-        double arg = imag(k(i))*d(i); 
-        double psi2=real(a(i)+b(i));
-        double psi1=real(a(i)*exp(-arg)+b(i)*exp(arg));
-        if(psi1>0&&psi2<0||psi1<0&&psi2>0)
-        {
-            nzero=nzero+1;
+            double arg = imag(k[i])*d[i]; 
+            double psi2=real(a[i]+b[i]);
+            double psi1=real(a[i]*exp(-arg)+b[i]*exp(arg));
+            if (psi1>0 && psi2<0 || psi1<0 && psi2>0)
+            {
+                nzero=nzero+1;
+            }
         }
-        }
-     n_total=nzero;
+        n_total=nzero;
     }
-        return nzero;
+    return nzero;
 }
 int PhysicalModel::findNumberOfLevels(double E)
 {       
-        int Nmax, nzero;
-        Nmax = getN ();
-        this->set_E0(E);
-//        this->E0 = E;
-        this->build_k();
-        this->build_ab();
-        nzero=zeroPsi(); //number of zeros of wave function inside (0, x_Nmax) at E near zero
-        double psi1=real(a(Nmax+1)+b(Nmax+1));
-        double psi2=real(b(Nmax+1));
-        if(psi1>0&&psi2<0||psi1<0&&psi2>0) 
-        {return nzero+1;} 
-        else
-        {return nzero;}
+    int Nmax, nzero;
+    Nmax = getN ();
+    this->set_E0(E);
+    //        this->E0 = E;
+    this->build_k();
+    this->build_ab();
+    nzero=zeroPsi(); //number of zeros of wave function inside (0, x_Nmax) at E near zero
+    double psi1=real(a[Nmax+1]+b[Nmax+1]);
+    double psi2=real(b[Nmax+1]);
+    if(psi1>0&&psi2<0||psi1<0&&psi2>0) 
+    {return nzero+1;} 
+    else
+    {return nzero;}
 }
- double PhysicalModel::findOneLevel(double emin, double emax)
+double PhysicalModel::findOneLevel(double emin, double emax)
 {
         double E =(emin +emax)*.5;
         this->set_E0(E);
         this->build_k();
         this->build_ab();
-        double y=real(this->b(this->N+1));
+        double y=real(this->b[this->N+1]);
         this->set_E0(emin);
         this->build_k();
         this->build_ab();
-        double y1=real(this->b(this->N+1));
+        double y1=real(this->b[this->N+1]);
         double E1=emin;
         if(y>0&&y1>0||y<0&&y1<0) 
         { 
          this->set_E0(emax);
          this->build_k();
          this->build_ab();
-         y1=real(this->b(this->N+1));
+         y1=real(this->b[this->N+1]);
          E1=emax;
          }
         while(fabs(E-E1)>1.e-12)
@@ -449,7 +453,7 @@ int PhysicalModel::findNumberOfLevels(double E)
          this->set_E0((E +E1)*.5);;
          this->build_k();
          this->build_ab();
-         double y=real(this->b(this->N+1));
+         double y=real(this->b[this->N+1]);
         if(y>0&&y1>0||y<0&&y1<0) 
         { E1=this->E0;
           y1=y;
@@ -477,23 +481,23 @@ UAsMW PhysicalModel::getUAsMW() const
 void PhysicalModel::setUAsMW(const UAsMW& u)
 {
     this->set_N(2*u.numberOfWells - 1);
-    this->m(0) = 0.5;
-    this->d(0) = 0;
-    this->Ui(0) = 0;
+    this->m[0] = 0.5;
+    this->d[0] = 0;
+    this->Ui[0] = 0;
     this->Ub = u.ubias; 
     for (int n = 1; n <= u.numberOfWells; n++)
     {
         int i = 2*n-1;
-        this->Ui(i) = u.ua;
-        this->Ui(i+1) = u.ub;
-        this->d(i) = u.wa;
+        this->Ui[i] = u.ua;
+        this->Ui[i+1] = u.ub;
+        this->d[i] = u.wa;
         if (i < 2*u.numberOfWells - 1)
-            this->d(i+1) = u.wb;
-        this->m(i) = 0.5;
-        this->m(i+1) = 0.5;
+            this->d[i+1] = u.wb;
+        this->m[i] = 0.5;
+        this->m[i+1] = 0.5;
     }
-    this->Ui(this->N+1) = 0;
-    this->m(this->N+1) = 0.5;
+    this->Ui[this->N+1] = 0;
+    this->m[this->N+1] = 0.5;
     markUchanged();
 }
 
@@ -529,21 +533,21 @@ void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
     }
     for (int n = 0; n <= _N+1; ++n)
     {
-        if (Ui(n) != _Ui[n])
+        if (Ui[n] != _Ui[n])
         {
-            Ui(n) = _Ui[n];
+            Ui[n] = _Ui[n];
             changed = true;
         }
-        if (m(n) != _m[n])
+        if (m[n] != _m[n])
         {
-            m(n) = _m[n];
+            m[n] = _m[n];
             changed = true;
         }
         if (0 < n && n <= _N)
         {
-            if( d(n) != _d[n])
+            if( d[n] != _d[n])
             {
-                d(n) = _d[n];
+                d[n] = _d[n];
                 changed = true;
             }
         }
@@ -557,26 +561,25 @@ void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
 
 void PhysicalModel::set_d(int n, double v)
 {
-    if (d(n) != v)
+    if (d[n] != v)
     {
-        d(n) = v;
+        d[n] = v;
         markUchanged();
     }
 }
 void PhysicalModel::set_Ui(int n, double v)
 {
-    double t = Ui(n);
-    if (Ui(n) != v)
+    if (Ui[n] != v)
     {
-        Ui(n) = v;
+        Ui[n] = v;
         markUchanged();
     }
 }
 void PhysicalModel::set_m(int n, double v)
 {
-    if (m(n) != v)
+    if (m[n] != v)
     {
-        m(n) = v;
+        m[n] = v;
         markUchanged();
     }
 }
@@ -634,5 +637,5 @@ double PhysicalModel::get_U(int n)
     {
         build_U();
     }
-    return U(n);
+    return U[n];
 }
