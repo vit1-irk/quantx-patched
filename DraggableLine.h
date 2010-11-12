@@ -14,7 +14,6 @@ class PotentialScene;
 class DraggableLine : public QGraphicsItem
 {
 public: 
-//    DraggableLine(PotentialViewMovable *pVM);  ///
 	DraggableLine(QGraphicsItem *parent = 0);
 	void SetLeft(DraggableLine * l) { left = l; } 
     void SetRight(DraggableLine * r) { right = r; }

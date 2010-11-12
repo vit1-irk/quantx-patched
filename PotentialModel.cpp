@@ -53,11 +53,15 @@ PotentialModel::data(const QModelIndex& index, int role) const
     switch (index.column())
     {
     case 0: // width
-        if (index.row()==0 || index.row() == model->getN() + 1)
+        if (index.row() == model->getN() + 1)
+//        if (index.row()==0 || index.row() == model->getN() + 1)
             return QVariant();
         else 
             return QVariant(model->get_d(index.row()));
     case 1: // U
+        if (index.row() == model->getN() + 1)
+            return QVariant();
+        else 
         return QVariant(model->get_Ui(index.row()));
     case 2: // mass
         return QVariant(model->get_m(index.row()));
@@ -100,7 +104,7 @@ PotentialModel::setData(const QModelIndex& index, const QVariant& value, int rol
     switch(index.column())
     {
     case 0: // width
-        if (index.row() < 1 || index.row() > model->getN()) 
+        if (index.row() < 0 || index.row() > model->getN()+1) 
             return false;
         model->set_d(index.row(), value.toDouble());
         //emit(dataChanged(index, index));
@@ -131,10 +135,10 @@ PotentialModel::flags(const QModelIndex& index) const
     switch(index.column())
     {
     case 0: // d_i
-        if (index.row() < 0 || index.row() > model->getN())
-            return Qt::NoItemFlags;
-        else
-            return Qt::ItemIsEditable | Qt::ItemIsEnabled;
+//        if (index.row() < 0 || index.row() > model->getN()+1)
+//            return Qt::NoItemFlags;
+//        else
+//            return Qt::ItemIsEditable | Qt::ItemIsEnabled;
     case 1: // U_i
     case 2: // m_i
         if (index.row() < 0 || index.row() > model->getN()+1)

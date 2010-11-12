@@ -42,8 +42,7 @@ public:
         if(abs(emax-emin)<1e-8) 
         {
          for(int i=1; i<=nemax-nemin; i++)
-//         for(int i=1; i<=nlevels-nemin; i++)
-         {
+         { 
             E.push_back(emid);
          }
             return;
@@ -67,23 +66,35 @@ QPair<double,double> PhysicalModel::getUminUmax()
     double q;
     int Nmax;
     Nmax = getN ();
-    for (int i = 0; i < Nmax+1; ++i)
-    {   
-        q = this->U[i];
-        if (q > Umax) Umax = q; 
-        if (q < Umin) Umin = q;
+    if(this->typeOfU==0)
+    {
+        for (int i = 0; i < Nmax+1; ++i)
+        {   
+            q = this->U[i];
+            if (q > Umax) Umax = q; 
+            if (q < Umin) Umin = q;
+        }
+        if(this->U[0] > this->U[Nmax+1]) Umax=this->U[Nmax+1];
+        else Umax=this->U[0];
     }
-    if(this->U[0] > this->U[Nmax+1]) Umax=this->U[Nmax+1];
-    else Umax=this->U[0];
-//    if(this->U(Nmax+1)>0) Umax=0.;
-//    else Umax=this->U(Nmax+1);
+    else
+    {
+        for (int i = 0; i < Nmax+1; ++i)
+        {   
+            q = this->U[i];
+            if (q > Umax) Umax = q; 
+            if (q < Umin) Umin = q;
+        }
+    }
     Umin=Umin+1e-8;
     Umax=Umax-1e-6;
     return QPair<double,double>(Umin,Umax);
 }
 
 void PhysicalModel::findBoundStates()
-{
+{   
+    double dE=1e-5;
+    double E, emin,emax;
     QPair<double,double> umin_umax = getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
@@ -92,8 +103,27 @@ void PhysicalModel::findBoundStates()
     this->Ebound.clear();
     ETree *mytree = new ETree(Umin, Umax, this, nmin, nmax);
     mytree->compute(this->Ebound);
+    int NN=Ebound.size();
+        for (int i = 0; i < Ebound.size(); ++i)
+        {   
+            double e=Ebound[i];
+        }
     delete mytree;
-    //emit(signalEboundChanged());
+    if(this->typeOfU>0)
+    {
+        this->EbandUp.clear();
+        this->EbandDown.clear();
+        EbandUp=Ebound;
+        double emin=Umin;
+        for (int i = 0; i < Ebound.size(); ++i)
+        {   
+            if(i==0) emin=Umin;
+            else emin=Ebound[i-1];
+            emax=Ebound[i];
+            E=findOneLevel(emin,Ebound[i]);
+            EbandDown.push_back(E);
+        }
+    }
 }
 /*************************************************
   k(n) = sqrt( 2*m(n)/h2*(E0-U(n)) );
@@ -102,9 +132,16 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
 {
  restart:
     double a = 2/hbar2;
+//    typeOfU=0;
+    if(this->typeOfU>0)
+{
+    U[N+1]=U[0];
+    d[N+1]=d[0];
+    m[N+1]=m[0];
+}
+
     for (int n = 0; n <= this->N + 1; n++)
     {
-//        this->k(n) = waveNumber(n);
         double c = a * this->m[n] * (this->E0 - this->U[n] );
         {
             if(fabs(c) < 1e-10) //TODO: process correctly the case when E0 = U(n)
@@ -180,10 +217,10 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     if (! need_build_U)
         return;
 
-    U[0] = Ui[0]+this->Ub;
+    U[0] = Ui[0] + this->Ub;
     
     double width=0; 
-    for (int n=1; n <= this->N; n++) 
+    for (int n=0; n <= this->N; n++) //!!!n=1 
         width += this->d[n];
 
     double pos=0;
@@ -194,6 +231,14 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         pos += this->d[n]/2.;
     }
     U_d = d;
+
+    if (getPotentialType() == PERIODIC)
+    {
+        U[N+1] = U[0];
+        d[N+1] = d[0];
+        m[N+1] = m[0];
+    }
+
     need_build_U = false;///!!!!!!!!!!!
 }
 
@@ -204,7 +249,7 @@ QRectF PhysicalModel::getGoodViewportAtU() const
     x=0;
     //    build_U(); 
     double Xmax, Xmin, Umax, Umin;
-    for (int n=1; n <= getN(); n++)
+    for (int n=0; n <= getN(); n++) ///n=1!!!!!!!
     {
         x += get_d(n);
         if (n == getN()) Xmax = x;
@@ -229,28 +274,16 @@ inline double module(complex& a){ return fabs(real(a))+fabs(imag(a)); }
 /*-----------------------------------------------
 This function calculates the coefficients a & b.
 -------------------------------------------------*/
-void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
-{
-    /* set ..,0,1,0,.. and ..,r,r,r,.. */
-    complex up,dn, aa, bb, zz;
+ void PhysicalModel::build_ab() 
+/* u:r,k,d,m r:a,b */
+{    
+//    typeOfU=0;
+    if(typeOfU==0)
     {
         a[0]=0. ;
         b[0]=1.;
-        for(int i=0; i<=N; i++)
-        {
-            up = 0.5*exp(complex(0.,1.)*this->k[i]*this->d[i]);
-            dn = 0.5*exp(-complex(0.,1.)*this->k[i]*this->d[i]);
-            complex K12= (this->k[i]/this->k[i+1])*(this->m[i+1]/this->m[i]);
-            complex KPa= (complex(1.,0)+K12)*up;
-            complex KMa= (complex(1.,0)-K12)*dn;
-            complex KPb= (complex(1.,0)+K12)*dn;
-            complex KMb= (complex(1.,0)-K12)*up;
-            complex aa=a[i]*KPa+b[i]*KMa;        
-            complex bb=a[i]*KMb+b[i]*KPb;  
-            a[i+1]=aa;
-            b[i+1]=bb;
-        }
-        if(this->E0 - this->U[N+1] > 0)
+        matching();
+        if(this->E0 > 0)
         {
             for(int i=0; i<=N+1; i++)
             {
@@ -258,16 +291,106 @@ void PhysicalModel::build_ab() /* u:r,k,d,m r:a,b */
                 b[i]=b[i]/b[N+1];
             }
         }
+        this->funEn=real(b[N+1]);
     }
+    else    // periodical potential
+    {
+        a[0]=1. ;
+        b[0]=0.;
+//        d[0]=1.;
+        U[N+1]=U[0];
+        d[N+1]=d[0];
+        m[N+1]=m[0];
+        matching();
+        complex alpha = a[N+1];
+        complex beta = b[N+1];
+        QVector<complex> a1=a;
+        QVector<complex> b1=b;
+        a[0]=0. ;
+        b[0]=1.;
+        matching();
+        complex gamma = a[N+1];
+        complex delta = b[N+1];
+        complex sum = alpha+delta;
+        complex dis = sum*sum-4.;
+//        complex bk = dis;
+         double sq = sqrt(abs(dis));
+        bool con1;
+        con1 = real(dis)>0;
+        //wave run to the right
+        int kw=1;
+        bool con2 = kw>0;
+        complex lambda;
+        if(con1&&con2) lambda=.5*(sum+sq);
+        if(con1&&!con2) lambda=.5*(sum-sq);
+        if(!con1&&con2) lambda=complex(.5*real(sum), 0.5*sq);
+        if(!con1&&!con2) lambda=complex(.5*real(sum), -0.5*sq);
+        complex cs;
+        if(real(sum)>0&&con1) cs = 0.5*(sum+sq);
+        if(real(sum)<0&&con1) cs = 0.5*(sum-sq);
+        for(int i=0; i<=N; i++)
+//        for(int i=0; i<=N+1; i++)
+        {
+            a[i]=gamma*a1[i]+(lambda-alpha)*a[i];
+            b[i]=gamma*b1[i]+(lambda-alpha)*b[i];
+        }
+        this->funEn=real(dis);
+    }
+}
+/*void PhysicalModel::build_ab() 
+/// u:r,k,d,m r:a,b 
+{
 
+    a[0]=0. ;
+    b[0]=1.;
+    matching();
+    if(this->E0 > 0)
+    {
+        for(int i=0; i<=N+1; i++)
+        {
+            a[i]=a[i]/b[N+1];
+            b[i]=b[i]/b[N+1];
+        }
+    }
+}
+*/
+void PhysicalModel::matching()
+{
+    for(int i=0; i<=N; i++)
+    {
+        complex Im = complex(0.,1.);
+        complex up = 0.5*exp(Im*this->k[i]*this->d[i]);
+        complex dn = 0.5*exp(-Im*this->k[i]*this->d[i]);
+        complex K12= (this->k[i]/this->k[i+1])*(this->m[i+1]/this->m[i]);
+        complex KPa= (1.+K12)*up;
+        complex KMa= (1.-K12)*dn;
+//        complex KPa= (complex(1.,0)+K12)*up;
+//        complex KMa= (complex(1.,0)-K12)*dn;
+//        complex KPb= (complex(1.,0)+K12)*dn;
+//        complex KMb= (complex(1.,0)-K12)*up;
+        complex KPb= (1.+K12)*dn;
+        complex KMb=  (1.-K12)*up;
+        complex aa=a[i]*KPa+b[i]*KMa;        
+        complex bb=a[i]*KMb+b[i]*KPb;  
+        a[i+1]=aa;
+        b[i+1]=bb;
+    }
 }
 void PhysicalModel::norm()
 {
-    double s=0.5*(
-        squaremod(this->b[0])/imag(this->k[0])
-        +squaremod(this->a[this->N+1])/imag(this->k[this->N+1])
-        );
-    for (int n = 1; n <= this->N; n++)
+    double s;
+    int n0;
+    s=0;
+    if(typeOfU==0)
+    {
+        s=0.5*(
+            squaremod(this->b[0])/imag(this->k[0])
+            +squaremod(this->a[this->N+1])/imag(this->k[this->N+1])
+            );
+        n0=1;
+    }
+    else n0=0;
+    for (int n = n0; n <= this->N; n++)
     {
         complex aj=this->a[n];
         complex bj=this->b[n];
@@ -292,27 +415,72 @@ void PhysicalModel::norm()
             else s = s + this->d[n]*real((aj*conj(bj)+bj*conj(aj))+(squaremod(aj)+squaremod(bj)));
         }
     }
-    for (int n = 0; n <= this->N + 1; n++)
+    if(s>0)
     {
-        this->a[n]=this->a[n]/sqrt(s);
-        this->b[n]=this->b[n]/sqrt(s);
+        for (int n = 0; n <= this->N + 1; n++)
+        {
+            this->a[n]=this->a[n]/sqrt(s);
+            this->b[n]=this->b[n]/sqrt(s);
+        }
     }
 }
 /*-----------------------------------------------
 Calculates Psi(x) at x.
 -------------------------------------------------*/
+//void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
+//{
+//   psi(x)=a(i)*exp(ik_j*(x-x_{j})+b(i)*exp(-ik_j*(x-x_{j})
+//   x_{j}<=x<=x_{j+1} d(j)=x_{j+1}-x_j
+
+//    first determine n  so that x belongs to d(n)
+//    double xt=x;
+/*    int n;
+    
+    if ((this->E0 < 0 && this->E0 - this->U[0] < 0)||typeOfU>0)  norm();
+    for (n = 0; n <= N; n++)
+    {
+        xt -= d[n];
+        if(xt<0)
+        {
+            xt += d[n];
+            break;
+        }
+    }
+  // obtain Psi2 at x
+        if(xt>xN)
+        {
+    for (int n = 0; n <= this->N; n++)
+         {
+           a(n) = lqmda*a(n)
+           b(n) = lqmda*b(n)
+         }
+        }
+
+        complex up=exp( complex(0,1)*(  k[n]*xt ) );
+        complex dn=exp( complex(0,1)*( -k[n]*xt  ) );
+        this->psi = a[n]*up + b[n]*dn;
+        Psi2 = squaremod(psi);
+        psi_real=real(psi);
+        psi_imag=imag(psi);
+}
+*/
 void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
 {
-//   psi(x)=a(i)*exp(ik_j*(x-x_{j-1})+b(i)*exp(-ik_j*(x-x_{j-1})
-//   x_{j-1}<=x<=x_j
+//   psi(x)=a(i)*exp(ik_j*(x-x_{j})+b(i)*exp(-ik_j*(x-x_{j})
+//   x_{j}<=x<=x_{j+1} d(j)=x_{j+1}-x_j
 
     /* first determine n  so that x belongs to d(n)
     ----------------------------------------------*/
     double xt=x;
+    double xN;
     int n;
-    
-    if (this->E0 - this->U[N+1] < 0 && this->E0 - this->U[0])
-        norm();
+    xN=-d[0];
+    for (n = 0; n <= N; n++)
+    {
+        xN+= d[n];
+    }
+//    LL=xN+d[0];
+    norm();
     for (n = 0; n <= N; n++)
     {
         xt -= d[n];
@@ -324,7 +492,21 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
     }
     /* obtain Psi2 at x
     -------------------*/
-         complex up=exp( complex(0,1)*(  k[n]*xt ) );
+//    xt=-d[0];
+//    int NN=300;
+//    hx=LL/NN;    
+/*    for (n = 0; n <= N; n++)
+    {
+        if(xt>xN)
+        {
+    for (int n = 0; n <= this->N; n++)
+         {
+           a(n) = lqmda*a(n)
+           b(n) = lqmda*b(n)
+         }
+        }
+*/
+        complex up=exp( complex(0,1)*(  k[n]*xt ) );
         complex dn=exp( complex(0,1)*( -k[n]*xt  ) );
         this->psi = a[n]*up + b[n]*dn;
         Psi2 = squaremod(psi);
@@ -378,7 +560,10 @@ int PhysicalModel::zeroPsi()
     int Nmax, nzero, nzero_i, n_total;
     Nmax = getN ();
     nzero=0;
-    for (int i = 1; i <= Nmax; ++i)
+    int i0;
+    if(typeOfU==0) i0=1;
+    else i0=0;
+    for (int i = i0; i <= Nmax; ++i)
     {
         nzero_i=0; 
         if (this->E0 > this->U[i])
@@ -416,36 +601,41 @@ int PhysicalModel::findNumberOfLevels(double E)
 {       
     int Nmax, nzero;
     Nmax = getN ();
-    this->set_E0(E);
-    //        this->E0 = E;
+    this->set_E0(E); 
     this->build_k();
     this->build_ab();
     nzero=zeroPsi(); //number of zeros of wave function inside (0, x_Nmax) at E near zero
-    double psi1=real(a[Nmax+1]+b[Nmax+1]);
-    double psi2=real(b[Nmax+1]);
-    if(psi1>0&&psi2<0||psi1<0&&psi2>0) 
-    {return nzero+1;} 
-    else
-    {return nzero;}
+    if(typeOfU==0)
+    {
+        double psi1=real(a[Nmax+1]+b[Nmax+1]);
+        double psi2=real(b[Nmax+1]);
+        if(psi1>0&&psi2<0||psi1<0&&psi2>0) 
+        return nzero+1;
+        else
+        return nzero;
+    }
+    else return nzero;
 }
 double PhysicalModel::findOneLevel(double emin, double emax)
 {
-        double E =(emin +emax)*.5;
-        this->set_E0(E);
+//        double E =(emin +emax)*.5;
+//        this->set_E0(E);
+    double E = emax;
+    this->set_E0(E);
         this->build_k();
         this->build_ab();
-        double y=real(this->b[this->N+1]);
+        double y=this->funEn;
         this->set_E0(emin);
         this->build_k();
         this->build_ab();
-        double y1=real(this->b[this->N+1]);
+        double y1=this->funEn;
         double E1=emin;
         if(y>0&&y1>0||y<0&&y1<0) 
         { 
          this->set_E0(emax);
          this->build_k();
          this->build_ab();
-         y1=real(this->b[this->N+1]);
+         y1=this->funEn;
          E1=emax;
          }
         while(fabs(E-E1)>1.e-12)
@@ -453,7 +643,7 @@ double PhysicalModel::findOneLevel(double emin, double emax)
          this->set_E0((E +E1)*.5);;
          this->build_k();
          this->build_ab();
-         double y=real(this->b[this->N+1]);
+         double y=this->funEn;
         if(y>0&&y1>0||y<0&&y1<0) 
         { E1=this->E0;
           y1=y;
@@ -491,13 +681,13 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
         this->Ui[i] = u.ua;
         this->Ui[i+1] = u.ub;
         this->d[i] = u.wa;
-        if (i < 2*u.numberOfWells - 1)
-            this->d[i+1] = u.wb;
+        this->d[i+1] = u.wb;
         this->m[i] = 0.5;
         this->m[i+1] = 0.5;
     }
     this->Ui[this->N+1] = 0;
     this->m[this->N+1] = 0.5;
+    this->d[this->N+1] = 0;
     markUchanged();
 }
 
@@ -508,7 +698,7 @@ PhysicalModel::PhysicalModel(QObject *parent)
  timeswitch(0),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),
- psi_imag(0), Phi_imag(0)
+ psi_imag(0), Phi_imag(0), typeOfU(FINITE)
 {
 }
 
@@ -543,13 +733,10 @@ void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
             m[n] = _m[n];
             changed = true;
         }
-        if (0 < n && n <= _N)
+        if( d[n] != _d[n])
         {
-            if( d[n] != _d[n])
-            {
-                d[n] = _d[n];
-                changed = true;
-            }
+            d[n] = _d[n];
+            changed = true;
         }
     }
 
@@ -567,6 +754,40 @@ void PhysicalModel::set_d(int n, double v)
         markUchanged();
     }
 }
+void PhysicalModel::setPotentialType(PotentialType t)
+{
+    if (t != typeOfU)
+    {
+        typeOfU = t;
+        markUchanged();
+    }
+}
+void PhysicalModel::set_d(int n1, double v1,int n2, double v2)
+{
+    int changed = 0;
+    if (d[n1] != v1)
+    {
+        d[n1] = v1;
+        changed = 1;
+    }
+    if (d[n2] != v2)
+    {
+        d[n2] = v2;
+        changed = 1;
+    }
+    if (changed)
+        markUchanged();
+}
+/*
+void PhysicalModel::set_BondCond(int n, double v)
+{
+    if (Ui[n] != v)
+    {
+        Ui[n] = v;
+        markUchanged();
+    }
+}
+*/
 void PhysicalModel::set_Ui(int n, double v)
 {
     if (Ui[n] != v)
@@ -596,7 +817,7 @@ void PhysicalModel::markUchanged()
     need_build_U = true;
     need_build_En = true;
     emit(signalPotentialChanged());
-    emit(signalEboundChanged());
+//    emit(signalEboundChanged());
 }
 
 QVector<double> PhysicalModel::getEn()

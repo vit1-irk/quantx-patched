@@ -22,6 +22,8 @@ struct UAsMW
     }
 };
 
+enum PotentialType { FINITE, PERIODIC };
+
 struct PhysicalModel : public QObject
 {
     Q_OBJECT
@@ -37,7 +39,7 @@ signals:
 
 private:
     int N;	 // actual number of inner intervals
-    QVector<double> d;      /* [u_width]  0..N widths */
+    QVector<double> d;      /* [u_width]  0..N+1 widths */
     QVector<double> m;      /* [u_mass]   0..N+1 masses */
     //! Heterostructural potential
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
@@ -50,13 +52,17 @@ private:
     void markUchanged(); 
 
 public:
+    bool flagBondaryCondition;
     double get_U(int n);
     double get_Ub() const { return Ub; }
     void set_Ub(double _Ub);
+    QVector<double> get_Ui() const { return Ui; }
     double get_Ui(int n) const { return Ui.at(n); }
     void   set_Ui(int n, double v);
+    QVector<double> get_d() const { return d; }
     double get_d(int n) const { return d.at(n); }
     void   set_d(int n, double v);
+    void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
     void   set_m(int n, double v);
     void set_Ui_d_m_Ub(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m, const double& Ub);
@@ -84,8 +90,13 @@ public:
     QVector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
     complex psi;
     complex phi;
+    double funEn;
+
+    void setPotentialType(PotentialType);
+    PotentialType getPotentialType() const { return typeOfU; }
 
 private:
+    PotentialType typeOfU;
 
     //! Potential including bias
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
@@ -95,6 +106,8 @@ private:
     //    Vector<double> psi_phases_old, psi_phases_base;
     //    Vector<double> psi_phases;/* Psi phases in channels */
     QVector<double> Ebound;
+    QVector<double> EbandUp;
+    QVector<double> EbandDown;
     std::vector<int> NumberofZero;
     //double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
     double	  Time;
@@ -114,7 +127,7 @@ public:
     {
         this->N = N;
 
-        d.resize(1+N);
+        d.resize(1+N+1);
         m.resize(1+N+1);
         U.resize(1+N+1);
         Ui.resize(1+N+1);
@@ -146,10 +159,13 @@ public:
     int findNumberOfLevels(double E);
 
 private:
+    void matching( );
     void build_U();
     void norm();
     int zeroPsi();
     double findOneLevel(double _emin, double _emax);
+    void findBandEdges(double emin, double emax, double Edown, double Eup);
+
     void findBoundStates();
 };
 

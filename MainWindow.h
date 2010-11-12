@@ -35,6 +35,7 @@ public slots:
 //    void slotScaleZ();
 //    void slotIntE();
 //    void stopCalc();
+    void slotSetPeriodicPotential(int really) { model->setPotentialType(really ? PERIODIC : FINITE); }
 
 signals:
 	void potentialChanged();
@@ -129,7 +130,7 @@ private:
     QGroupBox *gbNumrange;
     QToolBox * toolBox;
     PotentialViewMovable *potentialViewMovable;
-    PotentialScene *scene;
+//    PotentialViewMovable *potentialViewMovable(PhysicalModel *m, QWidget *parent);
 //    QGraphicsView *gv;
     QGroupBox *GBplots, *gbScaleX, *gbScaleZ, *gbScalePsi, *gbScaleP;
     QGroupBox  *gbIntN,*gbIntE, *gbWP,*gbWPl, *gbWPr;
@@ -143,19 +144,19 @@ private:
     QButtonGroup *argRT;
     QComboBox *psi_type, *psix_var, *psip_var,*U_type, *En_type;
     QComboBox *T_type;
-//     std::vector<double> wpweightEi;
     MyParamI Nwb, nmaxLevel, nminLevel, nLevel,nmaxWP, nminWP,hnWP; 
     MyParamD E0,time,Ua,aa,Ub,bb,xmin,xmax,Emin,Emax,hE,Umin,Umax, kmax,hk;
     MyParamD psixmin,psixmax,hx,zz,zmin,zmax,hz;
     MyParamD wpE_lo, wpE_hi, wpN;
     MyParamD Psi2, Refl,Trans,totalRT,tmin, tmax,htime;
 //    MyParamD Psi2, psi_phasehth, psit_real,psit_imag;
-    QCheckBox *flgScale, *flgErase, *flgUx, *flgEraseT;
-//    int Erase, wave_packet_type;
+    QCheckBox *flgTypeU, *flgScale, *flgErase, *flgUx, *flgEraseT;
     QVector<double> U1; //!< Inital potential values for z-animations
     QVector<double> U2; //!< Final potential values for z-animations
     QVector<double> d1; //!< Initial potential step widths for z-animations
     QVector<double> d2; //!< Final potential step widths for z-animations
+    QVector<double> m1; //!< Initial potential step masses for z-animations
+    QVector<double> m2; //!< Final potential step masses for z-animations
     double Ubias; 
     double Ub1,Ub2; 
     QGroupBox *grrb;

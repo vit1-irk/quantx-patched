@@ -2,7 +2,6 @@
 #include <math.h>
 #include "MyParam.h"
 #include "PhysicalModel.h"
-#include "PotentialScene.h"
 #include "PotentialModel.h"
 #include "LevelModel.h"
 #include "PotentialViewMultiWell.h"
@@ -442,31 +441,29 @@ void MainWindow::slotU1()
 {
     const int N = model->getN();
     U1.resize(1+N+1);
-    d1.resize(1+N);
-    for(int n=1; n<=N; n++)
+    d1.resize(1+N+1);
+    m1.resize(1+N+1);
+    for(int n=0; n<=N+1; n++)
     {
         U1[n] = model->get_Ui(n);
         d1[n] = model->get_d(n);
+        m1[n] = model->get_m(n);
     }
-    U1[N+1] = model->get_Ui(N+1);
-    U1[0] = model->get_Ui(0);
     this->Ub1 = model->get_Ub();
-    d1[0] = 0;
 }
 void MainWindow::slotU2()
 {
     const int N = model->getN();
     U2.resize(1+N+1);
-    d2.resize(1+N);
-    for(int n=1; n<=N; n++)
+    d2.resize(1+N+1);
+    m2.resize(1+N+1);
+    for(int n=0; n<=N+1; n++)
     {
         U2[n] = model->get_Ui(n);
         d2[n] = model->get_d(n);
+        m2[n] = model->get_m(n);
     }
-    U2[N+1] = model->get_Ui(N+1);
     this->Ub2=model->get_Ub();
-    U2[0] = model->get_Ui(0);
-    d2[0] = 0;
 }
 void MainWindow::Uxz(double z)
 {
@@ -476,24 +473,16 @@ void MainWindow::Uxz(double z)
         if (N < 0) return;
 
         QVector<double> Ui(1+N+1);
-        QVector<double> d(1+N);
+        QVector<double> d(1+N+1);
         QVector<double> m(1+N+1);
-        
-        d[0] = 0;
-        m[0] = 0.5;
-        Ui[0] = U1[0] + z*(U2[0]-U1[0]);
-        for(int n=1; n<=N; n++)
+        for(int n=0; n<=N+1; n++)
         {
             Ui[n] = U1[n] + z*(U2[n]-U1[n]);
             d[n] = d1[n] + z*(d2[n]-d1[n]);
+            m[n] = m1[n] + z*(m2[n]-m1[n]);
             this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
-            m[n] = 0.5;
         }
-        Ui[N+1] = 0;
-        m[N+1] = 0.5;
-        
         model->set_Ui_d_m_Ub(Ui,d,m,this->Ubias);
-        //model->build_U();
     }
 }
 
@@ -519,9 +508,8 @@ void MainWindow::initControlDockWindow()
     {    
         QVBoxLayout *vl = new QVBoxLayout();
 
-        scene = new PotentialScene(model,this);
-        scene->setItemIndexMethod(QGraphicsScene::NoIndex);///?
-        potentialViewMovable = new PotentialViewMovable(scene);
+        
+        potentialViewMovable = new PotentialViewMovable(model);
         vl->addWidget(potentialViewMovable);
 
 
@@ -529,7 +517,7 @@ void MainWindow::initControlDockWindow()
 //        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateScene (const QList <QRectF>&)));
 //        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateSceneRect (const QRectF&)));
 //        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(invalidateScene(const QRectF&)));
-        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(update(const QRectF&)));
+//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(update(const QRectF&)));
 
     //   connect(scene,SIGNAL(sceneRectChanged()),potentialViewMovable,SLOT(resetMatrix()));
 
@@ -549,14 +537,15 @@ void MainWindow::initControlDockWindow()
 //        QHBoxLayout *hl = new QHBoxLayout();
         QPushButton * reset = new QPushButton("&Reset Potential");	
         //connect(reset,SIGNAL(clicked()),scene,SLOT(clearPotential()));
-        connect(reset,SIGNAL(clicked()),scene,SLOT(redrawU()));
-        connect(reset,SIGNAL(clicked()),scene,SLOT(redrawEn()));
+        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(redrawU()));
+        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(redrawEn()));
 //        hl->addStretch();
 //        hl->addWidget(reset);		
         vl->addWidget(reset);		
 
+
         QPushButton * addseg = new QPushButton("&Add Potential Segment");	
-        connect(addseg,SIGNAL(clicked()),scene,SLOT(addNewSegment()));
+        connect(addseg,SIGNAL(clicked()),potentialViewMovable,SLOT(addNewSegment()));
 //        hl->addWidget(addseg);
         vl->addWidget(addseg);
 //        hl->addStretch();
@@ -587,25 +576,22 @@ void MainWindow::initControlDockWindow()
     {    
         QGroupBox *gbp = new QGroupBox("Numeric definition of potential");
         QVBoxLayout *vl = new QVBoxLayout;
-//        QHBoxLayout *hl = new QHBoxLayout;
-//        hl->addStretch();
         QPushButton *butUxt = new QPushButton(tr("U-Table")); 
-//        butUxt->setDefault(true);
         connect(butUxt, SIGNAL(clicked()), this, SLOT(slotSetUxt()));
         vl->addWidget(butUxt);
-//        hl->addWidget(butUxt);
 
         QPushButton *butUmwb = new QPushButton(tr("Barriers/wells")); 
-//        butUmwb->setDefault(true);
         connect(butUmwb, SIGNAL(clicked()), this, SLOT(slotSetUmwb()));
         vl->addWidget(butUmwb);
-//        hl->addWidget(butUmwb);
-//        hl->addStretch();
+
+        this->flgTypeU = new QCheckBox("Periodical U(x)",gbp);
+//        this->flgTypeU->setChecked(false);
+        connect(flgTypeU, SIGNAL(stateChanged(int)), this, SLOT(slotSetPeriodicPotential(int)));
+        vl->addWidget(this->flgTypeU);
+
         gbp->setLayout(vl);
-//        gbp->setLayout(hl);
         leftLayout->addWidget(gbp);
-//	gbp->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
-//	gbp->setMinimumWidth(250);
+        gbp->setMinimumWidth(250);
     }
 
             QGroupBox *gb01 = new QGroupBox(tr("Windows:"));
@@ -649,255 +635,8 @@ void MainWindow::initControlDockWindow()
  //       vl0->addStretch();
             }
             leftLayout->addWidget(gb01);
-/*        {
-            QGroupBox *gb = new QGroupBox("Parameters:");
-            QVBoxLayout *vl = new QVBoxLayout();
-
-            {
-                QHBoxLayout *hl = new QHBoxLayout();
-                QPushButton * btn = new QPushButton("level &n");	
-                connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
-                hl->addWidget(btn);		
-
-                QPushButton * btE = new QPushButton("&energy E");	
-                connect(btE,SIGNAL(clicked()),this,SLOT(slotIntE()));
-                hl->addWidget(btE);
-                vl->addLayout(hl);
-            }
-*/
-/*            {
-                QHBoxLayout *hl = new QHBoxLayout;
-                QPushButton * btwp = new QPushButton("time &t");	
-                connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
-                hl->addWidget(btwp);	
-
-                QPushButton *bsk = new QPushButton(tr("&k scale")); 
-                connect(bsk, SIGNAL(clicked()), this, SLOT(slotScaleP()));
-                hl->addWidget(bsk);
-                vl->addLayout(hl);
-
-            }
-        */
-/*            {
-                QHBoxLayout *hl = new QHBoxLayout();
-                QPushButton * bsx = new QPushButton("&x scale");	
-                connect(bsx,SIGNAL(clicked()),this,SLOT(slotScaleX()));
-                hl->addWidget(bsx);		
-
-                QPushButton * bsz = new QPushButton("&z scale");	
-                connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-                hl->addWidget(bsz);		
-                vl->addLayout(hl);
-
-            }
-
-            {
-                QHBoxLayout *hl = new QHBoxLayout();
-                QPushButton * bsy = new QPushButton("&y scales");	
-                connect(bsy,SIGNAL(clicked()),this,SLOT(slotScalePsi()));
-                hl->addWidget(bsy);		
-
-                flgScale= new QCheckBox("Fixed y-scales",gb);
-                flgScale->setChecked(true);
-                hl->addWidget(flgScale);
-                vl->addLayout(hl);
-            }
-            */
-             
-                //        flgErase= new QCheckBox("Erasable plot",gb);
-                //        flgErase->setChecked(true);
-                //        hl->addWidget(flgErase);
- //               vl->addLayout(hl);
-
-//            gb->setLayout(vl);
-//            vl0->addWidget(gb);  //???
-//        }
-/*
-        QGroupBox *gb01 = new QGroupBox(tr("Windows:"));
-        {
-            QVBoxLayout *vld = new QVBoxLayout;
-            gb01->setLayout(vld);
-            vl0->addWidget(gb01);
-
-            QPushButton *butUx = new QPushButton(tr("Potential &U")); 
-            connect(butUx, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
-            vld->addWidget(butUx);
-
-            QPushButton *butT = new QPushButton(tr("Transmission &D")); 
-            connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
-            vld->addWidget(butT);
-
-            QPushButton *butPsix = new QPushButton("Wave functions");
-            connect(butPsix, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-            vld->addWidget(butPsix);
-
-            QPushButton *butPhi = new QPushButton(tr("Impulse distribution")); 
-            connect(butPhi, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-            vld->addWidget(butPhi);
-*/
-            /*       {
-            QGroupBox *gb = new QGroupBox(tr("Potential"));
-            QVBoxLayout *vl = new QVBoxLayout;
-            QHBoxLayout *hl = new QHBoxLayout;
-            U_type = new QComboBox(this);
-            U_type->addItem(tr("U(x)"));
-            U_type->addItem(tr("U(x,z)"));
-            U_type->setCurrentIndex(0);
-            hl->addWidget(U_type);
-
-            QPushButton *butUx = new QPushButton(tr("show &U")); 
- //           connect(butUx, SIGNAL(clicked()), this, SLOT(compute_U()));//update_UxNwells();
-            connect(butUx, SIGNAL(clicked()), this, SLOT(compute_Uxz()));//update_UxNwells();
-            hl->addWidget(butUx);
-            vl->addLayout(hl);
-
-            gb->setLayout(vl);
-            vld->addWidget(gb);  //??
-//            vld->addLayout(vl);
-        }
-*/
-/*        {
-            QGroupBox *gb = new QGroupBox(tr("Bound States: E<0"));
-            QVBoxLayout *vl = new QVBoxLayout;
-            QHBoxLayout *hl = new QHBoxLayout;
-            En_type = new QComboBox(this);
-            En_type->addItem(tr("E_n & Psi_n"));
-            En_type->addItem(tr("N(E)-step"));
-            En_type->addItem(tr("B_{N+1}(E)"));
-            En_type->addItem(tr("En(z)"));
-            En_type->setCurrentIndex(0);
-            hl->addWidget(En_type);
-
-            QPushButton *butEn = new QPushButton(tr("&find levels")); 
-            connect(butEn, SIGNAL(clicked()), this, SLOT(Bound_States()));
-            hl->addWidget(butEn);
-            vl->addLayout(hl);
-
-            gb->setLayout(vl);
-            vld->addWidget(gb);  //???
-        }
-        */
-/*        {
-            QGroupBox *gb = new QGroupBox(tr("Transmission D: E>0"));
-            QVBoxLayout *vl = new QVBoxLayout;
-            QHBoxLayout *hl = new QHBoxLayout;
-            T_type = new QComboBox(this);
-            T_type->addItem(tr("D(E)"));
-            T_type->addItem(tr("D(z)"));
-            T_type->addItem(tr("D(E,z)"));
-            T_type->addItem(tr("D(z,E)"));
-            T_type->setCurrentIndex(0);
-            hl->addWidget(T_type);
-
-            QPushButton *butT = new QPushButton(tr("run &D")); 
-//            QPushButton *butT = new QPushButton(tr("transparency &D")); 
-//            connect(butT, SIGNAL(clicked()), this, SLOT(TEz()));
-            connect(butT, SIGNAL(clicked()), this, SLOT(compute_T()));
-            hl->addWidget(butT);
-            vl->addLayout(hl);
-
-            gb->setLayout(vl);
-            vld->addWidget(gb);  //???
-        }
-*/
- /*       { 
-            //QString sum=QChar(0x03A3);
-            QString sum=QChar(0x2211);
-
-            QString psi=QChar(0x03C8);
-            QString Psi=QChar(0x03A8);
-            QString to2=QChar(0x00B2);
-            QString psiofx=psi+"(x)";
-            QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
-            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
-            QVBoxLayout *vl = new QVBoxLayout;
-            QHBoxLayout *hl = new QHBoxLayout;
-            psi_type = new QComboBox(this);
-            psi_type->addItem(mod_psiofx);
-//            psi_type->addItem(tr("|Psi(x)|^2"));
-            psi_type->addItem("real "+psi);
-            psi_type->addItem("imag "+psi);
-            psi_type->setCurrentIndex(0);
-            vl->addWidget(psi_type);
-
-            psix_var = new QComboBox(this);
-            psix_var->addItem(psi+"_n(x,n)");
-            psix_var->addItem(psi+"(x,E)");
-            psix_var->addItem(psiofx);
-            psix_var->addItem(sum+Psi+"_n(x,t)");
-            psix_var->setCurrentIndex(0);
-            vl->addWidget(psix_var);
-            hl->addLayout(vl);
-
-//            QHBoxLayout *hlb = new QHBoxLayout;
-
-//            QPushButton *butPsix = new QPushButton(this);
-//            butPsix->setIcon(QIcon("images/car.png"));
-//            butPsix->setIcon(QIcon("images/pointer.png"));
-//            butPsix->adjustSize();
-//            butPsix->minimumSize();
-//            butPsix->show();
-//            QPushButton *butPsix = new QPushButton("\Psi(x)");
-    QVBoxLayout *vlr = new QVBoxLayout();
-    flgUx= new QCheckBox("add U(x)",gb3);
-    flgUx->setChecked(true);
-    vlr->addWidget(flgUx);
-            QString run=QChar(0x2B55);//(0x25C9);//(0x25BC);
-            QPushButton *butPsix = new QPushButton("run "+psi);
-//            QPushButton *butPsix = new QPushButton(tr("&psi(x)"));
-//            butPsix->setFont(QFont("Symbol", 12, QFont::Bold ));
-            connect(butPsix, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-            vlr->addWidget(butPsix);
-
-            hl->addLayout(vlr);
-//            hl->addLayout(vl);
-            gb3->setLayout(hl);
-            vld->addWidget(gb3);
-        }
-*/
-/*{
-    QGroupBox *gb3 = new QGroupBox(tr("&Impulse distribution |Phi_n(k)|^2"));
-    QVBoxLayout *vl = new QVBoxLayout;
-    QHBoxLayout *hl = new QHBoxLayout;
-
-    psip_var = new QComboBox(this);
-    psip_var->addItem(tr("Phi_n(k,n)"));
-    psip_var->addItem(tr("sum(Phi_n(k,t))"));
-    psip_var->setCurrentIndex(0);
-    hl->addWidget(psip_var);
-
-
-    QPushButton *butPhi = new QPushButton(tr("run p&hi")); 
-    connect(butPhi, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-    hl->addWidget(butPhi);
-    vl->addLayout(hl);
-
-    gb3->setLayout(vl);
-    vld->addWidget(gb3);
-}
-*/
-/*{
-    QHBoxLayout *hl = new QHBoxLayout();
-    flgErase= new QCheckBox("Erasable plot",gb01);
-    flgErase->setChecked(true);
-    hl->addWidget(flgErase);
-
-    QPushButton *stopB = new QPushButton(tr("STOP")); 
-    stopB->setShortcut(tr("Alt+S"));
-    connect(stopB, SIGNAL(clicked()), this, SLOT(stopCalc()));
-    hl->addWidget(stopB);
-
-    vld->addLayout(hl);
-}
-*/
-//}
 vl0->addStretch(1);
 control->setLayout(vl0);
-//wfWidget = new QWidget;
-//QVBoxLayout * wfLayout = new QVBoxLayout();
-//wfWidget->setLayout(wfLayout);
-//wfWidget->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
-//wfWidget->setMinimumWidth(250);
 
 QHBoxLayout * mainLayout = new QHBoxLayout;
 mainLayout->addLayout(leftLayout);
@@ -996,8 +735,7 @@ void MainWindow::Bound_States()
     QPair<double,double> umin_umax = model->getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
-
-    if(this->Emin>0) this->Emin=Umin;
+    if(this->Emin>0) this->Emin=Umin; 
     if(this->Emax>0) this->Emax=Umax;
     switch(i)
     {
@@ -1036,8 +774,9 @@ void MainWindow::compute_NE()
     for(double x=Umin; x<=Umax; x+=_dE)
     {    
         y=double(model->findNumberOfLevels(x));
-        this->dataNE.push_back(x);
+//        this->dataNE.push_back(x);
         this->dataNE.push_back(y);
+        this->dataNE.push_back(x);
     }
     this->plotNE->setCurveData(1,this->dataNE);
 //    this->plotNE->setCurveData(this->numOfCurveNE,this->dataNE);
@@ -1229,7 +968,8 @@ void MainWindow::compute_BE()
         this->E0=E;
         model->E0=E;
         compute();
-        y = real(model->b[model->getN()+1]);
+        y = model->funEn;
+//        y = real(model->b[model->getN()+1]);
         if(y>1.) y =1+log(y);
         if(y<-1.) y =-1-log(-y);
         data.push_back(y+0.5*(this->xmax-this->xmin));
@@ -1257,7 +997,8 @@ static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter
     x=0;
     dataUx.push_back(0);
     dataUx.push_back(model->get_U(0));
-    for(int n=1; n <= N; n++)
+    for(int n=0; n <= N; n++)
+//    for(int n=1; n <= N; n++)
     {
         double y=model->get_U(n);
         dataUx.push_back(x);
@@ -1320,6 +1061,11 @@ static void myrepaint(Plotter *plotter, const curveSet& cs)
 }
 void MainWindow::compute_Uxz()
 {   
+    if(this->flgTypeU->isChecked())
+        model->setPotentialType(PERIODIC);
+    else
+        model->setPotentialType(FINITE);
+
     if(this->U_type->QComboBox::currentIndex()==0) showU();
     else
     for(double z=this->zmin;z<=this->zmax; z+=this->hz)
@@ -1490,7 +1236,7 @@ void MainWindow::showU()
     x=0;
     data.push_back(x);
     data.push_back(y);
-    for(int n=1; n <= N; n++)
+    for(int n=0; n <= N; n++)
     {
         double y=model->get_U(n);
         data.push_back(x);
@@ -1593,7 +1339,7 @@ void MainWindow::compute_Psin()
         double E = Ebound[n];
         this->E0=E;
         compute();
-        model->b[N+1]=0;
+//        model->b[N+1]=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
@@ -2101,7 +1847,7 @@ totalRT(1.),Ua(-10.0),aa(1.),Ub(0.),bb(0.8),xmin(-3.),xmax(8.),hx(0.01),
 Ubias(0.),Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
 psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
-wpE_lo(5.), wpE_hi(15.), wpN(30), 
+wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),gbScales(0),gbIntervals(0),dialogUAsMW(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0) 
@@ -2358,8 +2104,8 @@ void MainWindow::WavePacketXoft()
                     model->a[n]=ap(p,n);
                     model->b[n]=bp(p,n);
                 }
-                if (model->E0 < model->get_U(N+1))
-                    model->b[N+1]=0.; 
+ //               if (model->E0 < model->get_U(N+1))
+ //                   model->b[N+1]=0.; 
                 model->build_Psi();
                 complex yy=model->psi;
                 Psit += model->psi*result[p].w*expt[p];
@@ -2450,7 +2196,7 @@ void MainWindow::WavePacketPoft()
                     model->a[n]=ap(p,n);
                     model->b[n]=bp(p,n);
                 }
-                model->b[N+1] = 0.; 
+//                model->b[N+1] = 0.; 
                 model->build_Phi();
                 complex yy=model->phi;
                 Psit += model->phi*result[p].w*expt[p];
