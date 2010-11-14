@@ -224,7 +224,7 @@ void Plotter::paintEvent(QPaintEvent *event)
     {
         painter.setPen(palette().light().color());//was 2!!!!
 //        painter.setPen(palette().color(QPalette::WindowText));
-        painter.drawRect(rubberBandRect.normalized());
+        painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
     }
     if (hasFocus()) 
     {

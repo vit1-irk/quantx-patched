@@ -202,9 +202,6 @@ void PotentialViewMovable::slotUChanged()
     ///////////////////////////////////////////////////
     // now we have number of graphical lines and segments of physical potential algned
     ///////////////////////////////////////////////////
-//    QRectF vp = model->getGoodViewportAtU();
-//    scene()->updateSceneRect ( vp );///!!!!!!!!
-//    scene()->setSceneRect(vp);
     QRectF vp = sceneRect();
 
 //---------------
@@ -252,7 +249,6 @@ void PotentialViewMovable::slotUChanged()
 }
 void PotentialViewMovable::slotEboundChanged()
 {
-//    QRectF vp = model->getGoodViewportAtU();
     QRectF vp = scene()->sceneRect();
     double xmin = vp.x();
     double xmax = vp.x() + vp.width();
@@ -267,16 +263,23 @@ void PotentialViewMovable::slotEboundChanged()
         line->setFlag(QGraphicsItem::ItemIsSelectable,false);
         linesEn.push_back(line);
         scene()->addItem(line);
+        addCurve(QPolygonF());
     }
     while (Ebound.size() < linesEn.size())
     {
         scene()->removeItem(linesEn.last());
+        removeCurve(linesEn.size()-1);
         linesEn.pop_back();
     }
+    double scalePsi=2;
     for (int n = 0; n < linesEn.size(); ++n)
     {
         double modelEn = Ebound[n];
         linesEn[n]->setLine(xmin,modelEn,xmax-xmin);
+        QPolygonF psi = model->getPsiOfX(Ebound[n],scalePsi, xmin,xmax,1000);
+//        psi.translate(0,n);
+//        psi.translate(0,Ebound[n]);
+        replaceCurve(n,psi);
     }
     update();
 }
@@ -373,4 +376,54 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
         }
     }
     return QGraphicsItem::itemChange(change,value);
+}
+
+int PotentialViewMovable::addCurve(const QPolygonF & curve)
+{
+    MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
+    scene()->addItem(c);
+    curves.push_back(c);
+    update();
+    return curves.size() - 1;
+}
+
+void PotentialViewMovable::replaceCurve(int id, const QPolygonF & curve)
+{
+    if (id < curves.size())
+    {
+        if (curves[id])
+        {
+            curves[id]->setPolygon(curve);
+        }
+        else
+        {
+            MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
+            scene()->addItem(c);
+            curves[id] = c;
+        }
+    }
+    else
+    {
+        curves.resize(id+1);
+        MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
+        scene()->addItem(c);
+        curves[id] = c;
+    }
+    update();
+}
+
+void PotentialViewMovable::removeCurve(int id)
+{
+    scene()->removeItem(curves[id]);
+    delete curves[id];
+    curves[id] = 0;
+    update();
+}
+
+void MyGraphicsPolylineItem::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
+{
+    painter->setPen(Qt::green);
+    painter->setRenderHint(QPainter::Antialiasing);
+    //painter->drawPolygon(polygon().data(),polygon().size());
+    painter->drawPolyline(polygon().data(),polygon().size());
 }

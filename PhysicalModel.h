@@ -7,6 +7,7 @@
 #include <QPair>
 #include <complex>
 typedef std::complex<double> complex;
+#include <QPolygonF>
 
 #include "Matrix.h"
 
@@ -157,6 +158,8 @@ public:
 
     QRectF getGoodViewportAtU() const;
     int findNumberOfLevels(double E);
+
+    QPolygonF getPsiOfX(double E,double scalePsi, double xmin,double xmax,int npoints);
 
 private:
     void matching( );

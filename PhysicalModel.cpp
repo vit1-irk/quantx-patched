@@ -1,6 +1,7 @@
 #include "PhysicalModel.h"
 #include <cmath>
 #include <QRectF>
+#include <QPolygonF>
 
 // Auxiliary class for finding energy levels
 class ETree
@@ -859,4 +860,25 @@ double PhysicalModel::get_U(int n)
         build_U();
     }
     return U[n];
+}
+
+QPolygonF PhysicalModel::getPsiOfX(double E, double scalePsi, double xmin, double xmax, int npoints)
+{
+    QPolygonF result(npoints);
+    E0 = E;
+    build_k();
+    build_ab();
+    double dx = (xmax-xmin)/(npoints-1);
+    for (int i=0; i < npoints; i++)
+    {
+        x = xmin + dx*i;
+        build_Psi();
+        double y = scalePsi*psi_real;
+        if (fabs(y)>10)
+        {
+            y = 10;
+        }
+        result[i] = QPointF(x, y);
+    }
+    return result;
 }

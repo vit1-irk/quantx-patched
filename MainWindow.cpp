@@ -1179,7 +1179,6 @@ void MainWindow::compute_Phi_n()
     plotterPhi->scaleFixed=false;
     if(this->flgErase->isChecked()) 
     {
-//         plotterPhi->clearAll();
         this->numOfCurve=0;
     }
     else {
@@ -1190,9 +1189,9 @@ void MainWindow::compute_Phi_n()
     int imax=this->nmaxLevel;
     int imin=this->nminLevel;
     QVector<double> Ebound = model->getEn();
+    data.clear();
     if(imax >= Ebound.size()) imax = Ebound.size()-1;
     if(imin<0) imin=0;
-//    this->numOfCurve=0;
     for(int i=imin;i<=imax; i++)
     {
         this->E0 = Ebound[i];
@@ -1207,7 +1206,6 @@ void MainWindow::compute_Phi_n()
             data.push_back(y);
         }
         this->plotterPhi->setCurveData(this->numOfCurve,data);
-        compute_PhiofP();
         this->numOfCurve++;
     } 
 }
@@ -1258,10 +1256,8 @@ void MainWindow::showEn(double E)
 {
         std::vector<double> data;
         data.push_back(this->xmin); 
-//        data.push_back(model->Xmin); 
         data.push_back(E);
         data.push_back(this->xmax);
-//        data.push_back(model->Xmax);
         data.push_back(E);
         this->plotterUx->setCurveData(this->numOfCurveUx,data);
         this->numOfCurveUx++;
@@ -1339,7 +1335,6 @@ void MainWindow::compute_Psin()
         double E = Ebound[n];
         this->E0=E;
         compute();
-//        model->b[N+1]=0;
         data.clear();
         for(double x=this->xmin; x<=this->xmax; x+=dx)
         {
@@ -1611,10 +1606,6 @@ void MainWindow::initPlotPsix()
         flgScale->setChecked(true);
         hl->addWidget(flgScale);
 
-        flgUx= new QCheckBox("add U(x)",wPlotPsi2);
-        flgUx->setChecked(true);
-        hl->addWidget(flgUx);
-        hl->addStretch();
 
         flgErase= new QCheckBox("Erase",wPlotPsi2);
         flgErase->setChecked(true);
@@ -1654,20 +1645,10 @@ void MainWindow::initPlotPsix()
             psix_var->addItem("z");
             psix_var->addItem("n,z");
             psix_var->addItem("t");
-//            psix_var->addItem(psi+"_n(x,n)");
-//            psix_var->addItem(psi+"(x,E)");
-//            psix_var->addItem(psiofx);
-//            psix_var->addItem(sum+Psi+"_n(x,t)");
             psix_var->setCurrentIndex(0);
             hl->addWidget(psix_var);
 
             hl->addStretch();
-     //       vl->addLayout(hl);
-      //  }
-      //  {
-            //    QString run=QChar(0x2B55);//(0x25C9);//(0x25BC);
-            //   QPushButton *butPsix = new QPushButton("run "+psi);
-        //    QHBoxLayout *hl = new QHBoxLayout;
 
         QPushButton * btn = new QPushButton("&n");	
         connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
@@ -1853,10 +1834,10 @@ gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0) 
 {
     this->model = new PhysicalModel();
-    UAsMW u1 = { 2, 0.1, 1, -10, 0 , 0};
+    UAsMW u1 = { 1, 0.1, 1, -40, 0 , 0};
     model->setUAsMW( u1 );
     this->slotU1();
-    UAsMW u2 = { 2, 5, 1, -10, 0 ,0};
+    UAsMW u2 = { 1, 5, 1, -10, 0 ,0};
     model->setUAsMW( u2 );
     this->slotU2();
     setSomeInitialU(this->model);

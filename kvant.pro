@@ -13,7 +13,6 @@ HEADERS += MyParam.h
 HEADERS += Plotter.h
 HEADERS += PlotterDialog.h
 HEADERS += PotentialModel.h
-HEADERS += PotentialScene.h
 HEADERS += PotentialViewMovable.h
 HEADERS += PotentialViewMultiWell.h
 
@@ -27,7 +26,6 @@ SOURCES += MyParam.cpp
 SOURCES += Plotter.cpp 
 SOURCES += PlotterDialog.cpp 
 SOURCES += PotentialModel.cpp 
-SOURCES += PotentialScene.cpp 
 SOURCES += PotentialViewMovable.cpp 
 SOURCES += PotentialViewMultiWell.cpp 
 

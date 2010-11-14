@@ -27,8 +27,6 @@ public:
 public:
     QPointF p1, p2;
     QPointF newPos;///
-//    PotentialViewMovable *_potentialViewMovable;///
-//protected:
 	DraggableLine * left;
 	DraggableLine * right;
 

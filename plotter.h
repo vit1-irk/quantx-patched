@@ -94,7 +94,7 @@ public:
     double minY;
     double maxY;
     int numYTicks;
-    private:
+private:
     void adjustAxis(double &min, double &max, int &numTicks);
     double nicenum(double x, int round);
     double expt(double a, int n);
