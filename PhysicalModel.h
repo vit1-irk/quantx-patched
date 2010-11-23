@@ -36,6 +36,7 @@ public:
 
 signals:
     void signalPotentialChanged();
+    void signalEnergyChanged();
     void signalEboundChanged();
 
 private:
@@ -46,6 +47,7 @@ private:
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
     double Ub;
+    double E0;
 
     bool need_build_U;
     bool need_build_En;
@@ -56,12 +58,14 @@ public:
     bool flagBondaryCondition;
     double get_U(int n);
     double get_Ub() const { return Ub; }
+    double get_E0() const { return E0; }
     void set_Ub(double _Ub);
     QVector<double> get_Ui() const { return Ui; }
     double get_Ui(int n) const { return Ui.at(n); }
     void   set_Ui(int n, double v);
     QVector<double> get_d() const { return d; }
     double get_d(int n) const { return d.at(n); }
+    void   set_Energy(double v);
     void   set_d(int n, double v);
     void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
@@ -71,9 +75,11 @@ public:
     double getEn(int n);
     QPair<double,double> getUminUmax();
 
+    void split_d(int n,double fraction);
+    void remove_d(int n);
+
     friend class ETree;
 
-    double E0;
     void build_k();
     void build_RT();
     void build_ab();	 /* u:r,k,d,m,fZ			r:a,b */
@@ -101,7 +107,7 @@ private:
 
     //! Potential including bias
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
-    QVector<double> U_d;
+//    QVector<double> U_d;
 
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
     //    Vector<double> psi_phases_old, psi_phases_base;

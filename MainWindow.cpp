@@ -536,11 +536,7 @@ void MainWindow::initControlDockWindow()
 
 //        QHBoxLayout *hl = new QHBoxLayout();
         QPushButton * reset = new QPushButton("&Reset Potential");	
-        //connect(reset,SIGNAL(clicked()),scene,SLOT(clearPotential()));
-        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(redrawU()));
-        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(redrawEn()));
-//        hl->addStretch();
-//        hl->addWidget(reset);		
+        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(resizePicture()));
         vl->addWidget(reset);		
 
 
@@ -654,17 +650,18 @@ void MainWindow::resizeEvent (QResizeEvent * event)
 }
 void MainWindow::compute()
 {
-    model->E0 = this->E0;
+    model->set_E0(this->E0);
     model->build_k();
     model->build_ab();
-    if(model->E0 > 0)
+    if(this->E0 > 0)
         model->build_RT();
     else
     {
         model->RR=1;
         model->TT=0;
     }
-    updateValues();
+
+//    updateValues();
 }
 //--------------
 void MainWindow::updateValues()
@@ -853,7 +850,6 @@ void MainWindow::compute_TE()
     }
     for(double E=EE; E>=Emn&&E<=Emx; E+=this->hE)
     {
-//        if (getBreakStatus(0)) return;
         this->E0=E;
         compute();
         double y=model->TT;
@@ -966,7 +962,6 @@ void MainWindow::compute_BE()
     {
         if(getBreakStatus(0))   return;
         this->E0=E;
-        model->E0=E;
         compute();
         y = model->funEn;
 //        y = real(model->b[model->getN()+1]);
@@ -1142,7 +1137,6 @@ void MainWindow::compute_Psi_nz()
 }
 void MainWindow::compute_Psi_z()
 {   
-    model->E0 = this->E0;
     for(double z=this->zmin;z<=this->zmax; z+=this->hz)
     { 
         if (getBreakStatus(0)) 
@@ -1429,7 +1423,6 @@ void MainWindow::compute_PsiXatE()
     double y;
     double dx=this->hx;//(this->xmax-this->xmin)/300.;
     int ii=psi_type->QComboBox::currentIndex();
-    model->E0=this->E0;
     compute();
     for(double x=this->xmin; x<=this->xmax; x+=dx)
     {
@@ -1817,7 +1810,7 @@ void MainWindow::slotBound_States()
 
 static void setSomeInitialU(PhysicalModel *m)
 {
-    UAsMW u = { 1, 5, 1, -10, 0 , 0};
+    UAsMW u = { 2, 1, 1, -15, 0 , 0};
     m->setUAsMW( u );
 }
 
@@ -2042,7 +2035,7 @@ void MainWindow::WavePacketXoft()
     expt.resize(M);
     for(int p=0;p<M;p++)
     {
-        model->E0= result[p].E;
+        model->set_E0(result[p].E);
         model->build_k();
         model->build_ab();
         for(int n=0; n <= N+1; n++)
@@ -2078,7 +2071,7 @@ void MainWindow::WavePacketXoft()
             complex Psit=(0.,0.);
             for(int p=0;p<M;p++)
             {
-                model->E0= result[p].E;
+                model->set_E0(result[p].E);
                 for(int n=0; n <= N+1; n++)
                 {
                     model->k[n]=kp(p,n);
@@ -2134,7 +2127,7 @@ void MainWindow::WavePacketPoft()
     expt.resize(M);
     for(int p=0;p<M;p++)
     {
-        model->E0= result[p].E;
+        model->set_E0(result[p].E);
         model->build_k();
         model->build_ab();
         for(int n=0; n <= N+1; n++)
@@ -2170,7 +2163,7 @@ void MainWindow::WavePacketPoft()
             model->kwave=kk;
             for(int p=0;p<M;p++)
             {
-                model->E0= result[p].E;
+                model->set_E0(result[p].E);
                 for(int n=0; n <= N+1; n++)
                 {
                     model->k[n]=kp(p,n);

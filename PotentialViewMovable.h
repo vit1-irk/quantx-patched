@@ -10,7 +10,9 @@
 #include "PhysicalModel.h"
 #include <QGraphicsPolygonItem>
 #include <QPolygonF>
+#include <QMap>
 
+class EnergyDraggableLine;
 class HorDraggableLine;
 class VerDraggableLine;
 
@@ -28,14 +30,21 @@ class PotentialViewMovable : public QGraphicsView
 {
     Q_OBJECT
 public:
+
     PotentialViewMovable(PhysicalModel *m, QWidget *parent = 0);
-    int addCurve(const QPolygonF& );
-    void replaceCurve(int id,const QPolygonF&);
+    void setCurve(int id,const QPolygonF&, const QPen& = QPen());
+    MyGraphicsPolylineItem *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
+    double widthLineV;
+    double widthLineH;
+    double widthLineE;
 
 public slots:
     void slotEboundChanged();
+    void slotEnergyChanged();
     void slotUChanged();
+    void setViewportMapping();
+    void resizePicture();
 
 signals:
     void infoMouseMovedTo(QPointF);
@@ -46,15 +55,23 @@ protected:
     void resizeEvent(QResizeEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
-    void setMyTransformMatrix();
 
 private:
     PhysicalModel *model;
-    QVector<HorDraggableLine*> linesEn;
+
+//    double widthLineV;
+//    double widthLineH;
+//    double widthLineE;
+
     QVector<HorDraggableLine*> linesU;
     QVector<VerDraggableLine*> linesV;
-    QVector<MyGraphicsPolylineItem*> curves;
+
+    QVector<HorDraggableLine*> linesEn;
+    EnergyDraggableLine* lineEnergy;
+    double Edraggable;
+    QMap<int,MyGraphicsPolylineItem*> curves;
 
     friend class HorDraggableLine;
     friend class VerDraggableLine;
+    friend class EnergyDraggableLine;
 };

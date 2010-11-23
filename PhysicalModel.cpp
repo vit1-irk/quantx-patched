@@ -221,17 +221,22 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     U[0] = Ui[0] + this->Ub;
     
     double width=0; 
-    for (int n=0; n <= this->N; n++) //!!!n=1 
+    for (int n=0; n < d.size(); n++) //!!!n=1 
+//    for (int n=0; n <= this->N; n++) //!!!n=1 
         width += this->d[n];
 
     double pos=0;
-    for(int n=this->N; n >= 0; n--)
+    int NN=d.size();
+    for(int n=d.size()-1; n >= 0; n--)
+//    for(int n=this->N; n >= 0; n--)
     {
         pos += this->d[n]/2.;
+        double dd=d[n];
+        double UU=Ui[n];
         U[n] = Ui[n] + pos/width * this->Ub;
         pos += this->d[n]/2.;
     }
-    U_d = d;
+//    U_d = d;
 
     if (getPotentialType() == PERIODIC)
     {
@@ -239,7 +244,6 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         d[N+1] = d[0];
         m[N+1] = m[0];
     }
-
     need_build_U = false;///!!!!!!!!!!!
 }
 
@@ -481,7 +485,8 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
         xN+= d[n];
     }
 //    LL=xN+d[0];
-    norm();
+    if ((this->E0 < 0 && this->E0 - this->U[0] < 0)||typeOfU>0)  norm();
+//    norm();
     for (n = 0; n <= N; n++)
     {
         xt -= d[n];
@@ -549,7 +554,7 @@ void PhysicalModel::build_Phi() /* input:En,a,b,x,k,d ------ result:Phi(p) */
         }
     }
     phi= phi+ b[0]/(imag(this->k[0])-complex(0,kw));//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
-    //        phi= phi+complex(0.,1.)*b(0)/(this->k(0)+kw);//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
+    //        phi= phi+complex(0.,1.)*b(0) /(this->k(0)+kw);//+a(N+1)*exp(complex(0.,-kw*xr))/(this->k(N+1)-kw));
     phi= phi+a[N+1]*exp(complex(0.,-kw*xr))/(imag(this->k[N+1])+complex(0.,kw));
 
     Phi2 = squaremod(phi);
@@ -779,6 +784,38 @@ void PhysicalModel::set_d(int n1, double v1,int n2, double v2)
     if (changed)
         markUchanged();
 }
+void PhysicalModel::split_d(int n, double fraction)
+{
+    if (0.05 < fraction && fraction < 0.95)
+    {
+        double wl = d[n] * fraction;
+        double wr = d[n] - wl;
+        N += 1;            
+        d.insert(n,wl);        d[n+1] = wr;
+        m.insert(n,m[n]);
+        U.insert(n,U[n]);
+        Ui.insert(n,Ui[n]);
+        k.push_back(0.0);
+        a.push_back(0.0);
+        b.push_back(0.0);
+        markUchanged();
+    }
+}
+void PhysicalModel::remove_d(int n)
+{
+    if (0 < N && 0 <= n && n <= N)
+    {
+        N -= 1;            
+        d.remove(n);
+        m.remove(n);
+        U.remove(n);
+        Ui.remove(n);
+        k.remove(n);
+        a.remove(n);
+        b.remove(n);
+        markUchanged();
+    }
+}
 /*
 void PhysicalModel::set_BondCond(int n, double v)
 {
@@ -813,14 +850,32 @@ void PhysicalModel::set_Ub(double v)
         markUchanged();
     }
 }
+void PhysicalModel::set_Energy(double v)
+{
+    if (E0 != v)
+    {
+        this->E0 = v;
+//        this->build_k();
+//        this->build_ab();
+//        if(E0>0)this->build_RT();
+        emit(signalEnergyChanged());
+    }
+}
 void PhysicalModel::markUchanged()
 {
     need_build_U = true;
     need_build_En = true;
     emit(signalPotentialChanged());
-//    emit(signalEboundChanged());
+    emit(signalEboundChanged());
 }
-
+/*
+void PhysicalModel::markE0changed()
+{
+    need_build_U = true;
+    need_build_En = true;
+    emit(signalPotentialChanged());
+  }
+*/
 QVector<double> PhysicalModel::getEn()
 {
     if (need_build_U)
@@ -858,6 +913,7 @@ double PhysicalModel::get_U(int n)
     if (need_build_U)
     {
         build_U();
+        need_build_U = false;
     }
     return U[n];
 }
@@ -865,7 +921,7 @@ double PhysicalModel::get_U(int n)
 QPolygonF PhysicalModel::getPsiOfX(double E, double scalePsi, double xmin, double xmax, int npoints)
 {
     QPolygonF result(npoints);
-    E0 = E;
+    set_E0(E);
     build_k();
     build_ab();
     double dx = (xmax-xmin)/(npoints-1);
@@ -873,11 +929,12 @@ QPolygonF PhysicalModel::getPsiOfX(double E, double scalePsi, double xmin, doubl
     {
         x = xmin + dx*i;
         build_Psi();
-        double y = scalePsi*psi_real;
-        if (fabs(y)>10)
+//        double y = scalePsi*psi_real;
+        double y = scalePsi*Psi2;
+/*        if (fabs(y)>10)
         {
             y = 10;
-        }
+        }*/
         result[i] = QPointF(x, y);
     }
     return result;

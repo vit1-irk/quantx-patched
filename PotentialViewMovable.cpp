@@ -5,20 +5,28 @@
 #include <QMouseEvent>
 #include <QMatrix>
 #include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QRectF>
 #include <QLineF>
+#include <QGraphicsSceneMouseEvent>
+#include <QMenu>
+#include <QWidget>
+#include <QAction>
 
 // HorDraggableLine places a horizontal line of length width()
 // positioned by its left side at pos().
-class HorDraggableLine : public QGraphicsItem
+class EnergyDraggableLine : public QGraphicsItem
 {
     PotentialViewMovable *view;
-    int n;
     QPointF p2;
+    QPen penForPainter;
+    QPen penHover;
+    QPen pen;
 public:
-    HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent = 0);
-    void set_n(int _n) { n = _n; }
+    double widthLineE;
+    EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent = 0);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+    void setPen(QPen _pen) { penForPainter = pen = _pen; }
     void setLine(double x1,double y1,double width)
     {
         QPointF p = pos();
@@ -30,19 +38,175 @@ public:
             update();
         }
     }
+    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = penHover;
+//        penForPainter.setWidthF(widthLineE);
+        update();
+    }
+    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = pen;
+//        penForPainter.setWidthF(widthLineE);
+        this->setSelected(false);
+        update();
+    }
+    double EnergyDraggableLine::getEnergyFromLine()
+    {
+        QPointF p = pos();
+        return p.y(); 
+    }
     QRectF boundingRect() const
     {
-        return QRectF(QPointF(),p2);//.adjusted(0,-1,0,+1);
+    QRectF vp = view->sceneRect();
+    double widthLine= 0.005*vp.height();
+        QPoint v1(0,0);
+        QPoint v2(0,3);
+        QPointF fv1 = view->mapToScene(v1);
+        QPointF fv2 = view->mapToScene(v2);
+        double widthLine1 = fabs(fv2.y() - fv1.y());
+    
+        QPoint va(0,0);
+        QPoint vb(0,5);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+        QRect vpr = view->viewport()->rect();
+        QPointF vpr1 = view->mapToScene(vpr.topLeft());
+        QPointF vpr2 = view->mapToScene(vpr.bottomRight());
+        QMatrix m = view->matrix();
+        QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+        return aa;///QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+    }
+    void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
+    {
+ //       QPen pen;
+ //       pen.setStyle(Qt::DotLine);
+        if(option->state & QStyle::State_Selected)
+        {
+//            pen.setColor(Qt::green);
+            qreal x = pen.widthF();
+            int y = pen.width();
+ //           pen.setWidthF(x);
+//            pen.setWidthF(0.1);
+            int y1 = pen.width();
+            qreal x1 = pen.widthF();
+//            qreal x2 = pen.widthF();
+
+        }
+        else
+        {
+//            pen.setColor(Qt::red);
+        }
+        penForPainter.setWidthF(view->widthLineE);
+        painter->setPen(penForPainter);
+        qreal x2 = penForPainter.widthF();
+        QPoint va(0,0);
+        QPoint vb(0,5);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+ //           QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+ //           painter->drawRect(aa);
+
+        painter->drawLine(QLineF(QPointF(),p2));
+    }
+    QLineF line() const { return QLineF(pos(),pos() + p2); }
+};
+
+class HorDraggableLine : public QGraphicsItem
+{
+    PotentialViewMovable *view;
+    int n;
+    QPointF p2;
+    QPen pen,penForPainter;
+    QPen penHover;
+public:
+    double widthLineH;
+    HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent = 0);
+    void set_n(int _n) { n = _n; }
+    QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+    void setPen(QPen _pen) { penForPainter = pen = _pen; }
+    void setLine(double x1,double y1,double width)
+    {
+        QPointF p = pos();
+        if (x1 != p.x() || y1 != p.y() || width != p2.x())
+        {
+            prepareGeometryChange();
+            p2 = QPointF(width,0);
+            this->setPos(x1,y1);
+             update();
+        }
+    }
+    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = penHover;
+//        penForPainter.setWidthF(view->widthLineH);
+        update();
+    }
+    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = pen;
+//        penForPainter.setWidthF(view->widthLineH);
+        this->setSelected(false);
+        update();
+    }
+    QRectF boundingRect() const
+    {
+        QPoint va(0,0);
+        QPoint vb(0,5);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+        QRect vpr = view->viewport()->rect();
+        QPointF vpr1 = view->mapToScene(vpr.topLeft());
+        QPointF vpr2 = view->mapToScene(vpr.bottomRight());
+        QMatrix m = view->matrix();
+        QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+        return aa;//QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
     }
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
         if(option->state & QStyle::State_Selected)
-            painter->setPen(Qt::red);
+        {
+//            pen.setStyle(Qt::DashLine);
+        }
         else
-            painter->setPen(Qt::black);
+        {
+//            pen.setStyle(Qt::SolidLine);
+        }
+        penForPainter.setWidthF(view->widthLineH);
+        penForPainter.setCapStyle(Qt::FlatCap);
+        painter->setPen(penForPainter);
         painter->drawLine(QLineF(QPointF(),p2));
     }
     QLineF line() const { return QLineF(pos(),pos() + p2); }
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent * event)
+    {
+        if (event->buttons() & Qt::RightButton)
+        {
+            QMenu m;
+            QPointF p = event->pos();
+            double fraction = p.x() / p2.x();
+            QAction *splitHere = m.addAction("Split here");
+            if (fraction < 0.05 || fraction > 0.95) splitHere->setDisabled(true);
+            QAction *removeSegment = m.addAction("Remove segment");
+            QAction *what = m.exec(event->screenPos());
+            if (what == splitHere)
+            {
+                view->model->split_d(n, fraction);
+            }
+            if (what == removeSegment)
+            {
+                view->model->remove_d(n);
+            }
+        }
+    }
 };
 
 class VerDraggableLine : public QGraphicsItem
@@ -50,9 +214,13 @@ class VerDraggableLine : public QGraphicsItem
     PotentialViewMovable *view;
     int n;
     QPointF p2;
+    QPen pen,penForPainter;
+    QPen penHover;
 public:
+    double widthLineV;
     VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent = 0);
     void set_n(int _n) { n = _n; }
+    void setPen(QPen _pen) { penForPainter = pen = _pen; }
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
     void setLine(double x1,double y1,double upDown)
     {
@@ -65,27 +233,57 @@ public:
             update();
         }
     }
+    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = penHover;
+//        penForPainter.setWidthF(widthLineV);
+        update();
+    }
+    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = pen;
+//        penForPainter.setWidthF(widthLineV);
+        this->setSelected(false);
+        update();
+    }
     QRectF boundingRect() const
     {
-        return QRectF(QPointF(),p2);//.adjusted(-1,0,+1,0);
+        QPoint va(0,0);
+        QPoint vb(5,0);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+    QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+    return aa;//QRectF(QPointF(),p2).adjusted(-0.1,-0.1,+0.1,+0.1);
+//    return QRectF(QPointF(),p2).adjusted(-0.1,0,+0.1,0);
+//    const qreal adj = 0.1; //todo
+//    return QRectF( p1.x()-adj, p1.y()-adj, abs(p2.x() - p1.x()) + 2*adj, 2*adj );
     }
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
         if(option->state & QStyle::State_Selected)
-            painter->setPen(Qt::red);
+        {
+            //            painter->setPen(Qt::red);
+        }
         else
-            painter->setPen(Qt::black);
-        painter->drawLine(QLineF(QPointF(),p2));
+        {
+//            painter->setPen(Qt::black);
+//        painter->setPen(pen);
+        }
+         penForPainter.setWidthF(view->widthLineV);
+         painter->setPen(penForPainter);
+         painter->drawLine(QLineF(QPointF(),p2));
     }
     QLineF line() const { return QLineF(pos(),pos() + p2); }
 };
 
 PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m)
+: QGraphicsView(parent), model(m), lineEnergy(0)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
-    if (0)
+    if (1)
     {
         setViewportUpdateMode(BoundingRectViewportUpdate);///
         setCacheMode(CacheBackground);
@@ -93,28 +291,52 @@ PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
-    QRectF vp = model->getGoodViewportAtU();
-    this->setSceneRect(vp);
+    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
+    connect(model,SIGNAL(signalEnergyChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
+    resizePicture();
+//    setViewportMapping();
+//    slotUChanged();
+//    slotEnergyChanged();
+//    slotEboundChanged();
+}
+void PotentialViewMovable::resizePicture()
+{
+    setViewportMapping();
     slotUChanged();
     slotEboundChanged();
+    slotEnergyChanged();
 }
-void PotentialViewMovable::setMyTransformMatrix()
+void PotentialViewMovable::setViewportMapping()
 {
-    QRectF b = scene()->sceneRect();
-    QRectF a = QRectF(this->viewport()->rect());
-    qreal m11 = a.width() / b.width();
-    qreal m22 = - a.height() / b.height();
-    qreal dx = - m11 * a.x();
-    qreal dy = - m22 * (a.y() + a.height());
-    QMatrix m(m11,0,0,m22,dx,dy);
-    this->setMatrix(m);
-}
+    QRectF vp = model->getGoodViewportAtU();
+    QRectF sr = scene()->sceneRect();
+    if (vp != sr)
+    {
+        scene()->setSceneRect(vp);
 
+        QRectF b = vp; //scene()->sceneRect();
+        QRectF a = QRectF(this->viewport()->rect());
+        qreal m11 = a.width() / b.width();
+        qreal m22 = - a.height() / b.height();
+        qreal dx = - m11 * a.x();
+        qreal dy = - m22 * (a.y() + a.height());
+        QMatrix m(m11,0,0,m22,dx,dy);
+        this->setMatrix(m);
+        scene()->update(scene()->sceneRect());
+//        scene()->invalidate(scene()->sceneRect()); 
+        sr = scene()->sceneRect();
+    }
+//    QRectF vp = view->sceneRect();
+    widthLineV= 0.0025*vp.width();
+    widthLineH= 0.0025*vp.height();
+    widthLineE= 0.005*vp.height();
+    update();
+} 
 void PotentialViewMovable::resizeEvent(QResizeEvent*) 
 {
-    if (scene()) setMyTransformMatrix();
+    setViewportMapping();
 }
 
 void PotentialViewMovable::mouseMoveEvent(QMouseEvent *e)
@@ -123,7 +345,20 @@ void PotentialViewMovable::mouseMoveEvent(QMouseEvent *e)
     emit(infoMouseMovedTo(f));
     QGraphicsView::mouseMoveEvent(e);
 }
-
+/*void PotentialViewMovable::mouseReleaseEvent( QMouseEvent * event)
+{
+    QRectF vp = model->getGoodViewportAtU();//????????
+    this->setSceneRect(vp);//????????????
+    if (scene()) setMyTransformMatrix();
+    update();
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+void PotentialViewMovable::mousePressEvent(QMouseEvent *event)
+{
+    update();
+    QGraphicsItem::mousePressEvent(event);
+}
+*/
 void PotentialViewMovable::wheelEvent(QWheelEvent *event)
 {
     scaleView(pow((double)2, -event->delta() / 240.0));
@@ -131,7 +366,7 @@ void PotentialViewMovable::wheelEvent(QWheelEvent *event)
 void PotentialViewMovable::scaleView(qreal scaleFactor)
 {
     qreal factor = matrix().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-    if (factor < 0.07 || factor > 100)
+    if (factor < 0.007 || factor > 1000)
         return;
 
     scale(scaleFactor, scaleFactor);
@@ -140,7 +375,7 @@ void PotentialViewMovable::scaleView(qreal scaleFactor)
 void PotentialViewMovable::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
- /*   case Qt::Key_Up:
+/*    case Qt::Key_Up:
         centerNode->moveBy(0, -20);
         break;
     case Qt::Key_Down:
@@ -151,8 +386,7 @@ void PotentialViewMovable::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Right:
         centerNode->moveBy(20, 0);
-        break;
-        */
+        break; */
     case Qt::Key_Plus:
         scaleView(qreal(1.2));
         break;
@@ -202,8 +436,13 @@ void PotentialViewMovable::slotUChanged()
     ///////////////////////////////////////////////////
     // now we have number of graphical lines and segments of physical potential algned
     ///////////////////////////////////////////////////
+//    QRectF vp = model->getGoodViewportAtU();
+//    scene()->setSceneRect(vp);
     QRectF vp = sceneRect();
-
+//    QRectF vp = scene()->sceneRect();
+    double xmin = vp.x();
+    double xmax = vp.x() + vp.width();
+//    update();
 //---------------
     HorDraggableLine *l = linesU[1];
     QLineF ll = l->line();
@@ -220,7 +459,7 @@ void PotentialViewMovable::slotUChanged()
         qreal y = Ui[n];
         (void)y;
         double w;
-        if (0 < n && n < Ui.size()-1)
+        if (0 < n && n < Ui.size()-1)//!!! =
             w = d[n];
         else if (n==0)
             w = 0 - vp.x();
@@ -234,6 +473,7 @@ void PotentialViewMovable::slotUChanged()
 
     for (int n = 0; n < linesV.size(); ++n)
     {
+        linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
         linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true );
         linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true );
         linesV[n]->set_n(n);
@@ -244,12 +484,19 @@ void PotentialViewMovable::slotUChanged()
         double ud = right.y1()-left.y2();
         linesV[n]->setLine(left.x2(),left.y2(),ud);
     }
-    slotEboundChanged();
     update();
 }
 void PotentialViewMovable::slotEboundChanged()
 {
+    static const QColor colorForIds[6] = {
+        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
+    };
+    const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+
     QRectF vp = scene()->sceneRect();
+//    QRectF vp = model->getGoodViewportAtU();
+//    scene()->setSceneRect(vp);
+
     double xmin = vp.x();
     double xmax = vp.x() + vp.width();
     QVector<double> Ebound = model->getEn();
@@ -261,36 +508,129 @@ void PotentialViewMovable::slotEboundChanged()
         line->setLine(xmin,e,xmax-xmin);
         line->setFlag(QGraphicsItem::ItemIsMovable,false);
         line->setFlag(QGraphicsItem::ItemIsSelectable,false);
-        linesEn.push_back(line);
+        line->setCursor(QCursor());
         scene()->addItem(line);
-        addCurve(QPolygonF());
+        linesEn.push_back(line);
+        setCurve(n,QPolygonF());
     }
     while (Ebound.size() < linesEn.size())
     {
         scene()->removeItem(linesEn.last());
-        removeCurve(linesEn.size()-1);
         linesEn.pop_back();
+        removeCurve(linesEn.size());
     }
-    double scalePsi=2;
+    double scalePsi=3;
     for (int n = 0; n < linesEn.size(); ++n)
     {
         double modelEn = Ebound[n];
         linesEn[n]->setLine(xmin,modelEn,xmax-xmin);
-        QPolygonF psi = model->getPsiOfX(Ebound[n],scalePsi, xmin,xmax,1000);
-//        psi.translate(0,n);
-//        psi.translate(0,Ebound[n]);
-        replaceCurve(n,psi);
+        linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
+        QPolygonF psi = model->getPsiOfX(Ebound[n],scalePsi, xmin,xmax,500);
+        setCurve(n,psi,colorForIds[n % size_colorForIds]);
     }
     update();
 }
 
+#define ID_PSI_ENERGY (100)
 
-HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
+void PotentialViewMovable::slotEnergyChanged()
+{
+    QRectF vp = this->sceneRect();
+    QRectF vp1 = this->scene()->sceneRect();
+//    QRectF vp = model->getGoodViewportAtU();
+//    scene()->setSceneRect(vp);
+    double scalePsi=3;
+    double xmin = vp.x();
+    double xmax = vp.x() + vp.width();
+    double E=model->get_E0(); 
+    if (lineEnergy) 
+    {
+        double Eold=lineEnergy->getEnergyFromLine();
+        if(Eold!=E) model->set_E0(Eold);
+        E=Eold;
+/*        if(Eold!=E)
+        { 
+            scene()->removeItem(lineEnergy);
+            removeCurve(ID_PSI_ENERGY);
+            return;
+        }
+*/
+        }
+        /*    double xT, scaleT=2;
+    if(E>0) xT = scaleT*model->TT;
+    else xT=0;
+    if(!lineTofE) 
+    {
+        lineTofE = new CurveTofE(this);
+        setCurve(ID_TofE,QPolygonF());
+    }
+*/
+    if (!lineEnergy) 
+    {
+        lineEnergy = new EnergyDraggableLine(this);
+//        model->set_E0(E);
+        lineEnergy->setLine(xmin,E,xmax-xmin);
+        scene()->addItem(lineEnergy);
+    }
+    else     lineEnergy->setLine(xmin,E,xmax-xmin);
+    QPolygonF psi = model->getPsiOfX(E, scalePsi, xmin,xmax,500);
+    setCurve(ID_PSI_ENERGY, psi, QPen(Qt::darkCyan));
+    update();
+}
+
+
+EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
+    setCursor(Qt::SizeHorCursor);
+    penHover.setStyle(Qt::DotLine);
+    penHover.setWidthF(view->widthLineE);
+    penHover.setColor(Qt::green);
+
+    pen.setStyle(Qt::DashLine);
+    pen.setColor(Qt::green);
+    pen.setWidthF(view->widthLineE);
+
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);		
     setFlag(QGraphicsItem::ItemIsSelectable,true);		
+    setAcceptHoverEvents ( true );
+}
+
+QVariant EnergyDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
+{
+    switch (change)
+    {
+    case ItemPositionChange:
+        if (isSelected())
+        {
+            QPointF newpos = value.toPointF();
+            QPointF oldpos = pos();
+            newpos.setX( oldpos.x() );
+            return newpos;
+        }
+    case ItemPositionHasChanged:
+        if (isSelected())
+        {
+            double newE = pos().y();
+            double newx = pos().x();
+            view->model->set_Energy(newE);
+            return QVariant();
+        }
+    }
+    return QGraphicsItem::itemChange(change,value);
+}
+HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
+: QGraphicsItem(parent), view(v)
+{
+    penHover.setStyle(Qt::DashLine);
+    penHover.setWidthF(view->widthLineH);
+    penHover.setColor(Qt::blue);
+
+    setCursor(Qt::SizeVerCursor);
+    setFlag(QGraphicsItem::ItemIsMovable,true);		
+    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setAcceptHoverEvents ( true );
 }
 
 QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -316,6 +656,7 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
                 QLineF l = left->line();
                 QPointF p1 = l.p1();
                 QPointF p2 = l.p2();
+//                left->setLine(p1.x(),p1.y(),newU);
                 left->setLine(p1.x(),p1.y(),newU-p1.y());
             }
             if (right)
@@ -323,6 +664,7 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
                 QLineF r = right->line();
                 QPointF p1 = r.p1();
                 QPointF p2 = r.p2();
+//                right->setLine(p1.x(),newU,p2.y());
                 right->setLine(p1.x(),newU,p2.y()-newU);
             }
             view->model->set_Ui(n,newU);
@@ -334,9 +676,18 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
 VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
+//    QRectF vp = view->sceneRect();
     setCursor(Qt::SizeHorCursor);
+    penHover.setStyle(Qt::DashLine);
+    penHover.setWidthF(view->widthLineV);
+    penHover.setColor(Qt::blue);
+
+    pen.setWidthF(view->widthLineV);
+    pen.setColor(Qt::black);
+
     setFlag(QGraphicsItem::ItemIsMovable,true);		
     setFlag(QGraphicsItem::ItemIsSelectable,true);		
+    setAcceptHoverEvents ( true );
 }
 QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
 {
@@ -351,13 +702,13 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             QLineF left  = view->linesU[ n ]->line();
             QLineF right = view->linesU[n+1]->line();
             if (newx > right.x2()) newx = right.x2(); 
-            if (newx < left.x1())  newx = left.x1(); 
+            if (newx < left.x1())   newx = left.x1(); 
             newpos.setX(newx);
             newpos.setY(oldpos.y());
             return newpos;
         }
     case ItemPositionHasChanged:
-        if (isSelected())
+       if (isSelected())
         {
             QLineF self  = line();
             QLineF left  = view->linesU[ n ]->line();
@@ -378,37 +729,20 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
     return QGraphicsItem::itemChange(change,value);
 }
 
-int PotentialViewMovable::addCurve(const QPolygonF & curve)
+void PotentialViewMovable::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 {
-    MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
-    scene()->addItem(c);
-    curves.push_back(c);
-    update();
-    return curves.size() - 1;
-}
 
-void PotentialViewMovable::replaceCurve(int id, const QPolygonF & curve)
-{
-    if (id < curves.size())
+    if (curves.contains(id))
     {
-        if (curves[id])
-        {
-            curves[id]->setPolygon(curve);
-        }
-        else
-        {
-            MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
-            scene()->addItem(c);
-            curves[id] = c;
-        }
+        curves[id]->setPolygon(curve);
     }
     else
     {
-        curves.resize(id+1);
         MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
         scene()->addItem(c);
         curves[id] = c;
     }
+    curves[id]->setPen(pen);
     update();
 }
 
@@ -416,13 +750,17 @@ void PotentialViewMovable::removeCurve(int id)
 {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0;
+    curves.remove(id);
     update();
 }
 
 void MyGraphicsPolylineItem::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
-    painter->setPen(Qt::green);
+
+
+    painter->setPen( pen() );
+//    QRect s0=painter->viewport();
+//    QRect s1=painter->window();
     painter->setRenderHint(QPainter::Antialiasing);
     //painter->drawPolygon(polygon().data(),polygon().size());
     painter->drawPolyline(polygon().data(),polygon().size());

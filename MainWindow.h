@@ -8,7 +8,6 @@
 #include "PotentialViewMultiWell.h"
 #include "PotentialModel.h"
 #include "PhysicalModel.h"
-#include "PotentialScene.h"
 #include "PotentialViewMovable.h"
 
 struct WPE
