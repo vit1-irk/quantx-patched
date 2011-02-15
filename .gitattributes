@@ -1,2 +1,4 @@
 *.vcproj	eol=crlf
 *.sln		eol=crlf
+* eol=lf
+

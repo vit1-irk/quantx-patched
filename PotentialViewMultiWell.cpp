@@ -5,7 +5,7 @@
 #include <QLineEdit>
 
 PotentialViewMultiWell::PotentialViewMultiWell(QWidget *parent, Qt::WindowFlags f)
-: QDialog(parent,f)
+: QDialog(parent,f), model(0)
 {
     this->setWindowTitle("Multi-well/barrier potential");
     this->setFont(QFont("Serif", 12, QFont::Bold ));
@@ -17,6 +17,7 @@ PotentialViewMultiWell::PotentialViewMultiWell(QWidget *parent, Qt::WindowFlags 
         QHBoxLayout *h = new QHBoxLayout(line);
         h->addWidget(new QLabel("Number of wells/barriers",this));
         h->addWidget(this->leNumberOfWells = new QLineEdit(this));
+        this->leNumberOfWells->setEnabled(true);
         this->leNumberOfWells->setToolTip("Number of wells/barriers");
         connect(this->leNumberOfWells,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
@@ -68,6 +69,7 @@ PotentialViewMultiWell::PotentialViewMultiWell(QWidget *parent, Qt::WindowFlags 
         connect(this->leUBias,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
+    this->setLayout(vl);
     this->modelChanged();
 }
 
@@ -78,6 +80,7 @@ PotentialViewMultiWell::~PotentialViewMultiWell(void)
 void PotentialViewMultiWell::setModel(PhysicalModel *_model)
 {
     model = _model;
+    modelChanged();
 }
 
 void PotentialViewMultiWell::modelChanged()

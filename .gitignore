@@ -11,3 +11,4 @@ Makefile*
 *.vcproj
 *.sln
 /-*
+*.dat

@@ -589,7 +589,7 @@ bool Plotter::savePlot()
             double x = data[2*i];
             double y = data[2*i+1];
             QString s;
-            s.sprintf("%lg %lg\n",x,y);
+            s.sprintf("%-14.7lg %lg\n",x,y);
             o << s;
             }
 

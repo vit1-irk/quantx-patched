@@ -1,5 +1,7 @@
 #include "MainWindow.h"
 #include <math.h>
+#include <cmath>
+
 #include "MyParam.h"
 #include "PhysicalModel.h"
 #include "PotentialModel.h"
@@ -11,7 +13,7 @@
 #include <QList>
 #include <QRectF>
 #include <QGraphicsScene>
-
+#include "BreakStatus.h"
 
 
 class DoubleValidator : public QRegExpValidator
@@ -187,6 +189,18 @@ void MainWindow::slotSetUxt()
     tableView->activateWindow();
     tableView->setFocus();
 }
+
+void  MainWindow::slotSetUs()
+{
+    if (!dialogUparab)
+    {
+        dialogUparab = new Uparabolic(this);
+        dialogUparab->setModel(model);
+    }
+    dialogUparab->show(); 
+    dialogUparab->activateWindow();
+    dialogUparab->setFocus();
+}
 void  MainWindow::slotSetUmwb()
 {
     if (!dialogUAsMW)
@@ -246,16 +260,17 @@ void  MainWindow::slotScaleZ()
         this->zmin.setDisplay(("zmin"),("lower bond of z-interval"),vl0);
         this->zmax.setDisplay(("zmax"),("upper bond of z-interval"),vl0);
         this->hz.setDisplay(("hz"),("z-increment"),vl0);
-    {   
+ 
+        {   
         QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
         QVBoxLayout *vl = new QVBoxLayout;
         QHBoxLayout *hl = new QHBoxLayout;
         QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
-        connect(bInit, SIGNAL(clicked()), this, SLOT(slotU1()));
+        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
         hl->addWidget(bInit);
 
         QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
-        connect(bFin, SIGNAL(clicked()), this, SLOT(slotU2()));
+        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
         hl->addWidget(bFin);
 
         vl->addLayout(hl);
@@ -269,6 +284,7 @@ void  MainWindow::slotScaleZ()
     gbScaleZ->activateWindow();
     gbScaleZ->setFocus();
 }
+
 void  MainWindow::slotScalePsi()
 {   
     if (!gbScalePsi) 
@@ -306,7 +322,6 @@ void  MainWindow::slotIntN()
     gbIntN->raise();//activateWindow();
     gbIntN->setFocus();
 }
-
 void  MainWindow::slotIntE()
 {   
         if (!gbIntE) 
@@ -437,54 +452,14 @@ void  MainWindow::slotWPacket()
 "@@@@@@@@"
 }
 */
-void MainWindow::slotU1()
+/*void MainWindow::myU1()
 {
-    const int N = model->getN();
-    U1.resize(1+N+1);
-    d1.resize(1+N+1);
-    m1.resize(1+N+1);
-    for(int n=0; n<=N+1; n++)
-    {
-        U1[n] = model->get_Ui(n);
-        d1[n] = model->get_d(n);
-        m1[n] = model->get_m(n);
-    }
-    this->Ub1 = model->get_Ub();
+model->slotU1();
 }
-void MainWindow::slotU2()
+void MainWindow::myU2()
 {
-    const int N = model->getN();
-    U2.resize(1+N+1);
-    d2.resize(1+N+1);
-    m2.resize(1+N+1);
-    for(int n=0; n<=N+1; n++)
-    {
-        U2[n] = model->get_Ui(n);
-        d2[n] = model->get_d(n);
-        m2[n] = model->get_m(n);
-    }
-    this->Ub2=model->get_Ub();
-}
-void MainWindow::Uxz(double z)
-{
-    if(U1.size()==U2.size())
-    {
-        int N = U1.size()-2;        
-        if (N < 0) return;
-
-        QVector<double> Ui(1+N+1);
-        QVector<double> d(1+N+1);
-        QVector<double> m(1+N+1);
-        for(int n=0; n<=N+1; n++)
-        {
-            Ui[n] = U1[n] + z*(U2[n]-U1[n]);
-            d[n] = d1[n] + z*(d2[n]-d1[n]);
-            m[n] = m1[n] + z*(m2[n]-m1[n]);
-            this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
-        }
-        model->set_Ui_d_m_Ub(Ui,d,m,this->Ubias);
-    }
-}
+model->slotU2();
+}*/
 
 void MainWindow::updateMouseMovedTo(QPointF f)
 {
@@ -494,150 +469,583 @@ void MainWindow::updateMouseMovedTo(QPointF f)
     this->mouseAtX->setText(x);
     this->mouseAtY->setText(y);
 }
-void MainWindow::initControlDockWindow()
+
+void MainWindow::windowTopRight()
 {
-    control = new QWidget();
-    control->setMaximumWidth(500);
-    QVBoxLayout *vl0 = new QVBoxLayout();
-    
-    QVBoxLayout * leftLayout = new QVBoxLayout;
-    QGroupBox *gbview = new QGroupBox("Graphic definition of potential");
-    leftLayout->addWidget(gbview);
-//	gbview->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
-	gbview->setMinimumHeight(350);
+//    if (gbRightTop->isVisible())
+//        gbRightTop->hide();
+//    else
+//        gbRightTop->show();
+ /*       QLayoutItem *child;
+    if ((child = rightTopLayout->takeAt(0)) != 0) 
+    {
+        child->widget()->hide();
+        delete child;
+    }
+*/
+    int NN=this->splitterR->count();
+    int iTopRight=topRightWin->QComboBox::currentIndex();
     {    
-        QVBoxLayout *vl = new QVBoxLayout();
-
-        
-        potentialViewMovable = new PotentialViewMovable(model);
-        vl->addWidget(potentialViewMovable);
-
-
-//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(resize()));
-//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateScene (const QList <QRectF>&)));
-//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(updateSceneRect (const QRectF&)));
-//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(invalidateScene(const QRectF&)));
-//        connect(scene,SIGNAL(sceneRectChanged(const QRectF&)),potentialViewMovable,SLOT(update(const QRectF&)));
-
-    //   connect(scene,SIGNAL(sceneRectChanged()),potentialViewMovable,SLOT(resetMatrix()));
-
-        QHBoxLayout *hl3 = new QHBoxLayout();
-
-        mouseAtX = new QLabel("x-coord");
-        hl3->addWidget(mouseAtX);
-        mouseAtY = new QLabel("y-coord");
-        hl3->addWidget(mouseAtY);
-
-        vl->addLayout(hl3);
-
-        connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
-            this,SLOT(updateMouseMovedTo(QPointF)));
-
-
-//        QHBoxLayout *hl = new QHBoxLayout();
-        QPushButton * reset = new QPushButton("&Reset Potential");	
-        connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(resizePicture()));
-        vl->addWidget(reset);		
-
-
-        QPushButton * addseg = new QPushButton("&Add Potential Segment");	
-        connect(addseg,SIGNAL(clicked()),potentialViewMovable,SLOT(addNewSegment()));
-//        hl->addWidget(addseg);
-        vl->addWidget(addseg);
-//        hl->addStretch();
-//        vl->addLayout(hl);
-
-//        QHBoxLayout *hla = new QHBoxLayout();
-//        hla->addStretch();
-//        QPushButton * fl = new QPushButton("Find Levels");	
-//        fl->setDisabled(true);
-        //connect(fl,SIGNAL(clicked()),scene,SLOT(calculateEnergies()));
-//        vl->addWidget(fl);
-//        hla->addWidget(fl);
-
-        QPushButton *butEn = new QPushButton(tr("En-Table")); 
-//        QPushButton *butEn = new QPushButton(tr("List of Energy &Levels")); 
-        connect(butEn, SIGNAL(clicked()), this, SLOT(slotSetEn()));
-        vl->addWidget(butEn);
-//        hla->addWidget(butEn);
-//        hla->addStretch();
-
-//        vl->addLayout(hla);
-
-        gbview->setLayout(vl);
-
-
+        switch(iTopRight)
+        {
+        case 0: 
+            window_Ux_Psix();
+            gbPview->show();
+ //           if(gbPview->isVisible()) gbPview->hide();
+ //           else gbPview->show();
+            break;
+        case 1:  
+            window_psi_x();
+            gbviewPsix->show();
+ //           if(gbviewPsix->isVisible()) gbviewPsix->hide();
+ //           else gbviewPsix->show();
+            break;
+        case 2:  
+            window_psi_xt();
+            gbviewPsixT->show();
+ //           if(gbviewPsixT->isVisible()) gbviewPsixT->hide();
+ //           else gbviewPsixT->show();
+            break;
+        default:
+            break;
+        }
+    NN=this->splitterR->count();
     }
 
+}
+void MainWindow::windowDownRight()
+{
+/*    QLayoutItem *child;
+    if ((child = rightDownLayout->takeAt(0)) != 0) 
+    {
+        child->widget()->hide();
+        delete child;
+    }*/
+    int iDownRight=downRightWin->QComboBox::currentIndex();
+    switch(iDownRight)
+    {
+    case 0: 
+        window_psi_x();
+        gbviewPsix->show();
+        break;
+    case 1:  
+        window_psi_xt();
+        gbviewPsixT->show();
+        break;
+    case 2: 
+        break;
+    default:
+        break;
+    }
+}
+void MainWindow::windowDownLeft()
+{
+
+/*    QLayoutItem *child;
+    if ((child = leftDownLayout->takeAt(0)) != 0) 
+    {
+        child->widget()->hide();
+        delete child;
+    }
+    */
+    int iDownLeft=downLeftWin->QComboBox::currentIndex();
+    switch(iDownLeft)
+    {
+    case 0: 
+        window_phi_k();
+        gbviewM->show();
+//        gbLeftDown->show();
+        break;
+    case 1:  
+        window_phi_kt();
+        gbviewMT->show();
+        break;
+    case 2:
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow::windowTopLeft()
+{
+//    int number_of_items=leftTopLayout->count();
+    //    QLayoutItem *qw0;
+    //    qw0 = leftTopLayout->TakeAt(0);
+    //    if((qw0 = leftTopLayout->takeAt(0))=!0) 
+    //    {
+    //        delete qw0;
+    //    }
+    //            QLayoutItem *qw0 = leftTopLayout->itemAt(0);
+    //            qw0->widget()->hide();
+/*    QLayoutItem *child;
+    if ((child = leftTopLayout->takeAt(0)) != 0) 
+    {
+        child->widget()->hide();
+        delete child;
+    }
+    */
+    int NN=this->splitterL->count();
+    int iTopLeft=topLeftWin->QComboBox::currentIndex();
     {    
+        switch(iTopLeft)
+        {
+        case 0: 
+            window_Enz();
+            gbEnzview->show();
+            break;
+        case  1:  
+            window_TE();
+            gbTEview->show();
+            break;
+        case 2:
+            window_phi_k();
+            gbviewM->show();
+            break;
+        case 3:  
+            window_phi_kt();
+            gbviewMT->show();
+//            if(gbviewMT->isVisible()) gbviewMT->hide();
+//            else gbviewMT->show();
+            break;
+        default:
+            break;
+        }
+     NN=this->splitterL->count();
+    }
+//    number_of_items=leftLayout->count();
+/*    number_of_items=leftTopLayout->count();
+    //   updateGeometry();
+    leftTopLayout->update();
+#if 0
+    static int n;
+    if (5 == n++)
+    {
+        QLayout *p = QLayout(gbLeftTop->parentWidget());
+
+        delete gbLeftTop;
+        gbLeftTop = new EnzView(model);
+    }
+#endif
+*/
+    }
+void MainWindow::window_TE()
+{
+    if(!gbTEview)
+    {
+    gbTEview = new QGroupBox("Transmission T(E)");
+    transmissionView = new TransmissionView(model);
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(transmissionView);
+    QPushButton *reset = new QPushButton("&Resize");	
+    connect(reset,SIGNAL(clicked()),transmissionView,SLOT(resizePicture()));
+    QLabel *lTtext= new QLabel(this);
+    lTtext->setText("T:");
+//    lTtext->setAlignment(Qt::AlignRight);
+    QLabel *lT= new QLabel(this);
+    lT->setTextFormat(Qt::AutoText);
+    connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
+
+    QLabel *lEtext= new QLabel(this);
+//    lEtext->setAlignment(Qt::AlignRight);
+    lEtext->setText("energy:");
+    QLabel *lE= new QLabel(this);
+//    lE->setTextFormat(Qt::AutoText);
+
+    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
+
+//    gbLeftTop = gbTEview;
+//    splitterL->addWidget(gbLeftTop);
+    splitterL->addWidget(gbTEview);
+//    leftTopLayout->addWidget(gbLeftTop);
+
+    QHBoxLayout *hl = new QHBoxLayout();
+    hl->addWidget(reset);		
+    hl->addWidget(lEtext);
+    hl->addWidget(lE);
+    hl->addWidget(lTtext);
+    hl->addWidget(lT);
+    hl->addStretch();
+    vl->addLayout(hl);
+    gbTEview->setLayout(vl);
+//    gbLeftTop->setLayout(vl);
+    }
+}
+void MainWindow::window_Ux_Psix()
+{
+    if(!gbPview)
+    {
+    gbPview = new QGroupBox("Graphic definition of potential");
+    potentialViewMovable = new PotentialViewMovable(model);
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(potentialViewMovable);
+    QPushButton * reset = new QPushButton("&Resize");	
+    connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(resizePicture()));
+//    connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(energyAutoChanged()));
+    QLabel *lEtext= new QLabel(this);
+    lEtext->setText("energy:");
+//    lEtext->setAlignment(Qt::AlignRight);
+    QLabel *lE= new QLabel(this);
+//    lE->setAlignment(Qt::AlignLeft);
+    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
+
+    QLabel *lTtext= new QLabel(this);
+//    lTtext->setAlignment(Qt::AlignRight);
+    lTtext->setText("T:");
+    QLabel *lT= new QLabel(this);
+    lT->setTextFormat(Qt::AutoText);
+//    lT->setAlignment(Qt::AlignLeft);
+    connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
+
+//    gbRightTop = gbPview;
+//    rightTopLayout->addWidget(gbRightTop);
+    splitterR->addWidget(gbPview);
+    QHBoxLayout *hl = new QHBoxLayout();
+    hl->addWidget(reset);		
+
+/*    mouseAtX = new QLabel("x-coord");
+    hl->addWidget(mouseAtX);
+    mouseAtY = new QLabel("y-coord");
+    hl->addWidget(mouseAtY);
+    connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
+        this,SLOT(updateMouseMovedTo(QPointF)));
+*/
+    hl->addWidget(lEtext);
+    hl->addWidget(lE);
+    hl->addWidget(lTtext);
+    hl->addWidget(lT);
+
+    hl->addStretch();
+
+    vl->addLayout(hl);
+    gbPview->setLayout(vl);
+    }
+}
+void  MainWindow::slotSetWPEm()
+{
+    if (!dialogWPEm)
+    {
+        dialogWPEm = new WPparametersM(this);
+        dialogWPEm->setModel(model);
+    }
+    dialogWPEm->show(); 
+    dialogWPEm->activateWindow();
+    dialogWPEm->setFocus();
+}
+void  MainWindow::slotSetWPEp()
+{
+    if (!dialogWPEp)
+    {
+        dialogWPEp = new WPparametersP(this);
+        dialogWPEp->setModel(model);
+    }
+    dialogWPEp->show(); 
+    dialogWPEp->activateWindow();
+    dialogWPEp->setFocus();
+}
+void  MainWindow::slotSetTime()
+{
+    if (!dialogTime)
+    {
+        dialogTime = new TimeView(this);
+        dialogTime->setModel(model);
+    }
+    dialogTime->show(); 
+    dialogTime->activateWindow();
+    dialogTime->setFocus();
+}
+void  MainWindow::slotSetZ()
+{
+    if (!dialogZ)
+    {
+        dialogZ = new Zview(this);
+        dialogZ->setModel(model);
+    }
+    dialogZ->show(); 
+    dialogZ->activateWindow();
+    dialogZ->setFocus();
+
+}
+
+void MainWindow::window_psi_xt()
+{
+    if(!gbviewPsixT)
+    {
+    gbviewPsixT = new QGroupBox("Wave Packet Development");
+    QVBoxLayout *vl = new QVBoxLayout();
+    wavePacketXView = new WavePacketXView(model);
+    vl->addWidget(wavePacketXView);
+
+    QHBoxLayout *hl = new QHBoxLayout();
+    bRunPsiXT = new QPushButton("Run ");	
+    connect(bRunPsiXT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
+//    connect(reset,SIGNAL(clicked()),wavePacketXView,SLOT(resizePicture()));
+    QLabel *ltextWP= new QLabel(this);
+    ltextWP->setText("Wave packet definition:");
+
+    QPushButton *bWPEm = new QPushButton("En<0 ");	
+    connect(bWPEm,SIGNAL(clicked()),this, SLOT(slotSetWPEm()));
+
+    QPushButton *bWPEp = new QPushButton("Ej>0 ");	
+    connect(bWPEp,SIGNAL(clicked()),this, SLOT(slotSetWPEp()));
+
+    QPushButton *butTime = new QPushButton(tr("Time:")); 
+    connect(butTime, SIGNAL(clicked()), this, SLOT(slotSetTime()));
+   
+//    QLabel *ltext= new QLabel(this);
+//    ltext->setText("time:");
+    QLabel *ltime= new QLabel(this);
+    connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
+
+//    gbRightDown = gbviewPsixT;
+    splitterR->addWidget(gbviewPsixT);
+//    rightDownLayout->addWidget(gbRightDown);
+    hl->addWidget(bRunPsiXT);		
+    hl->addWidget(ltextWP);
+    hl->addWidget(bWPEm);		
+    hl->addWidget(bWPEp);		
+    hl->addWidget(butTime);//ltext);
+    hl->addWidget(ltime);
+    hl->addStretch();
+    vl->addLayout(hl);
+
+    gbviewPsixT->setLayout(vl);
+    }
+}
+void MainWindow::slotRunWP()
+{
+    bRunPsiXT->setText("STOP");
+    disconnect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
+    breakStatus.onButton(bRunPsiXT);
+//    wavePacketXView->slot_WavePacket_of_t();
+    wavePacketXView->resizePicture();
+    breakStatus.noButton(bRunPsiXT);
+    bRunPsiXT->setText("RUN ");
+    connect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
+}
+
+void MainWindow::window_psi_x()
+{
+    if(!gbviewPsix)
+    {
+    gbviewPsix = new QGroupBox("Wave Function");
+    QVBoxLayout *vl = new QVBoxLayout();
+    waveFunctionView = new WaveFunctionView(model);
+    vl->addWidget(waveFunctionView);
+
+    QHBoxLayout *hl = new QHBoxLayout();
+    QPushButton * reset = new QPushButton("&Resize");	
+    connect(reset,SIGNAL(clicked()),waveFunctionView,SLOT(resizePicture()));
+//    gbRightDown = gbviewPsix;
+    waveFunctionView->setViewportMapping();
+    splitterR->addWidget(gbviewPsix);
+//    rightDownLayout->addWidget(gbRightDown);
+    hl->addWidget(reset);		
+    hl->addStretch();
+//-------------
+/*    QString psi=QChar(0x03C8);
+//               QString Psi=QChar(0x03A8);
+            QString to2=QChar(0x00B2);
+            QString psiofx=psi+"(x)";
+            QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
+//            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
+            psi_type = new QComboBox(this);
+            psi_type->addItem(mod_psiofx);
+            psi_type->addItem("real "+psi);
+            psi_type->addItem("imag "+psi);
+            psi_type->setCurrentIndex(0);
+            hl->addWidget(psi_type);
+*/
+            //--------
+    vl->addLayout(hl);
+
+    gbviewPsix->setLayout(vl);
+    }
+}
+void MainWindow::window_phi_kt()
+{
+    if(!gbviewMT)
+    {
+    gbviewMT = new QGroupBox("Momentum distribution time development");
+    wavePacketKView = new WavePacketKView(model);
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(wavePacketKView);
+    QHBoxLayout *hl = new QHBoxLayout();
+    QPushButton * reset = new QPushButton("Resize");	
+    connect(reset,SIGNAL(clicked()),wavePacketKView,SLOT(resizePicture()));
+//    gbLeftDown = gbviewMT;
+    splitterL->addWidget(gbviewMT);
+//    leftDownLayout->addWidget(gbLeftDown);
+    hl->addWidget(reset);		
+    QLabel *ltext= new QLabel(this);
+    ltext->setText("time:");
+    QLabel *ltime= new QLabel(this);
+    hl->addWidget(ltext);		
+    hl->addWidget(ltime);		
+    connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
+
+    hl->addStretch();
+    vl->addLayout(hl);
+    gbviewMT->setLayout(vl);
+    }
+}
+void MainWindow::window_phi_k()
+{
+    if(!gbviewM)
+    {
+    gbviewM = new QGroupBox("Momentum distribution");
+    momentumView = new MomentumView(model);
+    QVBoxLayout *vl = new QVBoxLayout();
+    vl->addWidget(momentumView);
+    QHBoxLayout *hl = new QHBoxLayout();
+    QPushButton * reset = new QPushButton("&Resize");	
+    connect(reset,SIGNAL(clicked()),momentumView,SLOT(resizePicture()));
+//    gbLeftDown = gbviewM;
+    splitterL->addWidget(gbviewM);
+//    leftDownLayout->addWidget(gbLeftDown);
+    hl->addWidget(reset);		
+    hl->addStretch();
+    vl->addLayout(hl);
+    gbviewM->setLayout(vl);
+    }
+}
+void MainWindow::window_Enz()
+{
+    if(!gbEnzview)
+    {
+        gbEnzview = new QGroupBox("En(z)");
+        enzView = new EnzView(model);
+        QVBoxLayout *vl = new QVBoxLayout();
+        gbEnzview->setLayout(vl);
+        vl->addWidget(enzView);
+        bRunEnz = new QPushButton("Run ");	
+        connect(bRunEnz,SIGNAL(clicked()),this,SLOT(slotRunEnz()));
+//        connect(reset,SIGNAL(clicked()),enzView,SLOT(resizePicture()));
+        //    gbLeftTop = gbEnzview;
+        splitterL->addWidget(gbEnzview);
+        //    leftTopLayout->addWidget(gbLeftTop);
+        QHBoxLayout *hl = new QHBoxLayout();
+        hl->addWidget(bRunEnz);		
+//        hl->addStretch();
+        QPushButton * bsz = new QPushButton("&z-deformation of U(x)");	
+        connect(bsz,SIGNAL(clicked()),this,SLOT(slotSetZ()));
+        hl->addWidget(bsz);
+
+        QLabel *lz= new QLabel(this);
+        hl->addWidget(lz);		
+        connect(model, SIGNAL(signalZChanged(double)), lz, SLOT(setNum(double)));
+        hl->addStretch();
+
+        vl->addLayout(hl);
+        gbEnzview->setLayout(vl);
+    }
+}
+void MainWindow::slotRunEnz()
+{
+    bRunEnz->setText("STOP");
+    disconnect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
+    breakStatus.onButton(bRunEnz);
+    enzView->resizePicture();
+    breakStatus.disconnect();
+    bRunEnz->setText("RUN ");
+    connect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
+}
+
+void MainWindow::initControlDockWindow()
+{
+    splitterR = new QSplitter(Qt::Vertical);
+    splitterL = new QSplitter(Qt::Vertical);
+    splitterLR = new QSplitter(Qt::Horizontal);
+    splitterR->setHandleWidth(55);
+
+    topLeftWin = new QComboBox(this);
+    topLeftWin->addItem("En(z)");
+    topLeftWin->addItem("T(E)");
+    topLeftWin->addItem("phi_n(k)");
+    topLeftWin->addItem("Phi_n(k,t)");
+    topLeftWin->setCurrentIndex(2);
+//  window_Enz();
+//    window_TE();
+     window_phi_k();
+     gbviewM->show();
+//    window_phi_kt();
+//    this->gbTEview->show();
+
+     topRightWin = new QComboBox(this);
+    topRightWin->addItem("U(x), En, psi(x,E)");
+    topRightWin->addItem("psi_n(x)");
+    topRightWin->addItem("Psi(x,t)");
+    topRightWin->setCurrentIndex(0);
+    window_Ux_Psix();
+    window_psi_x();
+    gbPview->show();
+    gbviewPsix->show();
+     
+    QGroupBox *gbButtons = new QGroupBox("Left and Right Windows:");
+    QHBoxLayout *hltop = new QHBoxLayout();
+    QHBoxLayout *hltop1 = new QHBoxLayout();
+    QHBoxLayout *hltop2 = new QHBoxLayout();
+    gbButtons->setLayout(hltop1);
+    {   
+//        QVBoxLayout *vl1 = new QVBoxLayout();
+        QVBoxLayout *vl1a = new QVBoxLayout();
+
+ //       QLabel *tll =new QLabel(tr("Left"));
+ //       vl1->addWidget(tll);
+        vl1a->addWidget(topLeftWin);
+        connect(topLeftWin,SIGNAL(currentIndexChanged(int)),this,SLOT(windowTopLeft()));
+
+        QVBoxLayout *vl2 = new QVBoxLayout();
+//        QVBoxLayout *vl2a = new QVBoxLayout();
+
+//        vl2a->addWidget(new QLabel(tr("Right")));
+        vl2->addWidget(topRightWin);
+        connect(topRightWin,SIGNAL(currentIndexChanged(int)),this,SLOT(windowTopRight()));
+
+//        hltop1->addLayout(vl1);
+        hltop1->addLayout(vl1a);
+        hltop1->addLayout(vl2);
+//        hltop1->addLayout(vl2a);
+    }
+        hltop->addWidget(gbButtons);
+
         QGroupBox *gbp = new QGroupBox("Numeric definition of potential");
-        QVBoxLayout *vl = new QVBoxLayout;
+        gbp->setLayout(hltop2);
+        {
+        QHBoxLayout *vlp = new QHBoxLayout;
         QPushButton *butUxt = new QPushButton(tr("U-Table")); 
         connect(butUxt, SIGNAL(clicked()), this, SLOT(slotSetUxt()));
-        vl->addWidget(butUxt);
+        vlp->addWidget(butUxt);
 
         QPushButton *butUmwb = new QPushButton(tr("Barriers/wells")); 
         connect(butUmwb, SIGNAL(clicked()), this, SLOT(slotSetUmwb()));
-        vl->addWidget(butUmwb);
+        vlp->addWidget(butUmwb);
 
-        this->flgTypeU = new QCheckBox("Periodical U(x)",gbp);
-//        this->flgTypeU->setChecked(false);
-        connect(flgTypeU, SIGNAL(stateChanged(int)), this, SLOT(slotSetPeriodicPotential(int)));
-        vl->addWidget(this->flgTypeU);
+        QPushButton *butUs = new QPushButton(tr("U special")); 
+        connect(butUs, SIGNAL(clicked()), this, SLOT(slotSetUs()));
+        vlp->addWidget(butUs);
 
-        gbp->setLayout(vl);
-        leftLayout->addWidget(gbp);
-        gbp->setMinimumWidth(250);
-    }
+        hltop2->addLayout(vlp);
+        }
+        hltop->addWidget(gbp);
 
-            QGroupBox *gb01 = new QGroupBox(tr("Windows:"));
-            {
+        QVBoxLayout *vle = new QVBoxLayout;
+        QPushButton *butEn = new QPushButton(tr("En table")); 
+        connect(butEn, SIGNAL(clicked()), this, SLOT(slotSetEn()));
+        vle->addWidget(butEn);
 
-                    QVBoxLayout *vl = new QVBoxLayout;
-                {
-//                    QHBoxLayout *hl = new QHBoxLayout;
-//                    hl->addStretch();
-                    QPushButton *butUx = new QPushButton(tr("Bound states")); 
-                    connect(butUx, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
-                    vl->addWidget(butUx);
-
-                    //           QPushButton *butEn = new QPushButton(tr("&Find levels")); 
-                    //           connect(butEn, SIGNAL(clicked()), this, SLOT(Bound_States()));
-                    //           hl->addWidget(butEn);
+        hltop->addLayout(vle);
 
 
-                    QPushButton *butPsix = new QPushButton("Wave functions");
-                    connect(butPsix, SIGNAL(clicked()), this, SLOT(compute_Psi()));
-                    vl->addWidget(butPsix);
-                 //   hl->addStretch();
-                  //  vl->addLayout(hl);
-                }
-                {
-                //    QHBoxLayout *hl = new QHBoxLayout;
-                //    hl->addStretch();
-                    QPushButton *butPhi = new QPushButton(tr("Momentum distribution")); 
-                    connect(butPhi, SIGNAL(clicked()), this, SLOT(compute_Phi()));
-                    vl->addWidget(butPhi);
+QVBoxLayout * vl0 = new QVBoxLayout;
+splitterLR->addWidget(splitterL);
+splitterLR->addWidget(splitterR);
+vl0->addWidget(splitterLR);
 
-                    QPushButton *butT = new QPushButton(tr("Transmission &D")); 
-                    connect(butT, SIGNAL(clicked()), this, SLOT(compute_D()));
-                    vl->addWidget(butT);
-          //          hl->addStretch();
-          //          vl->addLayout(hl);
-                }
-                gb01->setLayout(vl);
-                vl0->addWidget(gb01);
- //       vl->addStretch();
- //       vl0->addStretch();
-            }
-            leftLayout->addWidget(gb01);
-vl0->addStretch(1);
-control->setLayout(vl0);
-
-QHBoxLayout * mainLayout = new QHBoxLayout;
-mainLayout->addLayout(leftLayout);
-mainLayout->addWidget(control);
-QWidget * widget = new QWidget;
+QVBoxLayout * mainLayout = new QVBoxLayout;
+mainLayout->addLayout(hltop);
+mainLayout->addLayout(vl0);
+QWidget *widget = new QWidget;
 widget->setLayout(mainLayout);
 widget->raise();
 setCentralWidget(widget);
@@ -661,14 +1069,16 @@ void MainWindow::compute()
         model->TT=0;
     }
 
-//    updateValues();
+    updateValues();
 }
 //--------------
 void MainWindow::updateValues()
     {
-
+    this->E0=model->get_E0();
+//    this->zz=model->get_zz();
+    this->time=model->get_Time();
     this->E0.updateDisplay();
-    this->zz.updateDisplay();
+//    this->zz.updateDisplay();
     this->time.updateDisplay();
 //    this->Ubias.updateDisplay();
     this->nLevel.updateDisplay();
@@ -679,20 +1089,21 @@ void MainWindow::updateValues()
     this->dispEnergy->setText(s);
     this->dispEnergy->update();
 
-    double z=this->zz;
+ /*   double z=this->zz;
     s.sprintf("z: %.3lg",z);
     this->dispZ->setText(s);
     this->dispZ->update();
-
+*/
     double t=this->time;
     s.sprintf("Time: %.3lg",t);
     this->dispTime->setText(s);
     this->dispTime->update();
 
-    double Ub=this->Ubias;
+/*    double Ub=this->Ubias;
     s.sprintf("Bias: %.3lg",Ub);
     this->dispBias->setText(s);
     this->dispBias->update();
+*/
 }
 void MainWindow::initStatusBar()
 {
@@ -702,18 +1113,19 @@ void MainWindow::initStatusBar()
             this->statusBar());
     this->statusBar()->addWidget(this->dispEnergy);
 
-    this->dispZ = new QLabel("z: --------------",
+ /*   this->dispZ = new QLabel("z: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispZ);
-
+*/
     this->dispTime = new QLabel("Time t: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispTime);
 
-    this->dispBias = new QLabel("Bias: --------------",
+/*    this->dispBias = new QLabel("Bias: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispBias);
-/*    this->dispR = new QLabel("R: --------------",
+*/
+    /*    this->dispR = new QLabel("R: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispR);
     */
@@ -816,6 +1228,106 @@ void MainWindow::compute_D()
     }
 
 }
+
+inline double squre_module(complex& a){ return fabs(real(a)*real(a))+fabs(imag(a)*imag(a)); }
+
+void MainWindow::compute_TE()
+{
+    std::vector<double> dataR;
+    std::vector<double> dataRR;
+    std::vector<double> dataL;
+    std::vector<double> dataSum;
+    bool flgEr=flgEraseT->isChecked();
+    if(flgEr) 
+    {
+        this->numOfCurveT=1;
+    }
+    else
+    {
+        this->numOfCurveT++;
+    }
+    double Emn=this->Emin;
+    double Emx=this->Emax;
+    if(this->E0>=Emx&&this->hE>0) this->E0=Emn;
+    if(this->E0<=Emn&&this->hE<0) this->E0=Emx;
+    double EE=this->E0;
+    if(EE>this->Emax&&this->hE>0) EE=this->Emin;
+    if(EE<this->Emin&&this->hE<0) EE=this->Emax;
+    PlotSettings ps;
+    bool flg=flgScale->isChecked();
+    plotterT->scaleFixed=flg;
+    if(flg)
+    {
+    ps.minX = this->Emin;
+    ps.maxX = this->Emax;
+    ps.minY = 0;
+    ps.maxY = 1.1;
+    ps.numYTicks = 5;
+    ps.numXTicks = 5;
+    plotterT->setPlotSettings(ps);
+    }
+    double L1=80;//10;//3;//8;
+    double L2=70;//50;//7;//4;//10
+    double g1=0.2;//-0.2;//-0.1;//3//12
+    double g2=0;//0.3;//-0.000;//-0.1;//5
+    complex c2, c1, r, fun1, fun2;
+    double y,y2,rr,rr1,tt,sum,gamma;
+    double E0=586;
+    double kk=sqrt(EE/E0);
+    double kmn=sqrt(Emn/E0);
+    double kmx=sqrt(Emx/E0);
+    for(double k=kk; k>=kmn&&k<=kmx; k+=this->hE)
+//    for(double E=EE; E>=Emn&&E<=Emx; E+=this->hE)
+    {
+//                double k = sqrt(E/E0);
+                double kL1=k*L1;
+                double kL2=k*L2;
+                complex exm1=exp(complex(0, -kL1));
+                complex exm2=exp(complex(0, -kL2));
+ //               complex exm3=exp(complex(0, -kL3));
+                complex I=complex(0,1);
+            fun1 = 2.*exm1+2.*(g1/k)*sin(kL1);
+            fun2 = 2.*exm2+2.*(g2/k)*sin(kL2);
+            c2 = 2. * fun1 /(fun2*(2.+I*g1/k)*exm1 + fun1*(exm2+I*(g2/k)*cos(kL2)));
+            c1 = c2*fun2/fun1;
+            complex r1 = 1.-c1*(g1/k*sin(kL1)+exm1);
+                y=squre_module(c1);
+                y2=squre_module(c2);
+                rr1=g2/k;
+                rr1=rr1*rr1;
+                double fun=1.+rr1*sin(kL2)*sin(kL2)+g2/k*sin(2*kL2);
+//                rr1=4./(6+rr1+3*fun); 
+//                rr1=4.*(1.+rr1*sin(kL2)*sin(kL2)+g2/k*sin(2*kL2))/(9.+rr1*(1.+3.*sin(kL2)*sin(kL2))+3.*g2/k*sin(2.*kL2));//squre_module(r1);
+//                rr1=4./(9.+rr1*(1.+3.*sin(kL2)*sin(kL2))+3.*g2/k*sin(2.*kL2));//squre_module(r1);
+                rr1=squre_module(r1);
+//                rr1=4./(9+rr1*2.5); 
+                tt=1-rr1;
+                sum=y+y2;
+                double gamma1=(g2/k)*sin(kL2)*(2*cos(kL2)+(g2/k)*sin(kL2))/(2.+(g2/k)*sin(kL2)*(2*cos(kL2)+(g2/k)*sin(kL2)));
+                double a12=(1+(g2/k)*sin(2*kL2)+((g2/k)*sin(kL2))*((g2/k)*sin(kL2)))/(1+(g1/k)*sin(2*kL1)+((g1/k)*sin(kL1))*((g1/k)*sin(kL1)));
+                double gamma2=(a12-1)/(1+a12);
+                gamma=(y-y2)/(y+y2); 
+                double x=2*(kL1+kL2)/3.14159;
+        dataL.push_back(x);
+        dataL.push_back(y);
+        dataR.push_back(x);
+        dataR.push_back(y2);
+        dataRR.push_back(x);
+        dataRR.push_back(gamma2);
+        dataSum.push_back(x);
+        dataSum.push_back(rr1);// (gamma);
+    }
+    this->plotterT->setCurveData(this->numOfCurveT,dataL);
+    this->numOfCurveT++;
+    this->plotterT->setCurveData(this->numOfCurveT,dataR);
+    this->numOfCurveT++;
+    this->plotterT->setCurveData(this->numOfCurveT,dataSum);
+    this->numOfCurveT++;
+    this->plotterT->setCurveData(this->numOfCurveT,dataRR);
+    this->numOfCurveT++;
+
+}
+/*
 void MainWindow::compute_TE()
 {
     std::vector<double> dataT;
@@ -848,19 +1360,21 @@ void MainWindow::compute_TE()
     ps.numXTicks = 5;
     plotterT->setPlotSettings(ps);
     }
+        double dd= model->get_d(2);
     for(double E=EE; E>=Emn&&E<=Emx; E+=this->hE)
     {
         this->E0=E;
         compute();
+        double x=2*sqrt(E)*dd/3.14159;
         double y=model->TT;
-        dataT.push_back(E);
+        dataT.push_back(x);
         dataT.push_back(y);
     }
     this->plotterT->setCurveData(this->numOfCurveT,dataT);
     this->E0=this->E0+this->hE;
     this->numOfCurveT++;
 }
-
+*/
 void MainWindow::compute_Tz()
 {
     std::vector<double> dataT;
@@ -896,7 +1410,7 @@ void MainWindow::compute_Tz()
     {
 //        if (getBreakStatus(0)) return;
         this->zz=z;
-        Uxz(z);
+        model->set_Uxz(z);
         compute();
         double y=model->TT;
         dataT.push_back(z);
@@ -918,7 +1432,7 @@ void MainWindow::TEz()
     for(double z=z0;z>=this->zmin&&z<=this->zmax; z+=this->hz)
     { 
         if (getBreakStatus(0)) return;
-        Uxz(z);
+        model->set_Uxz(z);
         this->zz=z;
         this->compute_TE();
     }
@@ -1065,7 +1579,7 @@ void MainWindow::compute_Uxz()
     else
     for(double z=this->zmin;z<=this->zmax; z+=this->hz)
     { 
-        Uxz(z);
+        model->set_Uxz(z);
         showU();
     }
     
@@ -1083,7 +1597,7 @@ void MainWindow::compute_Enz()
         { 
             if (getBreakStatus(0)) 
                 return;
-            Uxz(z);
+            model->set_Uxz(z);
             int nmx=this->nmaxLevel;
             int nmn=this->nminLevel;
             QVector<double> Ebound = model->getEn();
@@ -1114,7 +1628,7 @@ void MainWindow::compute_Psi_nz()
         { 
             if (getBreakStatus(0)) 
                 return;
-            Uxz(z);
+            model->set_Uxz(z);
             QVector<double> Ebound = model->getEn();
             int nmx=this->nmaxLevel;
             int nmn=this->nminLevel;
@@ -1141,7 +1655,7 @@ void MainWindow::compute_Psi_z()
     { 
         if (getBreakStatus(0)) 
             return;
-        Uxz(z);
+        model->set_Uxz(z);
         compute_PsiXatE();
     }
 }
@@ -1535,10 +2049,10 @@ void MainWindow::slotCompute_D()
 {
     bRunD->setText("STOP D");
     disconnect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
-    connect(bRunD, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    breakStatus.onButton(bRunD);
     compute_D();
+    breakStatus.disconnect();
     bRunD->setText("RUN D");
-    disconnect(bRunD, SIGNAL(clicked()), this, SLOT(stopCalc()));
     connect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
 }
 
@@ -1668,10 +2182,10 @@ void MainWindow::slotCompute_Psi()
 {
     bRunPsi->setText("STOP");
     disconnect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
-    connect(bRunPsi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    breakStatus.onButton(bRunPsi);
     compute_Psi();
+    breakStatus.disconnect();
     bRunPsi->setText("RUN");
-    disconnect(bRunPsi, SIGNAL(clicked()), this, SLOT(stopCalc()));
     connect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
 }
 
@@ -1724,10 +2238,10 @@ void MainWindow::slotCompute_Phi()
 {
     bRunPhi->setText("STOP |Phi(k)|^2");
     disconnect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
-    connect(bRunPhi, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    breakStatus.onButton(bRunPhi);
     compute_Phi();
+    breakStatus.disconnect();
     bRunPhi->setText("RUN |Phi(k)|^2");
-    disconnect(bRunPhi, SIGNAL(clicked()), this, SLOT(stopCalc()));
     connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
 }
 void MainWindow::initPlotUx() 
@@ -1800,17 +2314,17 @@ void MainWindow::slotBound_States()
 {
     butEn->setText("STOP");
     disconnect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
-    connect(butEn, SIGNAL(clicked()), this, SLOT(stopCalc()));
+    breakStatus.onButton(butEn);
     Bound_States();
+    breakStatus.disconnect();
     butEn->setText("RUN");
-    disconnect(butEn, SIGNAL(clicked()), this, SLOT(stopCalc()));
     connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
 
 }
 
 static void setSomeInitialU(PhysicalModel *m)
 {
-    UAsMW u = { 2, 1, 1, -15, 0 , 0};
+    UAsMW u = { 1, 1, 1, -20, 0 , 0};
     m->setUAsMW( u );
 }
 
@@ -1818,33 +2332,39 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags f)
 : Nwb(1),nmaxLevel(10),nminLevel(0),nLevel(0), nmaxWP(7), nminWP(0),hnWP(1),  
 E0(-10.), hE(0.01),time(0.), tmin(0.), tmax(1000.0), htime(0.1),Psi2(0.),
 totalRT(1.),Ua(-10.0),aa(1.),Ub(0.),bb(0.8),xmin(-3.),xmax(8.),hx(0.01),
-Ubias(0.),Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
+//Ubias(0.),
+Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
 psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
 wpE_lo(5.), wpE_hi(15.), wpN(30),
-tableView(0),gbScales(0),gbIntervals(0),dialogUAsMW(0),tableViewEn(0), gbScaleX(0),
+tableView(0),gbScales(0),gbIntervals(0),
+dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
-gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0) 
+gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
+gbTEview(0),gbEnzview(0),
+gbviewMT(0),gbviewM(0), 
+gbPview(0),gbviewPsix(0),gbviewPsixT(0)
 {
     this->model = new PhysicalModel();
-    UAsMW u1 = { 1, 0.1, 1, -40, 0 , 0};
-    model->setUAsMW( u1 );
-    this->slotU1();
-    UAsMW u2 = { 1, 5, 1, -10, 0 ,0};
+    UAsMW u2 = { 1, 0.1, 1, -10, 0 ,0};
     model->setUAsMW( u2 );
-    this->slotU2();
-    setSomeInitialU(this->model);
-    this->initStatusBar();
-    this->initPlotEnz();
+    model->slotU2();
+    UAsMW u1 = { 1, 10, 1, -10, 0 , 0};
+    model->setUAsMW( u1 );
+    model->slotU1();
+//    setSomeInitialU(this->model);
+    UAsMW u = { 1, 3, 1, -10, 0 , 0};
+    this->model->setUAsMW( u );
+//    this->initStatusBar();
+/*    this->initPlotEnz();
     this->initPlotUx();
     this->initPlotT();
     this->initPlotPsix();
     this->initPlotPhik();
-    this->initPlotNofE();
+    this->initPlotNofE();*/
     this->initControlDockWindow();
     this->initMenuBar(); 
     init();
-//    compute_En();
 }
 
 bool MainWindow::save()
@@ -2182,25 +2702,7 @@ void MainWindow::WavePacketPoft()
         this->plotterPhi->setCurveData(2,data);
     }
 }
-void MainWindow::stopCalc()
-{
-     setBreakStatus(1);
-}
 
-static volatile int break_status;
-
-void setBreakStatus(int newStatus)
-{
-    break_status = newStatus;
-}
-
-int getBreakStatus(int newStatus)
-{
-    qApp->processEvents(QEventLoop::AllEvents);
-    int ret = break_status;
-    break_status = newStatus;
-    return ret;
-}
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) 
@@ -2212,9 +2714,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
          setBreakStatus(1);
          break;
      default:
-         getBreakStatus(0);
-         QWidget::keyPressEvent(event);
+         setBreakStatus(1); //?????
     }
+    QWidget::keyPressEvent(event);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -6,10 +6,16 @@
 #include <QRectF>
 #include <QPair>
 #include <complex>
+//#include <cmath>
 typedef std::complex<double> complex;
-#include <QPolygonF>
 
 #include "Matrix.h"
+struct WPEw
+{
+    double E,w;
+};
+
+typedef std::vector<WPEw>  WavePacketEw;
 
 struct UAsMW
 {
@@ -23,6 +29,63 @@ struct UAsMW
     }
 };
 
+struct EmWP
+{
+    int nmin, nmax, hn;
+    bool operator != (const EmWP& o) 
+    { 
+        return nmin != o.nmin 
+            || nmax != o.nmax || hn != o.hn; 
+    }
+};
+
+struct EpWP
+{
+    int numberOfModes;
+    double E_low, E_high;
+    bool operator != (const EpWP& o) 
+    { 
+        return numberOfModes != o.numberOfModes
+            || E_low != o.E_low 
+            || E_high != o.E_high; 
+    }
+};
+
+struct Uparab
+{
+    int numberOfIntervals;
+    double U0, Width;
+    bool operator != (const Uparab& o) 
+    { 
+        return numberOfIntervals != o.numberOfIntervals
+            || U0 != o.U0 
+            || Width != o.Width; 
+    }
+};
+
+struct TimeParameters
+{
+    double time,tmin,tmax,ht;
+    bool operator != (const TimeParameters& o) 
+    { 
+        return time != o.time
+            ||tmin != o.tmin 
+            ||tmax != o.tmax 
+            || ht  != o.ht; 
+    }
+};
+struct zParameters
+{
+    double z,zmin,zmax,hz;
+    bool operator != (const zParameters& o) 
+    { 
+        return z != o.z
+            ||zmin != o.zmin 
+            ||zmax != o.zmax 
+            || hz  != o.hz; 
+    }
+};
+
 enum PotentialType { FINITE, PERIODIC };
 
 struct PhysicalModel : public QObject
@@ -30,15 +93,30 @@ struct PhysicalModel : public QObject
     Q_OBJECT
 public:
     PhysicalModel(QObject * parent = 0);
-
+    EpWP getEpWP() const;
+    void setEpWP(const EpWP&);
+    EmWP getEmWP() const;
+    void setEmWP(const EmWP&);
+    Uparab getUparab() const;
+    void setUparab(const Uparab&);
+//    zParameters getzParam();
+    zParameters getzParam() const;
+    TimeParameters getTimeParam() const;
+    void  setTimeParam(const TimeParameters&);
+//    void  setzParam(zParameters&);
+    void  setzParam(const zParameters&);
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
-
+    QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
+    QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
 signals:
     void signalPotentialChanged();
-    void signalEnergyChanged();
+    void signalEnergyChanged(double);
+    void signalTransmissionChanged(double);
     void signalEboundChanged();
-
+    void signalTimeChanged(double);
+    void signalZChanged(double);
+    void signalWavePacketChanged();
 private:
     int N;	 // actual number of inner intervals
     QVector<double> d;      /* [u_width]  0..N+1 widths */
@@ -48,17 +126,63 @@ private:
     //! U bias over whole structure
     double Ub;
     double E0;
+    QVector<double> U1; //!< Inital potential values for z-animations
+    QVector<double> U2; //!< Final potential values for z-animations
+    QVector<double> d1; //!< Initial potential step widths for z-animations
+    QVector<double> d2; //!< Final potential step widths for z-animations
+    QVector<double> m1; //!< Initial potential step masses for z-animations
+    QVector<double> m2; //!< Final potential step masses for z-animations
+    double Ub1,Ub2; 
+    double Ubias; 
+    int numberOfLevels, LevelNmin, LevelNmax, LevelHn; // min, max and step for the level numbers of wavefunctions at E<0
+    zParameters zold;
+ 
+    // wavepacket:
+    int type_of_WP;
+    int wpN;
+    double wpE_lo, wpE_hi;
+    WavePacketEw EWofWP;
+    Matrix<complex> kp;
+    Matrix<complex> ap;
+    Matrix<complex> bp;
+    int nminWP, nmaxWP, hnWP; // min, max and step for the level numbers of the wavepacket at E<0
 
     bool need_build_U;
     bool need_build_En;
+    bool need_build_WP;
 
     void markUchanged(); 
+    void markWPchanged();
 
 public:
+    void slotU1();
+    void slotU2();
+    void set_Uxz(double z);
     bool flagBondaryCondition;
+    double getTatE(double E);
     double get_U(int n);
     double get_Ub() const { return Ub; }
     double get_E0() const { return E0; }
+    double get_Time() const { return this->time; }
+//---------WavePacket---------------- 
+    void set_type_of_WP(int iwp);
+    int get_type_of_WP() const { return this->type_of_WP;};
+   //En<0
+    int get_nminWP() const { return nminWP; };
+    int get_nmaxWP() const { return nmaxWP; };
+    int get_hnWP() const { return hnWP; };
+    void set_nminWP(int n1);
+    void set_nmaxWP(int n2);
+    void set_hnWP(int hn);
+   //E>0
+    double get_EminWP() const { return this->wpE_lo; };
+    double get_EmaxWP() const { return this->wpE_hi; };
+    int get_NofWP() const { return this->wpN; };
+    void set_EminWP(double v);
+    void set_EmaxWP(double v);
+    void set_NofWP(int n);
+
+//potential:
     void set_Ub(double _Ub);
     QVector<double> get_Ui() const { return Ui; }
     double get_Ui(int n) const { return Ui.at(n); }
@@ -66,14 +190,23 @@ public:
     QVector<double> get_d() const { return d; }
     double get_d(int n) const { return d.at(n); }
     void   set_Energy(double v);
+    void   set_Time(double v);
     void   set_d(int n, double v);
     void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
     void   set_m(int n, double v);
     void set_Ui_d_m_Ub(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m, const double& Ub);
+//    void set_E_lo_E_hi_wpN(double E_lo,double E_hi, int wpN);
+//    void set_nminWP_nmaxWP_hnWP(int nminWP, int nmaxWP, int hnWP);
     QVector<double> getEn();
     double getEn(int n);
     QPair<double,double> getUminUmax();
+    int get_LevelNmin() const { return this->LevelNmin; };
+    int get_LevelNmax() const { return this->LevelNmax; };
+    int get_LevelHn() const { return LevelHn; };
+    void set_LevelNmin(int n1);
+    void set_LevelNmax(int n2);
+    void set_LevelHn(int hn);
 
     void split_d(int n,double fraction);
     void remove_d(int n);
@@ -86,6 +219,7 @@ public:
     double	 RR;   /* Total reflection */
     double	 TT;   /* Total transmission */
     QVector<complex> a,b;
+    QVector<complex> s11,s12,s21,s22;
     double kwave;
     void build_Phi();	 /* u:a,b,p,k,d 			r:Phi */
     double	 Phi2;
@@ -117,8 +251,9 @@ private:
     QVector<double> EbandDown;
     std::vector<int> NumberofZero;
     //double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
-    double	  Time;
-    int	  timeswitch;
+    double	  time,tmin,tmax,ht;
+    double	  zz,zmin,zmax,hz;
+//    int	  timeswitch;
     double	 totalRT;  /* sum of totalR and totalT */
     //    double   psi_phase_total_old,psi_phase_total_base;
     //    double	 psi_phasehth;	 /* Psi phase in h-th channel */
@@ -141,17 +276,12 @@ public:
         k.resize(1+N+1);
         a.resize(1+N+1);
         b.resize(1+N+1);
+        s12.resize(1+N+1);
+        s21.resize(1+N+1);
+        s11.resize(1+N+1);
+        s22.resize(1+N+1);
 
 
-        this->Time = 0;
-        this->timeswitch = 0;
-        //        this->psi2_avgt = 0;
-        //        this->psi_phase_total = 0;
-        //        this->psi_phase_total_base = 0;
-        //        this->psi_phase_total_old = 0;
-        //        this->psi_phases.zero();
-        //        this->psi_phases_base.zero();
-        //        this->psi_phases_old.zero();
         this->psi_imag = 0;
         this->psi_real = 0;
         this->Phi_imag = 0;
@@ -165,11 +295,17 @@ public:
     QRectF getGoodViewportAtU() const;
     int findNumberOfLevels(double E);
 
-    QPolygonF getPsiOfX(double E,double scalePsi, double xmin,double xmax,int npoints);
+      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF);
+      QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
+      QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
 
 private:
     void matching( );
+    void Smatrix();
     void build_U();
+    void set_WPmE();
+    void set_WPpE();
+
     void norm();
     int zeroPsi();
     double findOneLevel(double _emin, double _emax);

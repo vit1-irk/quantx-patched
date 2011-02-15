@@ -1,6 +1,5 @@
 #include "PotentialViewMovable.h"
-//#include "PotentialScene.h"
-//#include "DraggableLine.h"
+#include "MainWindow.h"
 #include <QGraphicsView>
 #include <QMouseEvent>
 #include <QMatrix>
@@ -12,6 +11,7 @@
 #include <QMenu>
 #include <QWidget>
 #include <QAction>
+#include <QPainterPath>
 
 // HorDraggableLine places a horizontal line of length width()
 // positioned by its left side at pos().
@@ -35,21 +35,19 @@ public:
             prepareGeometryChange();
             p2 = QPointF(width,0);
             this->setPos(x1,y1);
-            update();
+            update();//repaint();
         }
     }
     void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = penHover;
-//        penForPainter.setWidthF(widthLineE);
-        update();
+        update();//repaint();
     }
     void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = pen;
-//        penForPainter.setWidthF(widthLineE);
         this->setSelected(false);
-        update();
+        update();//repaint();
     }
     double EnergyDraggableLine::getEnergyFromLine()
     {
@@ -81,41 +79,139 @@ public:
     }
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
- //       QPen pen;
- //       pen.setStyle(Qt::DotLine);
-        if(option->state & QStyle::State_Selected)
-        {
-//            pen.setColor(Qt::green);
-            qreal x = pen.widthF();
-            int y = pen.width();
- //           pen.setWidthF(x);
-//            pen.setWidthF(0.1);
-            int y1 = pen.width();
-            qreal x1 = pen.widthF();
-//            qreal x2 = pen.widthF();
-
-        }
-        else
-        {
-//            pen.setColor(Qt::red);
-        }
-        penForPainter.setWidthF(view->widthLineE);
+        QPoint va(0,0);
+        QPoint vb(0,1);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ay = fabs(sa.y() - sb.y());
+        view->widthLineE=0;
+        penForPainter.setWidthF(ay);
+//        penForPainter.setWidthF(view->widthLineE);
         painter->setPen(penForPainter);
         qreal x2 = penForPainter.widthF();
-        QPoint va(0,0);
+/*        QPoint va(0,0);
         QPoint vb(0,5);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
         double ax = fabs(sa.x() - sb.x());
         double ay = fabs(sa.y() - sb.y());
- //           QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
- //           painter->drawRect(aa);
-
+        */
         painter->drawLine(QLineF(QPointF(),p2));
     }
     QLineF line() const { return QLineF(pos(),pos() + p2); }
-};
 
+    void mousePressEvent(QGraphicsSceneMouseEvent * event)
+    {
+        if (event->buttons() & Qt::RightButton)
+        {
+            QMenu m;
+//            QAction *scaleX = m.addAction("Scale x");
+            QAction *scaleE = m.addAction("Scale E");
+            QAction *what = m.exec(event->screenPos());
+//            if (what == scaleX)
+//            {
+//                view->askScaleX();
+//            }
+            if (what == scaleE)
+            {
+                view->scaleE();
+            }
+               update();// repaint();
+        }
+    }
+
+};
+void  PotentialViewMovable::scaleE()
+{   
+    if (!gbScaleE) 
+    {
+        gbScaleE = new QGroupBox(this);
+        gbScaleE->setWindowTitle("Energy interval");
+        gbScaleE->setWindowFlags(Qt::Window);
+        gbScaleE->setFont(QFont("Serif", 12, QFont::Bold )); 
+        QVBoxLayout *vl = new QVBoxLayout;
+        this->Emin.setDisplay(("Emin"),("lower limit of energy"),vl);
+        this->Emax.setDisplay(("Emax"),("upper limit of energy"),vl);
+        this->hE.setDisplay(("hE"),("energy step"),vl);
+        gbScaleE->setLayout(vl);
+    }
+    gbScaleE->show(); 
+    gbScaleE->raise();//->raactivateWindow();
+    gbScaleE->setFocus();
+}
+/*
+void  PotentialViewMovable::scaleXY()
+{   
+    if (!gbScaleXY) 
+    {
+        gbScaleXY = new QGroupBox(this);
+        gbScaleXY->setWindowTitle("Scales for plots Psi(x) and U(x)");
+        gbScaleXY->setWindowFlags(Qt::Window);
+        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
+        QVBoxLayout *vl = new QVBoxLayout;
+        this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
+        this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
+        this->xmin.setDisplay(("xmin"),("lower bond of x-interval"),vl);
+        this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
+        gbScaleXY->setLayout(vl);
+    }
+    gbScaleXY->show(); 
+    gbScaleXY->raise();//->raactivateWindow();
+    gbScaleXY->setFocus();
+}
+*/
+//-------------------------
+class EnergyLevels : public QGraphicsItem
+{
+    PotentialViewMovable *view;
+    int n;
+    QPointF p2;
+    QPen pen;
+public:
+    double widthLineE;
+    EnergyLevels(PotentialViewMovable *v,QGraphicsItem *parent = 0);
+    void set_n(int _n) { n = _n; }
+    QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+    void setPen(QPen _pen) { pen = _pen; }
+    void setLine(double x1,double y1,double width)
+    {
+        QPointF p = pos();
+        if (x1 != p.x() || y1 != p.y() || width != p2.x())
+        {
+            prepareGeometryChange();
+            p2 = QPointF(width,0);
+            this->setPos(x1,y1);
+             update();//repaint();
+        }
+    }
+    QRectF boundingRect() const
+    {
+        return QRectF(QPointF(),p2);
+    }
+    void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
+    {
+        pen.setWidthF(view->widthLineE);
+        pen.setCapStyle(Qt::FlatCap);
+        painter->setPen(pen);
+        painter->drawLine(QLineF(QPointF(),p2));
+    }
+    QLineF line() const { return QLineF(pos(),pos() + p2); }
+
+};
+EnergyLevels::EnergyLevels(PotentialViewMovable *v,QGraphicsItem *parent)
+: QGraphicsItem(parent), view(v)
+{
+    setCursor(Qt::SizeVerCursor);
+    setFlag(QGraphicsItem::ItemIsMovable,false);		
+    setFlag(QGraphicsItem::ItemIsSelectable,false);	
+}
+
+QVariant EnergyLevels::itemChange(GraphicsItemChange change, const QVariant & value)
+{
+    return QGraphicsItem::itemChange(change,value);
+}
+
+//------------------
 class HorDraggableLine : public QGraphicsItem
 {
     PotentialViewMovable *view;
@@ -137,21 +233,19 @@ public:
             prepareGeometryChange();
             p2 = QPointF(width,0);
             this->setPos(x1,y1);
-             update();
+             update();//repaint();
         }
     }
     void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = penHover;
-//        penForPainter.setWidthF(view->widthLineH);
-        update();
+        update();//repaint();
     }
     void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = pen;
-//        penForPainter.setWidthF(view->widthLineH);
         this->setSelected(false);
-        update();
+        update();//repaint();
     }
     QRectF boundingRect() const
     {
@@ -204,6 +298,7 @@ protected:
             if (what == removeSegment)
             {
                 view->model->remove_d(n);
+                update();//repaint();
             }
         }
     }
@@ -230,21 +325,21 @@ public:
             prepareGeometryChange();
             p2 = QPointF(0,upDown);
             this->setPos(x1,y1);
-            update();
+            update();//repaint();
         }
     }
     void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = penHover;
 //        penForPainter.setWidthF(widthLineV);
-        update();
+        update();//repaint();
     }
     void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
     {
         penForPainter = pen;
 //        penForPainter.setWidthF(widthLineV);
         this->setSelected(false);
-        update();
+        update();//repaint();
     }
     QRectF boundingRect() const
     {
@@ -262,24 +357,29 @@ public:
     }
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
-        if(option->state & QStyle::State_Selected)
-        {
+//        if(option->state & QStyle::State_Selected)
+//        {
             //            painter->setPen(Qt::red);
-        }
-        else
-        {
-//            painter->setPen(Qt::black);
-//        painter->setPen(pen);
-        }
-         penForPainter.setWidthF(view->widthLineV);
-         painter->setPen(penForPainter);
-         painter->drawLine(QLineF(QPointF(),p2));
+//        }
+        QPoint va(0,0);
+        QPoint vb(3,0);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        view->widthLineV=0;//ax;
+        penForPainter.setWidthF(view->widthLineV);
+        penForPainter.setCapStyle(Qt::FlatCap);
+        painter->setPen(penForPainter);
+        painter->drawLine(QLineF(QPointF(),p2));
+
     }
     QLineF line() const { return QLineF(pos(),pos() + p2); }
 };
 
 PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), lineEnergy(0)
+: QGraphicsView(parent), model(m), gbScaleXY(0), gbScaleE(0), gbVPsi(0), bgR(0),lineEnergy(0), gbScaleY(0),
+Umin(-15.), Umax(10.), xmin(-1.), xmax(10.),viewWF(2),
+Emin(0.1), Emax(20.), hE(0.05), psiMax(4), psiMin(-1)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -293,26 +393,35 @@ PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
     }
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
-    connect(model,SIGNAL(signalEnergyChanged()),this,SLOT(slotEnergyChanged()));
+    connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotPsiofE()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
+    setScalesFromModel();
     resizePicture();
-//    setViewportMapping();
-//    slotUChanged();
-//    slotEnergyChanged();
-//    slotEboundChanged();
 }
+void PotentialViewMovable::setScalesFromModel()
+{
+    QPair<double,double> umin_umax = model->getUminUmax();
+    Umin = umin_umax.first;
+    Umax = umin_umax.second;
+    if(Umax<=0.) Umax=-Umin;
+}
+
 void PotentialViewMovable::resizePicture()
 {
     setViewportMapping();
     slotUChanged();
     slotEboundChanged();
     slotEnergyChanged();
+//    energyAutoChanged();
+
 }
 void PotentialViewMovable::setViewportMapping()
 {
-    QRectF vp = model->getGoodViewportAtU();
+//    QRectF vp = model->getGoodViewportAtU();
+    QRectF vp = QRectF(QPointF(this->xmin,this->Umin),QPointF(this->xmax,this->Umax));
+
     QRectF sr = scene()->sceneRect();
-    if (vp != sr)
+//    if (vp != sr)
     {
         scene()->setSceneRect(vp);
 
@@ -329,9 +438,9 @@ void PotentialViewMovable::setViewportMapping()
         sr = scene()->sceneRect();
     }
 //    QRectF vp = view->sceneRect();
-    widthLineV= 0.0025*vp.width();
-    widthLineH= 0.0025*vp.height();
-    widthLineE= 0.005*vp.height();
+    widthLineV= 0;//0.0025*vp.width();
+    widthLineH= 0;//0.0025*vp.height();
+    widthLineE= 0;//0.005*vp.height();
     update();
 } 
 void PotentialViewMovable::resizeEvent(QResizeEvent*) 
@@ -410,7 +519,11 @@ void PotentialViewMovable::slotUChanged()
 {
     QVector<double> d = model->get_d();
     QVector<double> Ui = model->get_Ui();
-  
+    int Nd=d.size();
+    int Nu=Ui.size();
+    int Nl=linesU.size();
+
+
     while (Ui.size() < linesU.size())
     {
         scene()->removeItem(linesU.last()); 
@@ -455,6 +568,7 @@ void PotentialViewMovable::slotUChanged()
     {
         linesU[n]->setFlag(QGraphicsItem::ItemIsMovable,true);
         linesU[n]->setFlag(QGraphicsItem::ItemIsSelectable,true);
+        linesU[n]->setZValue(1000);
         linesU[n]->set_n(n);
         qreal y = Ui[n];
         (void)y;
@@ -465,17 +579,30 @@ void PotentialViewMovable::slotUChanged()
             w = 0 - vp.x();
         else
             w = vp.x() + vp.width() - xlast;
+
+        if(xlast+w < xmax)
+        {
         linesU[n]->setLine(xlast,Ui[n],w);
+        linesU[n]->setZValue(1000);
         xlast += w;
+        }
+        else
+        {
+            w = xmax-xlast;
+            linesU[n]->setLine(xlast,Ui[n],w);
+            break;//xlast = xmax;
+        }
     }
     linesU.last()->setFlag(QGraphicsItem::ItemIsMovable,false);
     linesU.last()->setFlag(QGraphicsItem::ItemIsSelectable,false);
+    linesU.last()->setZValue(1000);
 
     for (int n = 0; n < linesV.size(); ++n)
     {
         linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
         linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true );
         linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true );
+        linesV[n]->setZValue(1000);
         linesV[n]->set_n(n);
         QLineF left  = linesU[n]->line();
         QLineF right = linesU[n+1]->line();
@@ -492,18 +619,17 @@ void PotentialViewMovable::slotEboundChanged()
         Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-
-    QRectF vp = scene()->sceneRect();
+//    QRectF vp = scene()->sceneRect();
 //    QRectF vp = model->getGoodViewportAtU();
 //    scene()->setSceneRect(vp);
 
-    double xmin = vp.x();
-    double xmax = vp.x() + vp.width();
+//    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
     QVector<double> Ebound = model->getEn();
+//    int nmax=5;
     while (Ebound.size() > linesEn.size())
     {
         int n = linesEn.size();
-        HorDraggableLine *line = new HorDraggableLine(this);
+        EnergyLevels *line = new EnergyLevels(this);
         double e = Ebound[n];
         line->setLine(xmin,e,xmax-xmin);
         line->setFlag(QGraphicsItem::ItemIsMovable,false);
@@ -511,74 +637,157 @@ void PotentialViewMovable::slotEboundChanged()
         line->setCursor(QCursor());
         scene()->addItem(line);
         linesEn.push_back(line);
-        setCurve(n,QPolygonF());
+//        if(n<nmax) setCurve(n,QPolygonF());
     }
     while (Ebound.size() < linesEn.size())
     {
         scene()->removeItem(linesEn.last());
         linesEn.pop_back();
-        removeCurve(linesEn.size());
+//        if(linesEn.size()<nmax) removeCurve(linesEn.size());
     }
-    double scalePsi=3;
+    int npoints=501;
+    QVector<double> waveFunction;
+    QPolygonF psi;
+    psi.resize(npoints);
+    waveFunction.resize(npoints);
+    double dx = (xmax-xmin)/(npoints-1);
     for (int n = 0; n < linesEn.size(); ++n)
     {
         double modelEn = Ebound[n];
         linesEn[n]->setLine(xmin,modelEn,xmax-xmin);
         linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
-        QPolygonF psi = model->getPsiOfX(Ebound[n],scalePsi, xmin,xmax,500);
-        setCurve(n,psi,colorForIds[n % size_colorForIds]);
+/*        if(n<nmax) 
+        {
+            waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints);
+            for (int i=0; i < npoints; i++)
+            {
+                double x = xmin + dx*i;
+                double y = waveFunction[i];
+                y = (y-psiMin)*scalePsi+Umin;
+                psi[i]  = QPointF(x, y);
+            }
+            //        QPolygonF psi = model->getPsiOfX(Ebound[n],psiMin, scalePsi,xmin,xmax,500);
+            //        QPolygonF psi = model->getPsiOfX(Ebound[n],psiMin, psiMax, xmin,xmax,500);
+            setCurve(n,psi,colorForIds[n % size_colorForIds]);
+        }
+        */
     }
     update();
 }
 
-#define ID_PSI_ENERGY (100)
+#define ID_PSI_ENERGY (200)
 
+void PotentialViewMovable::energyAutoChanged()
+{       
+//    double Emin=0.1;
+//    double he=0.1;
+    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
+    int npoints=500;
+    double dx = (xmax-xmin)/(npoints-1);
+    for (double E=Emin; E<=Emax; E+=hE)
+    {   
+        //        double E=Emin+hE*n;
+        if (!lineEnergy) 
+        {
+            lineEnergy = new EnergyDraggableLine(this);
+            lineEnergy->setLine(xmin,E,xmax-xmin);
+            scene()->addItem(lineEnergy);
+        }
+        else     lineEnergy->setLine(xmin,E,xmax-xmin);
+        QPolygonF psi;
+        psi.resize(npoints);
+        QVector<double> waveFunction;
+        waveFunction.resize(npoints);
+        if(bgR!=0) viewWF=bgR->checkedId();
+        else viewWF=0;
+
+        waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,viewWF);
+        for (int i=0; i < npoints; i++)
+        {
+            double x = xmin + dx*i;
+            double y = waveFunction[i];
+            y = (y-psiMin)*scalePsi+Umin;
+            psi[i]  = QPointF(x, y);
+        }
+        setCurve(ID_PSI_ENERGY, psi, QPen(Qt::darkRed));
+        //dima qApp->processEvents(QEventLoop::AllEvents);
+    }
+
+}
 void PotentialViewMovable::slotEnergyChanged()
 {
-    QRectF vp = this->sceneRect();
-    QRectF vp1 = this->scene()->sceneRect();
-//    QRectF vp = model->getGoodViewportAtU();
-//    scene()->setSceneRect(vp);
-    double scalePsi=3;
-    double xmin = vp.x();
-    double xmax = vp.x() + vp.width();
+    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
     double E=model->get_E0(); 
     if (lineEnergy) 
     {
         double Eold=lineEnergy->getEnergyFromLine();
         if(Eold!=E) model->set_E0(Eold);
         E=Eold;
-/*        if(Eold!=E)
-        { 
-            scene()->removeItem(lineEnergy);
-            removeCurve(ID_PSI_ENERGY);
-            return;
-        }
-*/
-        }
-        /*    double xT, scaleT=2;
-    if(E>0) xT = scaleT*model->TT;
-    else xT=0;
-    if(!lineTofE) 
-    {
-        lineTofE = new CurveTofE(this);
-        setCurve(ID_TofE,QPolygonF());
     }
-*/
     if (!lineEnergy) 
     {
         lineEnergy = new EnergyDraggableLine(this);
-//        model->set_E0(E);
         lineEnergy->setLine(xmin,E,xmax-xmin);
         scene()->addItem(lineEnergy);
     }
     else     lineEnergy->setLine(xmin,E,xmax-xmin);
-    QPolygonF psi = model->getPsiOfX(E, scalePsi, xmin,xmax,500);
+        int npoints=500;
+        QVector<double> waveFunction;
+        waveFunction.resize(npoints);
+        if(bgR!=0) viewWF=bgR->checkedId();
+        else viewWF=0;
+
+        waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,viewWF);
+        double dx = (xmax-xmin)/(npoints-1);
+        QPolygonF psi;
+        psi.resize(npoints);
+        for (int i=0; i < npoints; i++)
+        {
+            double x = xmin + dx*i;
+            double y = waveFunction[i];
+            y = (y-psiMin)*scalePsi+Umin;
+            psi[i]  = QPointF(x, y);
+        }
     setCurve(ID_PSI_ENERGY, psi, QPen(Qt::darkCyan));
-    update();
 }
+void PotentialViewMovable::slotPsiofE()
+{
+    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
+    double E=model->get_E0(); 
+    /*    if (lineEnergy) 
+    {
+    double Eold=lineEnergy->getEnergyFromLine();
+    if(Eold!=E) model->set_E0(Eold);
+    E=Eold;
+    }*/
+    if (!lineEnergy) 
+    {
+        lineEnergy = new EnergyDraggableLine(this);
+//        lineEnergy->setZValue(0);
+        lineEnergy->setLine(xmin,E,xmax-xmin);
+        scene()->addItem(lineEnergy);
+    }
+    else     lineEnergy->setLine(xmin,E,xmax-xmin);
+    int npoints=500;
+    QVector<double> waveFunction;
+    waveFunction.resize(npoints);
+    if(bgR!=0) viewWF=bgR->checkedId();
+    else viewWF=0;
 
-
+    waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,viewWF);
+    double dx = (xmax-xmin)/(npoints-1);
+    QPolygonF psi;
+    psi.resize(npoints);
+    for (int i=0; i < npoints; i++)
+    {
+        double x = xmin + dx*i;
+        double y = waveFunction[i];
+        y = (y-psiMin)*scalePsi+Umin;
+        psi[i]  = QPointF(x, y);
+    }
+    setCurve(ID_PSI_ENERGY, psi, QPen(Qt::darkCyan));
+    //dima qApp->processEvents(QEventLoop::AllEvents);
+}
 EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
@@ -593,7 +802,8 @@ EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *
 
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);		
+    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setZValue(999);
     setAcceptHoverEvents ( true );
 }
 
@@ -601,7 +811,7 @@ QVariant EnergyDraggableLine::itemChange(GraphicsItemChange change, const QVaria
 {
     switch (change)
     {
-    case ItemPositionChange:
+    case ItemPositionChange: 
         if (isSelected())
         {
             QPointF newpos = value.toPointF();
@@ -738,12 +948,13 @@ void PotentialViewMovable::setCurve(int id,const QPolygonF & curve, const QPen& 
     }
     else
     {
-        MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve);
+        MyGraphicsPolylineItem *c = new MyGraphicsPolylineItem(curve,this);
         scene()->addItem(c);
         curves[id] = c;
     }
     curves[id]->setPen(pen);
-    update();
+    repaint();
+//    update();
 }
 
 void PotentialViewMovable::removeCurve(int id)
@@ -751,17 +962,114 @@ void PotentialViewMovable::removeCurve(int id)
     scene()->removeItem(curves[id]);
     delete curves[id];
     curves.remove(id);
-    update();
+    repaint();
 }
 
 void MyGraphicsPolylineItem::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
-
-
     painter->setPen( pen() );
-//    QRect s0=painter->viewport();
-//    QRect s1=painter->window();
     painter->setRenderHint(QPainter::Antialiasing);
-    //painter->drawPolygon(polygon().data(),polygon().size());
     painter->drawPolyline(polygon().data(),polygon().size());
 }
+
+void PotentialViewMovable::showDialogScaleY()
+{   
+    if (!gbScaleY) 
+    {
+        gbScaleY = new QGroupBox(this);
+        gbScaleY->setWindowTitle("Scales for plots Psi(x) and U(x)");
+        gbScaleY->setWindowFlags(Qt::Window);
+        gbScaleY->setFont(QFont("Serif", 12, QFont::Bold )); 
+        QVBoxLayout *vl = new QVBoxLayout;
+        psiMin.setDisplay(("Psixmin"),("Y-scale for wave function plots"),vl);
+        psiMax.setDisplay(("Psixmax"),("Y-scale for wave function plots"),vl);
+        this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
+        this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
+        this->xmin.setDisplay(("xmin"),("lower bond of x-interval"),vl);
+        this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
+        gbScaleY->setLayout(vl);
+    }
+    gbScaleY->show(); 
+    gbScaleY->raise();//->raactivateWindow();
+    gbScaleY->setFocus();
+}
+
+void MyGraphicsPolylineItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
+{
+    if (event->buttons() & Qt::RightButton)
+    {
+        QMenu m;
+        QAction *viewPsiX = m.addAction("Real, imag or |psi(x)|^2?");
+        QAction *scalePsi = m.addAction("Set scales");
+        QAction *what = m.exec(event->screenPos());
+        if (what == scalePsi)
+        {
+            view->showDialogScaleY();
+            update();
+        }
+        if (what == viewPsiX)
+        {
+            view->showDialogViewPsiX();
+            update();
+        }
+        event->accept();
+
+#if 0
+        QPainterPath p = shape();
+        QPointF v = event->pos();
+        QRectF r = QRectF(v,v).adjusted(-0.1,-0.1,0.1,0.1);
+
+        bool i = p.intersects(r);
+        if (i)
+        {
+            QMenu m;
+            QAction *scaleX = m.addAction("Set something");
+            QAction *scaleY = m.addAction("Set scales");
+            QAction *what = m.exec(event->screenPos());
+            if (what == scaleY)
+            {
+                view->scaleY();
+            }
+               update();// repaint();
+            event->accept();
+            return;
+        }
+#endif
+    }
+}
+void PotentialViewMovable::showDialogViewPsiX()
+{
+    if (!gbVPsi) 
+    {
+
+        gbVPsi = new QGroupBox(this);//"Wavepacket definition:");
+        gbVPsi->setFont(QFont("Serif", 12, QFont::Bold )); 
+        gbVPsi->setWindowFlags(Qt::Window);
+        gbVPsi->setWindowTitle("View of psi(x)");
+        QVBoxLayout *vl=new QVBoxLayout;
+
+        rad1= new QRadioButton("real(psi(x))");
+        rad2= new QRadioButton("imag(psi(x))");
+        rad3= new QRadioButton("|psi(x)|^2");
+        vl->addWidget(rad1);
+        vl->addWidget(rad2);
+        vl->addWidget(rad3);
+
+        bgR= new QButtonGroup(gbVPsi);
+        bgR->setExclusive(true);
+        bgR->addButton(rad1,0);
+        bgR->addButton(rad2,1);
+        bgR->addButton(rad3,2);
+        bgR->button(0)->setChecked(true);
+
+//        vl->addWidget(bgR);
+//        vl->addWidget(gbVPsi);
+        gbVPsi->setLayout(vl);
+
+    }
+    gbVPsi->show(); 
+    gbVPsi->raise();//activateWindow();
+    gbVPsi->setFocus();
+
+}
+

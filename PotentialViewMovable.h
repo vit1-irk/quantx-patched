@@ -11,19 +11,24 @@
 #include <QGraphicsPolygonItem>
 #include <QPolygonF>
 #include <QMap>
+#include "myparam.h"
 
 class EnergyDraggableLine;
 class HorDraggableLine;
-class VerDraggableLine;
+class VerDraggableLine; 
+class EnergyLevels;
+class PotentialViewMovable;
 
 class MyGraphicsPolylineItem : public QGraphicsPolygonItem
 {
+    PotentialViewMovable *view;
 public:
-    MyGraphicsPolylineItem(const QPolygonF& p, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene)
+    MyGraphicsPolylineItem(const QPolygonF& p, PotentialViewMovable *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
+        : QGraphicsPolygonItem(p,parent,scene), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
+    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class PotentialViewMovable : public QGraphicsView
@@ -35,16 +40,18 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MyGraphicsPolylineItem *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
-    double widthLineV;
-    double widthLineH;
-    double widthLineE;
-
+     
 public slots:
     void slotEboundChanged();
     void slotEnergyChanged();
+    void slotPsiofE(); 
     void slotUChanged();
     void setViewportMapping();
     void resizePicture();
+    void setScalesFromModel();
+//    void scaleXY();
+    void scaleE();
+    void energyAutoChanged();
 
 signals:
     void infoMouseMovedTo(QPointF);
@@ -56,22 +63,34 @@ protected:
     void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
 
-private:
-    PhysicalModel *model;
+public:
+    void showDialogScaleY();
+    void showDialogViewPsiX();
 
-//    double widthLineV;
-//    double widthLineH;
-//    double widthLineE;
+private:
+    double widthLineV;
+    double widthLineH;
+    double widthLineE;
+    MyParamD Umin,Umax, xmin, xmax, psiMax, psiMin; 
+    MyParamD Emin,Emax,hE;
+    MyParamI viewWF;
+
+    PhysicalModel *model;
+    QGroupBox  *gbScaleXY, *gbScaleE, *gbScaleY,*gbVPsi;
+    QRadioButton *rad1,*rad2,*rad3;
+    QButtonGroup *bgR;
+
 
     QVector<HorDraggableLine*> linesU;
     QVector<VerDraggableLine*> linesV;
 
-    QVector<HorDraggableLine*> linesEn;
+    QVector<EnergyLevels*> linesEn;
     EnergyDraggableLine* lineEnergy;
     double Edraggable;
     QMap<int,MyGraphicsPolylineItem*> curves;
 
     friend class HorDraggableLine;
+    friend class EnergyLevels;
     friend class VerDraggableLine;
     friend class EnergyDraggableLine;
 };
