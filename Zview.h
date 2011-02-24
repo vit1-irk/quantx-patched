@@ -1,5 +1,7 @@
 #pragma once
 #include <QDialog>
+//#include <QGroupBox>
+#include <QPushButton>
 #include <QLineEdit>
 #include "PhysicalModel.h"
 
@@ -15,12 +17,12 @@ public:
 public slots:
     void updateModel();
     void modelChanged();
-//    void invalidateModel();
+    void setCurrentZ(double d);
 
 private:
     PhysicalModel *model;
     zParameters last;
-
+    QPushButton *bInit, *bFin;  
     QLineEdit *leZ;
     QLineEdit *leZmin;
     QLineEdit *leZmax;

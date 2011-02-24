@@ -29,6 +29,8 @@ wpE_lo(5.), wpE_hi(10.), wpN(30), psiMax(.2), psiMin(-.1),viewWF(0),need_build_W
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 void WavePacketXView::resizePicture()
 {
@@ -156,12 +158,11 @@ void WavePacketXView::slot_WavePacket_of_t()
         tt=this->tmax;
         this->time=tt;
     }
-         for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=tp.ht)
+         for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
          {
             waveFunction = model->getPsiOfXT(t, xmin, xmax, npoints, viewWF);
-            tp.time=t;
-            model->setTimeParam(tp);
-
+//            tp.time=t;
+//            model->setTimeParam(tp);
             for (int i=0; i < npoints; i++)
             {
                 double x = xmin + dx*i;
@@ -169,6 +170,14 @@ void WavePacketXView::slot_WavePacket_of_t()
                 psi[i]  = QPointF(x, y);
             }
             setCurve(0,psi,QPen(Qt::darkCyan));
+            tp=model->getTimeParam();
+            if((htime!=tp.ht)||(tmax!=tp.tmax)||(tmin!=tp.tmin))
+            {
+               htime=tp.ht;
+               tmax=tp.tmax;
+               tmin=tp.tmin;
+               time=tp.time;
+            }
             if (getBreakStatus(0)) 
             {
                 return;

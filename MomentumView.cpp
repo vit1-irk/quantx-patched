@@ -147,6 +147,12 @@ void MomentumView::slot_Phi_n_of_k()
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
+        else
+    {
+        linev->setLine(0., phiMin, 0., phiMax);
+        lineh->setLine(kmin,0.,kmax,0.);
+    }
+
     int npoints=500;
     QVector<double> waveFunction;
     QPolygonF phi;

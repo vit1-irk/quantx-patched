@@ -12,6 +12,7 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include "ScalesUx.h"
 
 class EnergyDraggableLine;
 class HorDraggableLine;
@@ -28,7 +29,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class PotentialViewMovable : public QGraphicsView
@@ -39,6 +40,9 @@ public:
     PotentialViewMovable(PhysicalModel *m, QWidget *parent = 0);
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MyGraphicsPolylineItem *getCurve(int id) const { return curves[id]; }
+//    void mousePressEvent(QMouseEvent * event);
+    void contextMenuEvent(QContextMenuEvent *event);
+
     void removeCurve(int id);
      
 public slots:
@@ -52,7 +56,7 @@ public slots:
 //    void scaleXY();
     void scaleE();
     void energyAutoChanged();
-
+     
 signals:
     void infoMouseMovedTo(QPointF);
 
@@ -66,12 +70,14 @@ protected:
 public:
     void showDialogScaleY();
     void showDialogViewPsiX();
+    ScalesUx *dialogScalesU;
 
 private:
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    MyParamD Umin,Umax, xmin, xmax, psiMax, psiMin; 
+    double Umin,Umax, xmin, xmax, dx, psiMax, psiMin; 
+//    MyParamD Umin,Umax, xmin, xmax, psiMax, psiMin; 
     MyParamD Emin,Emax,hE;
     MyParamI viewWF;
 

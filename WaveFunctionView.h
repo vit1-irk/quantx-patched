@@ -54,28 +54,22 @@ public:
     void showDialogScaleY();
     void showDialogViewPsiX();
     void showDialogLevNum();
-//    void defSP();
-//    void defWP();
 private:
+    void setScalesFromModel();
     QRectF a_old;
     double widthLineV;
     double widthLineH;
     double widthLineE;
     MyParamD psiMax, psiMin; 
     MyParamD xmin,xmax;
-//    MyParamD tmin,tmax, time, htime;
-//    MyParamI nmaxWP,nminWP,hnWP;  
     MyParamI nMax, nMin, hn;  
-//    MyParamD wpE_lo, wpE_hi, wpN;
     QGraphicsLineItem *lineh,*linev;
     MyParamI viewWF;  
     PhysicalModel *model;
+    double dx; 
     QGroupBox  *gbScaleXY, *gbLevNum, *gbVPsi;
-//    QGroupBox  *gbScaleXY, *gbWP, *gbWPl, *gbWPr, *gbLevNum;
-//    QGroupBox *grrb;
     QRadioButton *rad1,*rad2,*rad3;
     QButtonGroup *bgR;
-//    bool need_build_WavePacket;
     QMap<int,CoordinateDistribution*> curves;
 
 

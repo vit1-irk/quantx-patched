@@ -15,7 +15,7 @@
 
 EnzView::EnzView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), gbScaleXY(0),lineh(0),linev(0),
-Umin(-11.), Umax(0.1)
+Umin(-21.), Umax(0.1)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -27,7 +27,10 @@ Umin(-11.), Umax(0.1)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
-//    setScalesFromModel();
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setScalesFromModel();
 //    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_En_of_z()));
 //    resizePicture();
 }
@@ -40,6 +43,7 @@ void EnzView::setScalesFromModel()
 
 void EnzView::resizePicture()
 {
+    setScalesFromModel();
     setViewportMapping();
     slot_En_of_z();
 }
@@ -184,12 +188,9 @@ void EnzView::slot_En_of_z()
         int nmxold=-1;
 //    int npoints=301;
 //    double dz = (zmax-zmin)/(npoints-1);
-         for (double z=zt; z>=tp.zmin&&z<=tp.zmax; z+=tp.hz)
-//        for(double z=this->zmin;z<=this->zmax; z+=dz)
+         for (double z=zt; z>=tp.zmin&&z<=tp.zmax; z+=hz)
+//         for (double z=zt; z>=tp.zmin&&z<=tp.zmax; z+=tp.hz)
         { 
-//            if (getBreakStatus(0)) 
-//                return;
-//            model->set_Uxz(z);
             tp.z=z;
             model->setzParam(tp);
             QVector<double> Ebound = model->getEn();
@@ -206,6 +207,14 @@ void EnzView::slot_En_of_z()
     }
 //            myrepaint(cs);
             nmxold=nmx;
+            tp=model->getzParam();
+            if(hz!=tp.hz||zmax!=tp.zmax||zmin!=tp.zmin)
+            {
+               hz=tp.hz;
+               zmax=tp.zmax;
+               zmin=tp.zmin;
+               zt=tp.z;
+            }
             if (getBreakStatus(0)) 
             {
                 return;
@@ -248,26 +257,6 @@ void EnzCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * option
     painter->drawPolyline(polygon().data(),polygon().size());
 }
 
-/*void EnzView::showDialogScaleY()
-{   
-    if (!gbScaleXY) 
-    {
-        gbScaleXY = new QGroupBox(this);
-        gbScaleXY->setWindowTitle("Scales for plots Psi(x) and U(x)");
-        gbScaleXY->setWindowFlags(Qt::Window);
-        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        tMin.setDisplay(("Tmin"),("Y-scale for transmission plot"),vl);
-        tMax.setDisplay(("Tmax"),("Y-scale for transmission plot"),vl);
-        this->Emin.setDisplay(("Emin"),("lower bond of E-interval"),vl);
-        this->Emax.setDisplay(("Emax"),("upper bond of E-interval"),vl);
-        gbScaleXY->setLayout(vl);
-    }
-    gbScaleXY->show(); 
-    gbScaleXY->raise();
-    gbScaleXY->setFocus();
-}
-*/
 
 void EnzCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {

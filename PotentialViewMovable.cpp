@@ -378,8 +378,8 @@ public:
 
 PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), gbScaleXY(0), gbScaleE(0), gbVPsi(0), bgR(0),lineEnergy(0), gbScaleY(0),
-Umin(-15.), Umax(10.), xmin(-1.), xmax(10.),viewWF(2),
-Emin(0.1), Emax(20.), hE(0.05), psiMax(4), psiMin(-1)
+Umin(-15.), Umax(10.), xmin(-1.), xmax(10.),viewWF(2),dialogScalesU(0),
+Emin(0.1), Emax(20.), hE(0.05), psiMax(4), psiMin(-1), dx(0.01)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -391,10 +391,13 @@ Emin(0.1), Emax(20.), hE(0.05), psiMax(4), psiMin(-1)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotPsiofE()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
+    connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
     setScalesFromModel();
     resizePicture();
 }
@@ -404,10 +407,30 @@ void PotentialViewMovable::setScalesFromModel()
     Umin = umin_umax.first;
     Umax = umin_umax.second;
     if(Umax<=0.) Umax=-Umin;
+    QPair<double,double> xmin_xmax = model->getXminXmax();
+    xmin = xmin_xmax.first;
+    xmax = xmin_xmax.second;
+    ScalesUParameters tp;
+    tp.Hx = this->dx;
+    tp.Xmin = xmin;
+    tp.Xmax = xmax;
+    tp.Umin = Umin;
+    tp.Umax = Umax;
+    tp.Psimin = psiMin;
+    tp.Psimax = psiMax;
+    model->setScalesUParam(tp);
 }
 
 void PotentialViewMovable::resizePicture()
-{
+{   
+    ScalesUParameters tp = model->getScalesUParam();
+    dx=tp.Hx;
+    xmin=tp.Xmin;
+    xmax=tp.Xmax;
+    Umin=tp.Umin;
+    Umax=tp.Umax;
+    psiMax=tp.Psimax;
+    psiMin=tp.Psimin;
     setViewportMapping();
     slotUChanged();
     slotEboundChanged();
@@ -974,42 +997,37 @@ void MyGraphicsPolylineItem::paint(QPainter * painter, const QStyleOptionGraphic
 
 void PotentialViewMovable::showDialogScaleY()
 {   
-    if (!gbScaleY) 
+    if (!dialogScalesU) 
     {
-        gbScaleY = new QGroupBox(this);
-        gbScaleY->setWindowTitle("Scales for plots Psi(x) and U(x)");
-        gbScaleY->setWindowFlags(Qt::Window);
-        gbScaleY->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        psiMin.setDisplay(("Psixmin"),("Y-scale for wave function plots"),vl);
-        psiMax.setDisplay(("Psixmax"),("Y-scale for wave function plots"),vl);
-        this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
-        this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
-        this->xmin.setDisplay(("xmin"),("lower bond of x-interval"),vl);
-        this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
-        gbScaleY->setLayout(vl);
+        dialogScalesU = new ScalesUx(this);
+        dialogScalesU->setModel(model);
     }
-    gbScaleY->show(); 
-    gbScaleY->raise();//->raactivateWindow();
-    gbScaleY->setFocus();
+    dialogScalesU->show(); 
+    dialogScalesU->activateWindow();
+    dialogScalesU->setFocus();
 }
-
-void MyGraphicsPolylineItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
+void PotentialViewMovable::contextMenuEvent(QContextMenuEvent *event)
+//void PotentialViewMovable::contextmenuEvent(QMouseEvent * event) 
+//void MyGraphicsPolylineItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
-    if (event->buttons() & Qt::RightButton)
+//    if (event->buttons() & Qt::RightButton)
     {
         QMenu m;
         QAction *viewPsiX = m.addAction("Real, imag or |psi(x)|^2?");
         QAction *scalePsi = m.addAction("Set scales");
-        QAction *what = m.exec(event->screenPos());
+        QPoint poscur = event->globalPos();
+        QAction *what = m.exec(event->globalPos());
+//        QAction *what = m.exec(event->screenPos());
         if (what == scalePsi)
         {
-            view->showDialogScaleY();
+            this->showDialogScaleY();
+//            view->showDialogScaleY();
             update();
         }
         if (what == viewPsiX)
         {
-            view->showDialogViewPsiX();
+            this->showDialogViewPsiX();
+//            view->showDialogViewPsiX();
             update();
         }
         event->accept();

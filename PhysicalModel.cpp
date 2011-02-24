@@ -91,6 +91,37 @@ QPair<double,double> PhysicalModel::getUminUmax()
     Umax=Umax-1e-8;
     return QPair<double,double>(Umin,Umax);
 }
+QPair<double,double> PhysicalModel::getXminXmax()
+{
+    double Xmax,Xmin;
+    if (need_build_U)
+    {
+        build_U();
+        need_build_U = false;
+    }
+    double x=0.;
+    int Nmax;
+    Nmax = getN ();
+    if(this->typeOfU==0)
+    {
+        for (int i = 1; i < Nmax+1; ++i)
+        {   
+            x += this->d[i];
+        }
+        Xmax=1.5*x;
+        Xmin=-0.5*x;
+    }
+    else
+    {
+        for (int i = 1; i < Nmax+1; ++i)
+        {   
+            x = this->d[i];
+        }
+        Xmax=this->Nperiod*x;
+        Xmin=0;
+    }
+    return QPair<double,double>(Xmin,Xmax);
+}
 
 void PhysicalModel::findBoundStates()
 {   
@@ -805,6 +836,20 @@ tp.zmax=this->zmax;
 tp.hz=this->hz;
 return tp;
 }
+
+ScalesUParameters PhysicalModel::getScalesUParam() const
+{
+ScalesUParameters tp;
+tp.Hx=this->Hx;
+tp.Xmin=this->Xmin;
+tp.Xmax=this->Xmax;
+tp.Umin=this->Umin;
+tp.Umax=this->Umax;
+tp.Psimin=this->Psimin;
+tp.Psimax=this->Psimax;
+return tp;
+}
+
 TimeParameters PhysicalModel::getTimeParam() const
 {
 TimeParameters tp;
@@ -843,7 +888,61 @@ void  PhysicalModel::setTimeParam(const TimeParameters& u)
  }
  this->tmin=u.tmin;
  this->tmax=u.tmax;
+ if(this->ht!=u.ht)
+ {
  this->ht=u.ht;
+ }
+}
+void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
+{
+ bool changed = false;
+ double v=u.Xmax;
+ if(v!=this->Xmax)
+ {
+     this->Xmax=v;
+     changed = true;
+ }
+ v=u.Xmin;
+ if(v!=this->Xmin)
+ {
+     changed = true;
+     this->Xmin=v;
+ }
+ v=u.Umax;
+ if(v!=this->Umax)
+ {
+     this->Umax=v;
+     changed = true;
+ }
+ v=u.Umin;
+ if(v!=this->Umin)
+ {
+     changed = true;
+     this->Umin=v;
+ }
+ v=u.Psimax;
+ if(v!=this->Psimax)
+ {
+     this->Psimax=v;
+     changed = true;
+ }
+
+ v=u.Psimin;
+ if(v!=this->Psimin)
+ {
+     changed = true;
+     this->Psimin=v;
+ }
+
+ if(this->Hx!=u.Hx)
+ {
+ this->Hx=u.Hx;
+ }
+    if (changed)
+    {
+//    changed = false;
+    emit(signalScalesUChanged());
+    }
 }
 
 void  PhysicalModel::setEpWP(const EpWP& u)
@@ -963,12 +1062,14 @@ PhysicalModel::PhysicalModel(QObject *parent)
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(1),zmin(0.),zmax(1.),hz(0.02),
 // zold({0.2,0.1,0.8,0.05}),
-
+Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), Psimin(-1.), Psimax(1.),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),Ubias(0),
  psi_imag(0), Phi_imag(0), typeOfU(FINITE),need_build_WP(true),
- LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),
+ LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),Nperiod(1),
  nminWP(0), nmaxWP(10), hnWP(1), wpE_lo(5.),wpE_hi(15.), wpN(30), type_of_WP(2)
+// xmin(-1.),xmax(15.)
+
 {
 //  zold = { 0.2, 0.1, 0.8, 0.05};
 
@@ -1376,7 +1477,7 @@ void PhysicalModel::set_Uxz(double z)
 }
 void PhysicalModel::slotU1()
 {
-    const int N = getN();
+     const int N = getN();
     U1.resize(1+N+1);
     d1.resize(1+N+1);
     m1.resize(1+N+1);
@@ -1538,6 +1639,7 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
 {
     QVector<double> waveFunction(npoints);
     const int N = this->getN();
+    this->time=t;
 //    type_of_WP=this->get_type_of_WP();
     if(this->need_build_WP) 
     {
@@ -1617,6 +1719,14 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
             }
             waveFunction[i]=y;
         }
+        TimeParameters tp;
+        tp=this->getTimeParam();
+        tp.time=this->time;
+        if(tp.ht!=this->ht)
+        {
+             this->ht=tp.ht;
+        }
+        emit(signalTimeChanged(this->time));
     return waveFunction;
 }
 QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints)

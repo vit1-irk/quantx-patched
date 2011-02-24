@@ -15,9 +15,10 @@
 //TransmissionView::TransmissionView(PhysicalModel *m, MainWindow *mw, QWidget *parent)
 TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
 //: QGraphicsView(parent), model(m), mainWindow(mw), gbScaleXY(0),lineh(0),linev(0),
-: QGraphicsView(parent), model(m), gbScaleXY(0),lineh(0),linev(0),
-Emin(-1.), Emax(20.), 
-tMax(1.1), tMin(-0.1)
+: QGraphicsView(parent), model(m), gbScaleXY(0),lineh(0),linev(0),lineE(0),
+Emin(-1.), Emax(20.), Erase(true),
+tMax(1.1), tMin(-0.1),curve_number(0)//,
+//Eline(0.)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -29,9 +30,14 @@ tMax(1.1), tMin(-0.1)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    rubberBandIsShown = false;
+
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
     setScalesFromModel();
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_whole_T_of_E()));
+    connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
 //    resizePicture();
 }
 void TransmissionView::setScalesFromModel()
@@ -41,7 +47,20 @@ void TransmissionView::setScalesFromModel()
     Emax = umin_umax.second;
     if(Emax<=0.) Emax=-Emin;
 }
-
+void TransmissionView::slotEline()
+{
+    double E=model->get_E0(); 
+    if(!lineE)
+    {
+        lineE = new QGraphicsLineItem();
+        lineE->setLine(tMin, E, tMax, E);
+        scene()->addItem(lineE);
+    }
+    else
+    {
+        lineE->setLine(tMin, E, tMax, E);
+    }
+}
 void TransmissionView::resizePicture()
 {
     setViewportMapping();
@@ -76,12 +95,6 @@ void TransmissionView::resizeEvent(QResizeEvent *e)
     //QWidget::resizeEvent(e);
 }
 
-void TransmissionView::mouseMoveEvent(QMouseEvent *e)
-{
-    QPointF f = mapToScene(e->pos());
-    emit(infoMouseMovedTo(f));
-    QGraphicsView::mouseMoveEvent(e);
-}
 void TransmissionView::wheelEvent(QWheelEvent *event)
 {
     scaleView(pow((double)2, -event->delta() / 240.0));
@@ -94,10 +107,24 @@ void TransmissionView::scaleView(qreal scaleFactor)
 
     scale(scaleFactor, scaleFactor);
 }
-
+void TransmissionView::clearAll()
+{
+    
+        for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int m = i.key();
+            removeCurve(m);
+    }
+//curveMap.erase(curveMap.begin(),curveMap.end());
+//    this->refreshPixmap();
+}
 void TransmissionView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
+    case Qt::Key_Delete:
+    case Qt::Key_Clear:
+        clearAll();
+        break;
     case Qt::Key_Plus:
         scaleView(qreal(1.2));
         break;
@@ -118,16 +145,18 @@ void TransmissionView::slot_whole_T_of_E()
         Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-    int n=0; 
-/*    for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+//    bool Erase=false;
+    if(Erase) curve_number=0;
+    else curve_number=curve_number+1;
+    int n=curve_number;
+    if(Erase)
     {
-        int n = i.key();
-        if (n >= number_of_levels)
-        {
-            removeCurve(n);
-        }
+    for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int m = i.key();
+            removeCurve(m);
     }
-*/
+    }
     if(!linev)
     {
         lineh = new QGraphicsLineItem();
@@ -165,15 +194,17 @@ void TransmissionView::slot_T_of_E()
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     int n=0; 
-/*    for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    bool Erase=false;
+    if(Erase) n=0;
+    else n=n+1;
+    if(Erase)
     {
-        int n = i.key();
-        if (n >= number_of_levels)
-        {
-            removeCurve(n);
-        }
+    for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int m = i.key();
+            removeCurve(m);
     }
-*/
+    }
     if(!linev)
     {
         lineh = new QGraphicsLineItem();
@@ -181,7 +212,7 @@ void TransmissionView::slot_T_of_E()
         lineh->setLine(tMin, 0., tMax, 0);
         linev->setLine(0.,Emin,0.,Emax);
         scene()->addItem(lineh);
-        scene()->addItem(linev);
+        scene()->addItem(linev); 
     }
     else
     {
@@ -202,7 +233,9 @@ void TransmissionView::slot_T_of_E()
                 curveTE[i]  = QPointF(T,x);
                     setCurve(n,curveTE,colorForIds[n % size_colorForIds]);
             }
+            update();
 }
+
 
 
 
@@ -237,7 +270,9 @@ void TransmissionCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem
     painter->setPen( pen() );
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPolyline(polygon().data(),polygon().size());
+
 }
+
 
 void TransmissionView::showDialogScaleY()
 {   
@@ -296,3 +331,73 @@ void TransmissionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
 #endif
     }
 }
+
+/*void TransmissionView::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        rubberBandIsShown = false;
+        updateRubberBandRegion();
+        unsetCursor();
+        QRect rect = rubberBandRect.normalized();
+        if(rect.width()<4||rect.height()<4)
+            return;
+        rect.translate(-1, -1);
+    }
+}
+void TransmissionView::updateRubberBandRegion()
+{
+    QRect rect=rubberBandRect.normalized();
+    update(rect.left(), rect.top(), rect.width(), 1);
+    update(rect.left(), rect.top(), 1, rect.height());
+    update(rect.left(), rect.bottom(), rect.width(), 1);
+    update(rect.right(), rect.top(), 1, rect.height());
+}
+void TransmissionView::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button()== Qt::LeftButton)
+    {
+        rubberBandIsShown = true;
+        rubberBandRect.setTopLeft(event->pos());
+        rubberBandRect.setBottomRight(event->pos());
+        updateRubberBandRegion();
+        setCursor(Qt::CrossCursor);
+    }
+}
+void TransmissionView::mouseMoveEvent(QMouseEvent *event)
+{
+    QPointF f = mapToScene(event->pos());
+    emit(infoMouseMovedTo(f));
+    QGraphicsView::mouseMoveEvent(event);
+    if (rubberBandIsShown)
+    {
+        updateRubberBandRegion();
+        rubberBandRect.setBottomRight(event->pos());
+        updateRubberBandRegion();
+    }
+
+}
+void TransmissionView::enterEvent ( QEvent * event )
+{
+    setFocus();
+    QWidget::enterEvent(event);
+}
+void TransmissionView::paintEvent(QPaintEvent *event)
+{
+    QVector<QRect> rects = event->region().rects();
+    QPainter painter(this);
+   for(int i=0; i<(int)rects.size();++i)
+        painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
+    if(rubberBandIsShown)
+    {
+        painter.setPen(palette().light().color());//was 2!!!!
+        painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
+    }
+    if (hasFocus()) 
+    {
+        QStyleOptionFocusRect option;
+        option.initFrom(this);
+        style()->drawPrimitive(QStyle::PE_FrameFocusRect, &option, &painter, this);
+    }
+}
+*/

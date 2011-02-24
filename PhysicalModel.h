@@ -74,6 +74,24 @@ struct TimeParameters
             || ht  != o.ht; 
     }
 };
+
+struct ScalesUParameters
+{
+    double Xmin,Xmax,Hx;
+    double Psimin,Psimax;
+    double Umin,Umax;
+    bool operator != (const ScalesUParameters& o) 
+    { 
+        return Hx != o.Hx
+            ||Xmin != o.Xmin 
+            ||Xmax != o.Xmax 
+            ||Umin != o.Umin 
+            ||Umax != o.Umax 
+            ||Psimin != o.Psimin 
+            ||Psimax != o.Psimax; 
+    }
+};
+
 struct zParameters
 {
     double z,zmin,zmax,hz;
@@ -97,7 +115,10 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
+    ScalesUParameters getScalesUParam() const;
+    void setScalesUParam(const ScalesUParameters&);
     Uparab getUparab() const;
+
     void setUparab(const Uparab&);
 //    zParameters getzParam();
     zParameters getzParam() const;
@@ -114,9 +135,14 @@ signals:
     void signalEnergyChanged(double);
     void signalTransmissionChanged(double);
     void signalEboundChanged();
+    void signalScalesUChanged();
     void signalTimeChanged(double);
     void signalZChanged(double);
     void signalWavePacketChanged();
+public slots:
+    void slotU1();
+    void slotU2();
+
 private:
     int N;	 // actual number of inner intervals
     QVector<double> d;      /* [u_width]  0..N+1 widths */
@@ -155,8 +181,8 @@ private:
     void markWPchanged();
 
 public:
-    void slotU1();
-    void slotU2();
+//    void slotU1();
+//    void slotU2();
     void set_Uxz(double z);
     bool flagBondaryCondition;
     double getTatE(double E);
@@ -191,7 +217,7 @@ public:
     double get_d(int n) const { return d.at(n); }
     void   set_Energy(double v);
     void   set_Time(double v);
-    void   set_d(int n, double v);
+     void   set_d(int n, double v);
     void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
     void   set_m(int n, double v);
@@ -200,7 +226,9 @@ public:
 //    void set_nminWP_nmaxWP_hnWP(int nminWP, int nmaxWP, int hnWP);
     QVector<double> getEn();
     double getEn(int n);
+    double Umin,Umax,Psimin,Psimax,Xmin,Xmax,Hx;  
     QPair<double,double> getUminUmax();
+    QPair<double,double> getXminXmax();
     int get_LevelNmin() const { return this->LevelNmin; };
     int get_LevelNmax() const { return this->LevelNmax; };
     int get_LevelHn() const { return LevelHn; };
@@ -238,7 +266,7 @@ public:
 
 private:
     PotentialType typeOfU;
-
+    int Nperiod;
     //! Potential including bias
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
 //    QVector<double> U_d;

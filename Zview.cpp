@@ -3,12 +3,13 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QGroupBox>
 
 
 Zview::Zview(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-    this->setWindowTitle("z parameters:");
+        this->setWindowTitle("z parameters:");
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
 
@@ -49,6 +50,23 @@ Zview::Zview(QWidget *parent, Qt::WindowFlags f)
         connect(this->leHz,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
+        {   
+        QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
+        QVBoxLayout *vlb = new QVBoxLayout;
+        QHBoxLayout *hl = new QHBoxLayout;
+        bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
+ //       connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
+        hl->addWidget(bInit);
+
+        bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
+//        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
+        hl->addWidget(bFin);
+
+        vlb->addLayout(hl);
+        gb->setLayout(vlb);
+        vl->addWidget(gb);
+    }
+
     this->setLayout(vl);
     this->modelChanged();
 }
@@ -60,18 +78,27 @@ Zview::~Zview(void)
 //{
 //    reset();
 //}
+void Zview::setCurrentZ(double d)
+{
+    QString s;
+    s.sprintf("%lg",d);
+    this->leZ->setText(s);
+}
 
 void Zview::setModel(PhysicalModel *_model)
 {
-    model = _model;
-//    connect(model,SIGNAL(signalZChanged(double)),this,SLOT(updateModel()));
-    modelChanged();
-}
+        disconnect(model,0,this,0);
+        model = _model;
+        modelChanged();
+        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
+        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
+        connect(model,SIGNAL(signalZChanged(double)),this,SLOT(setCurrentZ(double)));
+  }
 
 void Zview::modelChanged()
 {
     if (!model)
-    {
+    { 
         this->leZ->setDisabled(true);
         this->leZmin->setDisabled(true);
         this->leZmax->setDisabled(true);

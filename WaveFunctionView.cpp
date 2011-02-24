@@ -11,6 +11,7 @@
 #include <QWidget>
 #include <QAction>
 #include <QPainterPath>
+#include "ScalesUx.h"
 
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), gbScaleXY(0), 
@@ -33,15 +34,31 @@ psiMax(1.), psiMin(-1.), gbVPsi(0),bgR(0)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     //connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Psi_n_of_x()));
+    connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
+    setScalesFromModel();
     resizePicture();
 }
 void WaveFunctionView::resizePicture()
-{
+{       
+    ScalesUParameters tp = model->getScalesUParam();
+    dx=tp.Hx;
+    xmin=tp.Xmin;
+    xmax=tp.Xmax;
     setViewportMapping();
     slot_Psi_n_of_x();
 }
+void WaveFunctionView::setScalesFromModel()
+{
+    QPair<double,double> xmin_xmax = model->getXminXmax();
+    xmin = xmin_xmax.first;
+    xmax = xmin_xmax.second;
+}
+
 void WaveFunctionView::setViewportMapping()
 {
     QRectF vp = QRectF(QPointF(this->xmin,this->psiMin),QPointF(this->xmax,this->psiMax));
@@ -156,12 +173,13 @@ void WaveFunctionView::slot_Psi_n_of_x()
         linev->setLine(0., psiMin, 0., psiMax);
         lineh->setLine(xmin,0.,xmax,0.);
     }
-    int npoints=501;
+    int npoints;//=501;
     QVector<double> waveFunction;
     QPolygonF psi;
+    npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    double dx = (xmax-xmin)/(npoints-1);
+//    double dx = (xmax-xmin)/(npoints-1);
 /*    if(nmin!=this->nMin||nmax!=this->nMax)//||hnM!=this->hn) 
     {
         model->set_LevelNmin(this->nMin);

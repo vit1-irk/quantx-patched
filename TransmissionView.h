@@ -12,6 +12,7 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include <QPaintEvent>
 
 class TransmissionView;
 
@@ -25,6 +26,7 @@ public:
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
     void mousePressEvent(QGraphicsSceneMouseEvent * event);
+
 };
 
 class TransmissionView : public QGraphicsView
@@ -37,35 +39,48 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     TransmissionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
-     
+//    void setPlotSettings(const PlotSettings &settings);
 public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_T_of_E();
     void slot_whole_T_of_E();
+    void slotEline();
 signals:
     void infoMouseMovedTo(QPointF);
 
 protected:
+    void resizeEvent(QResizeEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
-    void resizeEvent(QResizeEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
     void setScalesFromModel();
-
+    void clearAll();
+    bool Erase;
+/*    void paintEvent(QPaintEvent *event);
+    void mouseMoveEvent(QMouseEvent *e);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void enterEvent(QEvent *event);
+*/
 public:
     void showDialogScaleY();
 
 private:
+    void updateRubberBandRegion();
     double widthLine;
     MyParamD tMax, tMin; 
     MyParamD Emin,Emax;
-    QGraphicsLineItem *lineh,*linev;
-
+    QGraphicsLineItem *lineh,*linev,*lineE;
+    
     PhysicalModel *model;
     QGroupBox  *gbScaleXY;
-
     QMap<int,TransmissionCurve*> curves;
-
+    bool rubberBandIsShown;
+//    bool savePlot();
+//    bool savePlotAs();
+    QRect rubberBandRect;
+    QPixmap pixmap;
+    int curve_number;
 };
+

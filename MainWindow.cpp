@@ -261,7 +261,7 @@ void  MainWindow::slotScaleZ()
         this->zmax.setDisplay(("zmax"),("upper bond of z-interval"),vl0);
         this->hz.setDisplay(("hz"),("z-increment"),vl0);
  
-        {   
+/*        {   
         QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
         QVBoxLayout *vl = new QVBoxLayout;
         QHBoxLayout *hl = new QHBoxLayout;
@@ -277,7 +277,7 @@ void  MainWindow::slotScaleZ()
         gb->setLayout(vl);
         vl0->addWidget(gb);
     }
-
+*/
         gbScaleZ->setLayout(vl0);
     }
     gbScaleZ->show(); 
@@ -920,14 +920,23 @@ void MainWindow::window_Enz()
         vl->addWidget(enzView);
         bRunEnz = new QPushButton("Run ");	
         connect(bRunEnz,SIGNAL(clicked()),this,SLOT(slotRunEnz()));
-//        connect(reset,SIGNAL(clicked()),enzView,SLOT(resizePicture()));
+        //        connect(reset,SIGNAL(clicked()),enzView,SLOT(resizePicture()));
         //    gbLeftTop = gbEnzview;
         splitterL->addWidget(gbEnzview);
         //    leftTopLayout->addWidget(gbLeftTop);
         QHBoxLayout *hl = new QHBoxLayout();
         hl->addWidget(bRunEnz);		
-//        hl->addStretch();
-        QPushButton * bsz = new QPushButton("&z-deformation of U(x)");	
+/*
+        QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
+//        connect(bInit, SIGNAL(clicked()), this, SLOT(slot1()));
+        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
+        hl->addWidget(bInit);
+
+        QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
+        connect(bFin, SIGNAL(clicked()),model, SLOT(slotU2()));
+        hl->addWidget(bFin);
+*/
+        QPushButton *bsz = new QPushButton("&z-deformation of U(x)");	
         connect(bsz,SIGNAL(clicked()),this,SLOT(slotSetZ()));
         hl->addWidget(bsz);
 
@@ -950,14 +959,18 @@ void MainWindow::slotRunEnz()
     bRunEnz->setText("RUN ");
     connect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
 }
-
 void MainWindow::initControlDockWindow()
 {
     splitterR = new QSplitter(Qt::Vertical);
     splitterL = new QSplitter(Qt::Vertical);
     splitterLR = new QSplitter(Qt::Horizontal);
-    splitterR->setHandleWidth(55);
-
+//    splitterR->setHandleWidth(55);
+//    QSplitterHandle *hSR=new QSplitterHandle( Qt::Vertical, splitterR );
+//    hSR->setAutoFillBackground ( true );
+//    hSR->setBackgroundRole(QPalette::Text);
+//    QPen quiteDark = palette().color(QPalette::Dark);
+//    hSR->setPen(quiteDark);
+//    hSR->show();
     topLeftWin = new QComboBox(this);
     topLeftWin->addItem("En(z)");
     topLeftWin->addItem("T(E)");
@@ -1035,6 +1048,7 @@ void MainWindow::initControlDockWindow()
         vle->addWidget(butEn);
 
         hltop->addLayout(vle);
+        hltop->addStretch();
 
 
 QVBoxLayout * vl0 = new QVBoxLayout;
