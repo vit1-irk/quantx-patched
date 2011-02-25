@@ -279,7 +279,7 @@ void TransmissionView::showDialogScaleY()
     if (!gbScaleXY) 
     {
         gbScaleXY = new QGroupBox(this);
-        gbScaleXY->setWindowTitle("Scales for plots Psi(x) and U(x)");
+        gbScaleXY->setWindowTitle("Scales for T(E)");
         gbScaleXY->setWindowFlags(Qt::Window);
         gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
         QVBoxLayout *vl = new QVBoxLayout;
@@ -293,8 +293,19 @@ void TransmissionView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
+void TransmissionView::contextMenuEvent(QContextMenuEvent *event)
+{
+        QMenu m;
+        QAction *scaleT = m.addAction("Set scales");
+        QAction *what = m.exec(event->globalPos());
+        if (what == scaleT)
+        {
+            this->showDialogScaleY();
+            update();
+        }
+}
 
-void TransmissionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
+/*void TransmissionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
     if (event->buttons() & Qt::RightButton)
     {
@@ -331,7 +342,7 @@ void TransmissionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
 #endif
     }
 }
-
+*/
 /*void TransmissionView::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)

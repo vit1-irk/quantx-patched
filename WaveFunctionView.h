@@ -11,6 +11,7 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include "ScalePsin.h"
 
 class WaveFunctionView;
 
@@ -23,7 +24,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class WaveFunctionView : public QGraphicsView
@@ -35,6 +36,8 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     CoordinateDistribution *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
+    void contextMenuEvent(QContextMenuEvent *event);
+
      
 public slots:
     void setViewportMapping();
@@ -55,18 +58,20 @@ public:
     void showDialogViewPsiX();
     void showDialogLevNum();
 private:
+    ScalePsin  *dialogScalePsin;
     void setScalesFromModel();
     QRectF a_old;
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    MyParamD psiMax, psiMin; 
-    MyParamD xmin,xmax;
-    MyParamI nMax, nMin, hn;  
+    double psiMax, psiMin,xmin,xmax,dx; 
+//    MyParamD psiMax, psiMin; 
+//    MyParamD xmin,xmax;
+    MyParamI   nMax, nMin, hn;  
+//    int   nMax, nMin, hn;  
     QGraphicsLineItem *lineh,*linev;
-    MyParamI viewWF;  
+    int  viewWF;  
     PhysicalModel *model;
-    double dx; 
     QGroupBox  *gbScaleXY, *gbLevNum, *gbVPsi;
     QRadioButton *rad1,*rad2,*rad3;
     QButtonGroup *bgR;

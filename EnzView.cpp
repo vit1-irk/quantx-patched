@@ -174,7 +174,7 @@ void EnzView::slot_En_of_z()
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
         lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
-        linev->setLine(0.,1.1*Umin,0.,-.1*Umin);
+        linev->setLine(0.,1.2*Umin,0.,-.3*Umin);
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
@@ -257,42 +257,15 @@ void EnzCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * option
     painter->drawPolyline(polygon().data(),polygon().size());
 }
 
-
-void EnzCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
+/*void EnzView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (event->buttons() & Qt::RightButton)
-    {
         QMenu m;
-//        QAction *scaleX = m.addAction("Set something");
-        QAction *scalePsi = m.addAction("Set scales");
-        QAction *what = m.exec(event->screenPos());
-        if (what == scalePsi)
+        QAction *scaleEnz = m.addAction("Set scales");
+        QAction *what = m.exec(event->globalPos());
+        if (what == scaleEnz)
         {
-//            view->showDialogScaleY();
+            this->showDialogScaleY();
             update();
         }
-        event->accept();
-#if 0
-        QPainterPath p = shape();
-        QPointF v = event->pos();
-        QRectF r = QRectF(v,v).adjusted(-0.1,-0.1,0.1,0.1);
-
-        bool i = p.intersects(r);
-        if (i)
-        {
-            QMenu m;
-            QAction *scaleX = m.addAction("Set something");
-            QAction *scaleY = m.addAction("Set scales");
-            QAction *what = m.exec(event->screenPos());
-            if (what == scaleY)
-            {
-                view->scaleY();
-            }
-               update();// repaint();
-            event->accept();
-            return;
-        }
-#endif
-    }
 }
-
+*/

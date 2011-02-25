@@ -12,6 +12,8 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include "WPparametersP.h"
+#include "WPparametersM.h"
 
 class WavePacketXView;
 
@@ -24,7 +26,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class WavePacketXView : public QGraphicsView
@@ -36,16 +38,16 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     CoordinateDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
+    void contextMenuEvent(QContextMenuEvent *event);
 
 public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_WavePacket_of_t();
     void slot_rebuildWavePacket();
-//    void slotSetTime();
-
-//    void defSP();
-//    void defWP();
+    void slotSetWPEm();
+    void slotSetWPEp();
+    void slotSetTime();
 signals:
     void infoMouseMovedTo(QPointF);
 
@@ -59,7 +61,10 @@ public:
     void showDialogScaleY();
     void showDialogWavePacket();
     void showDialogViewPsiX();
+    void showDialogDefWP();
 private:
+    WPparametersM *dialogWPEm;
+    WPparametersP *dialogWPEp;
     double widthLineV;
     double widthLineH;
     double widthLineE;
@@ -72,9 +77,9 @@ private:
     QGraphicsLineItem *lineh,*linev;
     MyParamI viewWF;  
     PhysicalModel *model;
-    QGroupBox  *gbScaleXY, *gbWP, *gbWPl, *gbWPr, *gbVPsi;//, *gbLevNum;
+    QGroupBox  *gbScaleXY, *gbDefWP, *gbVPsi;
     QGroupBox *grrb;
-    QPushButton *butTime;
+    QPushButton *butTTime;
     TimeView *dialogTime;
     //    QRadioButton *rad1,*rad2;
     QButtonGroup *bgR,*bgRVF;

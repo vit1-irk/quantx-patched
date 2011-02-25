@@ -849,7 +849,16 @@ tp.Psimin=this->Psimin;
 tp.Psimax=this->Psimax;
 return tp;
 }
-
+ScalePsinParameters PhysicalModel::getScalePsinParam() const
+{
+ScalePsinParameters tp;
+tp.Hx=this->Hx;
+tp.Xmin=this->Xmin;
+tp.Xmax=this->Xmax;
+tp.Psinmin=this->Psinmin;
+tp.Psinmax=this->Psinmax;
+return tp;
+}
 TimeParameters PhysicalModel::getTimeParam() const
 {
 TimeParameters tp;
@@ -895,52 +904,102 @@ void  PhysicalModel::setTimeParam(const TimeParameters& u)
 }
 void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
 {
- bool changed = false;
+ bool changed_x = false;
+ bool changed_y = false;
  double v=u.Xmax;
  if(v!=this->Xmax)
  {
      this->Xmax=v;
-     changed = true;
+     changed_x = true;
  }
  v=u.Xmin;
  if(v!=this->Xmin)
  {
-     changed = true;
+     changed_x = true;
      this->Xmin=v;
  }
  v=u.Umax;
  if(v!=this->Umax)
  {
      this->Umax=v;
-     changed = true;
+     changed_y = true;
  }
  v=u.Umin;
  if(v!=this->Umin)
  {
-     changed = true;
+     changed_y = true;
      this->Umin=v;
  }
  v=u.Psimax;
  if(v!=this->Psimax)
  {
      this->Psimax=v;
-     changed = true;
+     changed_y = true;
  }
 
  v=u.Psimin;
  if(v!=this->Psimin)
  {
-     changed = true;
+     changed_y = true;
      this->Psimin=v;
  }
 
  if(this->Hx!=u.Hx)
  {
+     changed_x = true;
+     this->Hx=u.Hx;
+ }
+    if (changed_x||changed_y)
+    {
+    emit(signalScalesUChanged());
+    }
+    if (changed_x)
+    {
+    emit(signalScalePsinChanged());
+    }
+
+}
+void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
+{
+ bool changed_x = false;
+ bool changed_y = false;
+ double v=u.Xmax;
+ if(v!=this->Xmax)
+ {
+     this->Xmax=v;
+     changed_x = true;
+ }
+ v=u.Xmin;
+ if(v!=this->Xmin)
+ {
+     changed_x = true;
+     this->Xmin=v;
+ }
+ v=u.Psinmax;
+ if(v!=this->Psinmax)
+ {
+     this->Psinmax=v;
+     changed_y = true;
+ }
+
+ v=u.Psinmin;
+ if(v!=this->Psinmin)
+ {
+     changed_y = true;
+     this->Psinmin=v;
+ }
+
+ if(this->Hx!=u.Hx)
+ {
+ changed_x = true;
  this->Hx=u.Hx;
  }
-    if (changed)
+    if (changed_x||changed_y)
     {
-//    changed = false;
+    emit(signalScalePsinChanged());
+    }
+    if (changed_x)
+    {
     emit(signalScalesUChanged());
     }
 }
@@ -1062,7 +1121,8 @@ PhysicalModel::PhysicalModel(QObject *parent)
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(1),zmin(0.),zmax(1.),hz(0.02),
 // zold({0.2,0.1,0.8,0.05}),
-Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), Psimin(-1.), Psimax(1.),
+Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), 
+Psimin(-1.), Psimax(4.),Psinmin(-1.), Psinmax(1.),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),Ubias(0),
  psi_imag(0), Phi_imag(0), typeOfU(FINITE),need_build_WP(true),

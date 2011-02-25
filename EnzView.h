@@ -23,7 +23,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class EnzView : public QGraphicsView

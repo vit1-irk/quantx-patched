@@ -79,8 +79,8 @@ private slots:
     void slotSetUxt();
     void slotSetEn();
     void slotSetUmwb();
-    void slotSetWPEp();
-    void slotSetWPEm();
+//    void slotSetWPEp();
+//    void slotSetWPEm();
     void slotSetTime();
     void slotSetUs();
     void  slotSetZ();

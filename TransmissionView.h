@@ -25,7 +25,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 
 };
 
@@ -57,6 +57,8 @@ protected:
     void setScalesFromModel();
     void clearAll();
     bool Erase;
+    void contextMenuEvent(QContextMenuEvent *event);
+
 /*    void paintEvent(QPaintEvent *event);
     void mouseMoveEvent(QMouseEvent *e);
     void mousePressEvent(QMouseEvent *event);

@@ -1007,27 +1007,21 @@ void PotentialViewMovable::showDialogScaleY()
     dialogScalesU->setFocus();
 }
 void PotentialViewMovable::contextMenuEvent(QContextMenuEvent *event)
-//void PotentialViewMovable::contextmenuEvent(QMouseEvent * event) 
-//void MyGraphicsPolylineItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
-//    if (event->buttons() & Qt::RightButton)
     {
         QMenu m;
         QAction *viewPsiX = m.addAction("Real, imag or |psi(x)|^2?");
         QAction *scalePsi = m.addAction("Set scales");
         QPoint poscur = event->globalPos();
         QAction *what = m.exec(event->globalPos());
-//        QAction *what = m.exec(event->screenPos());
         if (what == scalePsi)
         {
             this->showDialogScaleY();
-//            view->showDialogScaleY();
             update();
         }
         if (what == viewPsiX)
         {
             this->showDialogViewPsiX();
-//            view->showDialogViewPsiX();
             update();
         }
         event->accept();

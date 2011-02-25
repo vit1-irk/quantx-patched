@@ -225,40 +225,15 @@ void WavePacketKView::showDialogScaleY()
     gbScaleXY->setFocus();
 }
 
-void MomentumDistributionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
+void WavePacketKView::contextMenuEvent(QContextMenuEvent *event)
 {
-    if (event->buttons() & Qt::RightButton)
-    {
         QMenu m;
-//        QAction *scaleX = m.addAction("Set something");
-        QAction *scalePsi = m.addAction("Set scales");
-        QAction *what = m.exec(event->screenPos());
+        QAction *scalePsi = m.addAction("Scales");
+        QAction *what = m.exec(event->globalPos());
         if (what == scalePsi)
         {
-            view->showDialogScaleY();
+            this->showDialogScaleY();
             update();
         }
         event->accept();
-#if 0
-        QPainterPath p = shape();
-        QPointF v = event->pos();
-        QRectF r = QRectF(v,v).adjusted(-0.1,-0.1,0.1,0.1);
-
-        bool i = p.intersects(r);
-        if (i)
-        {
-            QMenu m;
-            QAction *scaleX = m.addAction("Set something");
-            QAction *scaleY = m.addAction("Set scales");
-            QAction *what = m.exec(event->screenPos());
-            if (what == scaleY)
-            {
-                view->scaleY();
-            }
-               update();// repaint();
-            event->accept();
-            return;
-        }
-#endif
-    }
 }

@@ -11,18 +11,15 @@
 #include <QWidget>
 #include <QAction>
 #include <QPainterPath>
-#include "ScalesUx.h"
+//#include "ScalesUx.h"
+#include "ScalePsin.h"
 
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), gbScaleXY(0), 
-//gbWP(0), gbWPl(0), gbWPr(0), 
 gbLevNum(0), lineh(0), linev(0),
-xmin(-1.), xmax(10.), 
-//nmaxWP(30),nminWP(0),hnWP(1),
+xmin(-1.), xmax(10.),dx(0.01), 
 nMax(4),nMin(0),hn(1),
-//wpE_lo(5.), wpE_hi(10.), wpN(30), 
-psiMax(1.), psiMin(-1.), gbVPsi(0),bgR(0)
-//viewWF(0),need_build_WavePacket(true)
+psiMax(1.), psiMin(-1.), gbVPsi(0),bgR(0),dialogScalePsin(0)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -39,24 +36,35 @@ psiMax(1.), psiMin(-1.), gbVPsi(0),bgR(0)
 
     //connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Psi_n_of_x()));
-    connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
+//    connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
+    connect(model,SIGNAL(signalScalePsinChanged()),this,SLOT(resizePicture()));
     setScalesFromModel();
     resizePicture();
 }
 void WaveFunctionView::resizePicture()
 {       
-    ScalesUParameters tp = model->getScalesUParam();
+    ScalePsinParameters tp = model->getScalePsinParam();
     dx=tp.Hx;
     xmin=tp.Xmin;
     xmax=tp.Xmax;
+    psiMax=tp.Psinmax;
+    psiMin=tp.Psinmin;
     setViewportMapping();
     slot_Psi_n_of_x();
 }
+
 void WaveFunctionView::setScalesFromModel()
 {
     QPair<double,double> xmin_xmax = model->getXminXmax();
     xmin = xmin_xmax.first;
     xmax = xmin_xmax.second;
+    ScalePsinParameters tp;
+    tp.Hx = this->dx;
+    tp.Xmin = xmin;
+    tp.Xmax = xmax;
+    tp.Psinmin = psiMin;
+    tp.Psinmax = psiMax;
+    model->setScalePsinParam(tp);
 }
 
 void WaveFunctionView::setViewportMapping()
@@ -266,7 +274,7 @@ void WaveFunctionView::showDialogLevNum()
     gbLevNum->raise();
     gbLevNum->setFocus();
 }
-void WaveFunctionView::showDialogScaleY()
+/*void WaveFunctionView::showDialogScaleY()
 {   
     if (!gbScaleXY) 
     {
@@ -285,6 +293,19 @@ void WaveFunctionView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
+*/
+void WaveFunctionView::showDialogScaleY()
+{   
+    if (!dialogScalePsin) 
+    {
+        dialogScalePsin = new ScalePsin(this);
+        dialogScalePsin->setModel(model);
+    }
+    dialogScalePsin->show(); 
+    dialogScalePsin->activateWindow();
+    dialogScalePsin->setFocus();
+}
+
 void WaveFunctionView::showDialogViewPsiX()
 {
     if (!gbVPsi) 
@@ -319,7 +340,31 @@ void WaveFunctionView::showDialogViewPsiX()
     gbVPsi->setFocus();
 
 }
-void CoordinateDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
+void WaveFunctionView::contextMenuEvent(QContextMenuEvent *event)
+{
+        QMenu m;
+        QAction *levNum = m.addAction("Level numbers");
+        QAction *viewPsiX = m.addAction("Real, imag or |psi(x)|^2?");
+        QAction *scalePsi = m.addAction("Scales");
+        QAction *what = m.exec(event->globalPos());
+        if (what == levNum)
+        {
+            this->showDialogLevNum();
+            update();
+        }
+        if (what == scalePsi)
+        {
+            this->showDialogScaleY();
+            update();
+        }
+        if (what == viewPsiX)
+        {
+            this->showDialogViewPsiX();
+            update();
+        }
+        event->accept();
+}
+/*void CoordinateDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
     if (event->buttons() & Qt::RightButton)
     {
@@ -369,3 +414,4 @@ void CoordinateDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
 #endif
     }
 }
+*/

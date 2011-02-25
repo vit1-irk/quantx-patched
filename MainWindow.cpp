@@ -14,7 +14,7 @@
 #include <QRectF>
 #include <QGraphicsScene>
 #include "BreakStatus.h"
-
+#include "MySplitter.h"
 
 class DoubleValidator : public QRegExpValidator
 {
@@ -721,28 +721,6 @@ void MainWindow::window_Ux_Psix()
     gbPview->setLayout(vl);
     }
 }
-void  MainWindow::slotSetWPEm()
-{
-    if (!dialogWPEm)
-    {
-        dialogWPEm = new WPparametersM(this);
-        dialogWPEm->setModel(model);
-    }
-    dialogWPEm->show(); 
-    dialogWPEm->activateWindow();
-    dialogWPEm->setFocus();
-}
-void  MainWindow::slotSetWPEp()
-{
-    if (!dialogWPEp)
-    {
-        dialogWPEp = new WPparametersP(this);
-        dialogWPEp->setModel(model);
-    }
-    dialogWPEp->show(); 
-    dialogWPEp->activateWindow();
-    dialogWPEp->setFocus();
-}
 void  MainWindow::slotSetTime()
 {
     if (!dialogTime)
@@ -754,6 +732,7 @@ void  MainWindow::slotSetTime()
     dialogTime->activateWindow();
     dialogTime->setFocus();
 }
+
 void  MainWindow::slotSetZ()
 {
     if (!dialogZ)
@@ -780,10 +759,10 @@ void MainWindow::window_psi_xt()
     bRunPsiXT = new QPushButton("Run ");	
     connect(bRunPsiXT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
 //    connect(reset,SIGNAL(clicked()),wavePacketXView,SLOT(resizePicture()));
-    QLabel *ltextWP= new QLabel(this);
-    ltextWP->setText("Wave packet definition:");
+//    QLabel *ltextWP= new QLabel(this);
+//    ltextWP->setText("Wave packet definition:");
 
-    QPushButton *bWPEm = new QPushButton("En<0 ");	
+/*    QPushButton *bWPEm = new QPushButton("En<0 ");	
     connect(bWPEm,SIGNAL(clicked()),this, SLOT(slotSetWPEm()));
 
     QPushButton *bWPEp = new QPushButton("Ej>0 ");	
@@ -791,9 +770,9 @@ void MainWindow::window_psi_xt()
 
     QPushButton *butTime = new QPushButton(tr("Time:")); 
     connect(butTime, SIGNAL(clicked()), this, SLOT(slotSetTime()));
-   
-//    QLabel *ltext= new QLabel(this);
-//    ltext->setText("time:");
+*/   
+    QLabel *ltext= new QLabel(this);
+    ltext->setText("time:");
     QLabel *ltime= new QLabel(this);
     connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
 
@@ -801,10 +780,12 @@ void MainWindow::window_psi_xt()
     splitterR->addWidget(gbviewPsixT);
 //    rightDownLayout->addWidget(gbRightDown);
     hl->addWidget(bRunPsiXT);		
-    hl->addWidget(ltextWP);
-    hl->addWidget(bWPEm);		
-    hl->addWidget(bWPEp);		
-    hl->addWidget(butTime);//ltext);
+//    hl->addWidget(ltextWP);
+    hl->addWidget(ltext);
+
+//    hl->addWidget(bWPEm);		
+//    hl->addWidget(bWPEp);		
+//    hl->addWidget(butTime);//ltext);
     hl->addWidget(ltime);
     hl->addStretch();
     vl->addLayout(hl);
@@ -961,9 +942,9 @@ void MainWindow::slotRunEnz()
 }
 void MainWindow::initControlDockWindow()
 {
-    splitterR = new QSplitter(Qt::Vertical);
-    splitterL = new QSplitter(Qt::Vertical);
-    splitterLR = new QSplitter(Qt::Horizontal);
+    splitterR = new MySplitter(Qt::Vertical);
+    splitterL = new MySplitter(Qt::Vertical);
+    splitterLR = new MySplitter(Qt::Horizontal);
 //    splitterR->setHandleWidth(55);
 //    QSplitterHandle *hSR=new QSplitterHandle( Qt::Vertical, splitterR );
 //    hSR->setAutoFillBackground ( true );
@@ -2342,6 +2323,12 @@ static void setSomeInitialU(PhysicalModel *m)
     m->setUAsMW( u );
 }
 
+/*char model1[] = 
+"N=1\n"
+"U=0,-1,0\n"
+"xmin=-3\n"
+;
+*/
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags f)
 : Nwb(1),nmaxLevel(10),nminLevel(0),nLevel(0), nmaxWP(7), nminWP(0),hnWP(1),  
 E0(-10.), hE(0.01),time(0.), tmin(0.), tmax(1000.0), htime(0.1),Psi2(0.),

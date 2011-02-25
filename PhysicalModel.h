@@ -92,6 +92,20 @@ struct ScalesUParameters
     }
 };
 
+struct ScalePsinParameters
+{
+    double Xmin,Xmax,Hx;
+    double Psinmin,Psinmax;
+    bool operator != (const ScalePsinParameters& o) 
+    { 
+        return Hx != o.Hx
+            ||Xmin != o.Xmin 
+            ||Xmax != o.Xmax 
+            ||Psinmin != o.Psinmin 
+            ||Psinmax != o.Psinmax; 
+    }
+};
+
 struct zParameters
 {
     double z,zmin,zmax,hz;
@@ -115,6 +129,8 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
+    ScalePsinParameters getScalePsinParam() const;
+    void setScalePsinParam(const ScalePsinParameters&);
     ScalesUParameters getScalesUParam() const;
     void setScalesUParam(const ScalesUParameters&);
     Uparab getUparab() const;
@@ -136,6 +152,7 @@ signals:
     void signalTransmissionChanged(double);
     void signalEboundChanged();
     void signalScalesUChanged();
+    void signalScalePsinChanged();
     void signalTimeChanged(double);
     void signalZChanged(double);
     void signalWavePacketChanged();
@@ -226,7 +243,7 @@ public:
 //    void set_nminWP_nmaxWP_hnWP(int nminWP, int nmaxWP, int hnWP);
     QVector<double> getEn();
     double getEn(int n);
-    double Umin,Umax,Psimin,Psimax,Xmin,Xmax,Hx;  
+    double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;  
     QPair<double,double> getUminUmax();
     QPair<double,double> getXminXmax();
     int get_LevelNmin() const { return this->LevelNmin; };

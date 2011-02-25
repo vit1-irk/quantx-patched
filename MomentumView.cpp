@@ -235,8 +235,18 @@ void MomentumView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
-
-void MomentumDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
+void MomentumView::contextMenuEvent(QContextMenuEvent *event)
+{
+        QMenu m;
+        QAction *scalePsi = m.addAction("Set scales");
+        QAction *what = m.exec(event->globalPos());
+        if (what == scalePsi)
+        {
+            this->showDialogScaleY();
+            update();
+        }
+}
+/*void MomentumDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
     if (event->buttons() & Qt::RightButton)
     {
@@ -273,3 +283,4 @@ void MomentumDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
 #endif
     }
 }
+*/

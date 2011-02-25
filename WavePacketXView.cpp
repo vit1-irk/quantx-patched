@@ -14,8 +14,10 @@
 #include "BreakStatus.h"
 
 WavePacketXView::WavePacketXView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), butTime(0), dialogTime(0), gbScaleXY(0), gbWP(0), gbWPl(0), gbWPr(0), gbVPsi(0), bgRVF(0),bgR(0),lineh(0), linev(0),
-xmin(-1.), xmax(10.), nmaxWP(100),nminWP(0),hnWP(1),
+: QGraphicsView(parent), model(m), 
+//butTime(0), 
+dialogTime(0), gbScaleXY(0), gbDefWP(0), gbVPsi(0), bgRVF(0),bgR(0),lineh(0), linev(0),
+xmin(-1.), xmax(10.), nmaxWP(100),nminWP(0),hnWP(1),dialogWPEp(0),dialogWPEm(0),
 //time(0),htime(0.1), tmin(0), tmax(100.),
 wpE_lo(5.), wpE_hi(10.), wpN(30), psiMax(.2), psiMin(-.1),viewWF(0),need_build_WavePacket(true)
 {
@@ -24,7 +26,7 @@ wpE_lo(5.), wpE_hi(10.), wpN(30), psiMax(.2), psiMin(-.1),viewWF(0),need_build_W
     if (1)
     {
         setViewportUpdateMode(BoundingRectViewportUpdate);///
-        setCacheMode(CacheBackground);
+        setCacheMode(CacheBackground);  
         setRenderHint(QPainter::Antialiasing);///
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
@@ -273,7 +275,60 @@ void WavePacketXView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
-/*void  WavePacketXView::slotSetTime()
+void WavePacketXView::contextMenuEvent(QContextMenuEvent *event)
+{
+        QMenu m;
+        QAction *wpdef = m.addAction("Wave packet definition");
+        QAction *time = m.addAction("Time parameters");
+        QAction *viewPsiX = m.addAction("Real, imag or |psi(x)|^2?");
+        QAction *scalePsi = m.addAction("Scales");
+        QAction *what = m.exec(event->globalPos());
+        if (what == wpdef)
+        {
+            this->showDialogDefWP();
+            update();
+        }
+        if (what == time)
+        {
+            this->slotSetTime();
+            update();
+        }
+        if (what == scalePsi)
+        {
+            this->showDialogScaleY();
+            update();
+        }
+        if (what == viewPsiX)
+        {
+            this->showDialogViewPsiX();
+            update();
+        }
+        event->accept();
+}
+void  WavePacketXView::slotSetWPEm()
+{
+    if (!dialogWPEm)
+    {
+        dialogWPEm = new WPparametersM(this);
+        dialogWPEm->setModel(model);
+    }
+    dialogWPEm->show(); 
+    dialogWPEm->activateWindow();
+    dialogWPEm->setFocus();
+}
+void  WavePacketXView::slotSetWPEp()
+{
+    if (!dialogWPEp)
+    {
+        dialogWPEp = new WPparametersP(this);
+        dialogWPEp->setModel(model);
+    }
+    dialogWPEp->show(); 
+    dialogWPEp->activateWindow();
+    dialogWPEp->setFocus();
+}
+
+void WavePacketXView::slotSetTime()
 {
     if (!dialogTime)
     {
@@ -284,109 +339,33 @@ void WavePacketXView::showDialogScaleY()
     dialogTime->activateWindow();
     dialogTime->setFocus();
 }
-*/
-/*void WavePacketXView::showDialogWavePacket()
-{
-    if (!butTime)
-    {
-        butTime = new QPushButton(tr("Time")); 
-        QVBoxLayout *vl=new QVBoxLayout(this);
-        connect(butTime, SIGNAL(clicked()), this, SLOT(slotSetTime()));
-        butTime->setLayout(vl);
-    }
-    butTime->show(); 
-    butTime->raise();//activateWindow();
-    butTime->setFocus();
-        /*
-    if (!gbWP) 
-    {
 
-        gbWP = new QGroupBox(this);//"Wavepacket definition:");
-        gbWP->setFont(QFont("Serif", 12, QFont::Bold )); 
-        gbWP->setWindowFlags(Qt::Window);
-        gbWP->setWindowTitle("Time and wavepacket definition");
-        QVBoxLayout *vl=new QVBoxLayout;
-//        {
-            this->time.setDisplay(("time"), ("time"),vl);
-            this->htime.setDisplay(("delta_t"),("time increment"),vl);
-            this->tmin.setDisplay(("tmin"),("lower bound of the time interval"),vl);
-            this->tmax.setDisplay(("tmax"),("upper bound of the time interval"),vl);
- //       }
- //       if(!grrb)
- //       {
-        grrb=new QGroupBox("Scattering or Bound States?");
-        QRadioButton *rad1= new QRadioButton("E>0");
-        QRadioButton *rad2= new QRadioButton("E<0");
-
-        bgR= new QButtonGroup(gbWP);
-        bgR->setExclusive(true);
-        bgR->addButton(rad1,1);
-        bgR->addButton(rad2,2);
-        bgR->button(2)->setChecked(true);
-
-        QHBoxLayout *hlr=new QHBoxLayout;
-        hlr->addWidget(rad1);
-        hlr->addWidget(rad2);
-        grrb->setLayout(hlr);
-        vl->addWidget(grrb);
- //       }
-        QPushButton *butWP= new QPushButton( "Wavepacket definition");
-        QMenu *menuWP =new QMenu(this);
-        menuWP->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QAction *wpAction = menuWP->addAction(tr("&Wavepacket E>0"));
-        QAction *spAction = menuWP->addAction(tr("&Superposition E<0"));
-        connect(wpAction, SIGNAL(triggered()), this, SLOT(defWP()));
-        connect(spAction, SIGNAL(triggered()), this, SLOT(defSP()));
-        butWP->setMenu(menuWP);
-        vl->addWidget(butWP);
-
-        gbWP->setLayout(vl);
-
-    }
-    gbWP->show(); 
-    gbWP->raise();//activateWindow();
-    gbWP->setFocus();
-*/
-//}
-
-/*void  WavePacketXView::defSP()
+void WavePacketXView::showDialogDefWP()
 {   
-    if (!gbWPl) 
+    if(!gbDefWP)
     {
-            gbWPl=new QGroupBox();
-            gbWPl->setWindowTitle("Superposition of wavefunctions E<0");
-            this->setFont(QFont("Serif", 12, QFont::Bold ));
-            gbWPl->setWindowFlags(Qt::Window);
-            QVBoxLayout *vl=new QVBoxLayout;
-            this->nminWP.setDisplay(("nmin"),("lower bond of the level number interval>=0"),vl);
-            this->nmaxWP.setDisplay(("nmax"),("upper bond of the level number interval<N"),vl);
-            this->hnWP.setDisplay(("hn"),("number level increment"),vl);
-            gbWPl->setLayout(vl);
+    gbDefWP = new QGroupBox("Wave packet definition:");
+    QVBoxLayout *vl = new QVBoxLayout();
+
+    QHBoxLayout *vh = new QHBoxLayout();
+    QPushButton *bWPEm = new QPushButton("En<0 ");	
+    connect(bWPEm,SIGNAL(clicked()),this, SLOT(slotSetWPEm()));
+    vh->addWidget(bWPEm);
+
+    QPushButton *bWPEp = new QPushButton("Ej>0 ");	
+    connect(bWPEp,SIGNAL(clicked()),this, SLOT(slotSetWPEp()));
+    vh->addWidget(bWPEp);
+    vl->addLayout(vh);
+    gbDefWP->setLayout(vl);
     }
-    gbWPl->show(); 
-    gbWPl->raise();//activateWindow();
-    gbWPl->setFocus();
+    gbDefWP->show(); 
+    gbDefWP->raise();
+    gbDefWP->setFocus();
 }
-void  WavePacketXView::defWP()
-{   
-    if (!gbWPr) 
-    {
-          gbWPr=new QGroupBox(this);
-        gbWPr->setFont(QFont("Serif", 12, QFont::Bold )); 
-        gbWPr->setWindowTitle("Wavepacket definition E>0");
-        gbWPr->setWindowFlags(Qt::Window);
-        QVBoxLayout *vl=new QVBoxLayout;
-        this->wpE_lo.setDisplay(("E_low"),("lower bound of the wp energy, meV"),vl);
-        this->wpE_hi.setDisplay(("E_high"),("upper bound of the wp energy, meV"),vl);
-        this->wpN.setDisplay(("Nwp"),("the number of wavepacket modes"),vl);
-        gbWPr->setLayout(vl);
-    }
-    gbWPr->show(); 
-    gbWPr->raise();//activateWindow();
-    gbWPr->setFocus();
-}
-*/
-void CoordinateDistributionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
+//    QPushButton *butTime = new QPushButton(tr("Time:")); 
+//    connect(butTime, SIGNAL(clicked()), this, SLOT(slotSetTime()));
+
+/*void CoordinateDistributionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
     if (event->buttons() & Qt::RightButton)
     {
@@ -414,3 +393,4 @@ void CoordinateDistributionCurve::mousePressEvent(QGraphicsSceneMouseEvent * eve
     }
 }
 
+*/

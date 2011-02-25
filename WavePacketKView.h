@@ -23,7 +23,7 @@ public:
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
+//    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
 class WavePacketKView : public QGraphicsView
@@ -35,6 +35,8 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MomentumDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
+    void contextMenuEvent(QContextMenuEvent *event);
+
      
 public slots:
     void setViewportMapping();
