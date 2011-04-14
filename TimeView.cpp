@@ -8,44 +8,44 @@
 TimeView::TimeView(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-    this->setWindowTitle("Time parameters:");
+    this->setWindowTitle(tr("Time parameters:"));
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
 
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("time",this));
+        h->addWidget(new QLabel(tr("time"),this));
         h->addWidget(this->leTime = new QLineEdit(this));
         this->leTime->setEnabled(true);
-        this->leTime->setToolTip("Current value of time");
+        this->leTime->setToolTip(tr("Current value of time"));
         connect(this->leTime,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("tmin",this));
+        h->addWidget(new QLabel(tr("tmin"),this));
         h->addWidget(this->leTmin= new QLineEdit(this));
-        this->leTmin->setToolTip("Lower bound of time interval");
+        this->leTmin->setToolTip(tr("Lower bound of time interval"));
         connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("tmax",this));
+        h->addWidget(new QLabel(tr("tmax"),this));
         h->addWidget(this->leTmax= new QLineEdit(this));
-        this->leTmax->setToolTip("High bound of time interval");
+        this->leTmax->setToolTip(tr("High bound of time interval"));
         connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("ht",this));
+        h->addWidget(new QLabel(tr("ht"),this));
         h->addWidget(this->leHTime= new QLineEdit(this));
-        this->leHTime->setToolTip("time increment");
+        this->leHTime->setToolTip(tr("time increment"));
         connect(this->leHTime,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }

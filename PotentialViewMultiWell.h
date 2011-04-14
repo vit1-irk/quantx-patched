@@ -21,7 +21,7 @@ private:
     UAsMW last;
 
     QLineEdit *leNumberOfWells;
-    QLineEdit *leUBias;
+//    QLineEdit *leUBias;
     QLineEdit *leWidthA;
     QLineEdit *leWidthB;
     QLineEdit *leHeightA;

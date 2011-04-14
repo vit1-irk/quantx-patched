@@ -70,7 +70,7 @@ LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
     case Qt::Horizontal:
         switch (section)
         {
-        case 0: return QVariant("E(n)");
+        case 0: return QVariant(tr("E(n)"));
         default: return QVariant();
         }
     case Qt::Vertical:

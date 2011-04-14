@@ -14,45 +14,45 @@ ScalePsin::ScalePsin(QWidget *parent, Qt::WindowFlags f)
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("xmin",this));
+        h->addWidget(new QLabel(tr("xmin"),this));
         h->addWidget(this->leXmin= new QLineEdit(this));
-        this->leXmin->setToolTip("Lower value of x-interval");
+        this->leXmin->setToolTip(tr("Lower value of x-interval"));
         connect(this->leXmin,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("xmax",this));
+        h->addWidget(new QLabel(tr("xmax"),this));
         h->addWidget(this->leXmax= new QLineEdit(this));
-        this->leXmax->setToolTip("High value of x-interval");
+        this->leXmax->setToolTip(tr("High value of x-interval"));
         connect(this->leXmax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
-    }
+    } 
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("hx",this));
+        h->addWidget(new QLabel(tr("hx"),this));
         h->addWidget(this->leHx= new QLineEdit(this));
-        this->leHx->setToolTip("x increment");
+        this->leHx->setToolTip(tr("x increment"));
         connect(this->leHx,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("Psi_min",this));
+        h->addWidget(new QLabel(tr("Psi_min"),this));
         h->addWidget(this->lePsimin= new QLineEdit(this));
-        this->lePsimin->setToolTip("Lower value of Psi");
+        this->lePsimin->setToolTip(tr("Lower value of Psi"));
         connect(this->lePsimin,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("Psi_max",this));
+        h->addWidget(new QLabel(tr("Psi_max"),this));
         h->addWidget(this->lePsimax= new QLineEdit(this));
-        this->lePsimax->setToolTip("High value of Psi");
+        this->lePsimax->setToolTip(tr("High value of Psi"));
         connect(this->lePsimax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }

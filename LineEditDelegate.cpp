@@ -8,10 +8,14 @@ LineEditDelegate::LineEditDelegate(QObject *parent)
 }
 
 QWidget *LineEditDelegate::createEditor(QWidget *parent,
-                                        const QStyleOptionViewItem &/* option */,
-                                        const QModelIndex &/* index */) const
+                                        const QStyleOptionViewItem& option,
+                                        const QModelIndex &index) const
 {
+    (void)option;
+    (void)index;
     QLineEdit *editor = new QLineEdit(parent);
+    editor->setFocusPolicy(Qt::StrongFocus);
+    editor->setAutoFillBackground(true);
     return editor;
 }
 

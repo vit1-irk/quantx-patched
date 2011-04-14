@@ -20,15 +20,24 @@ typedef std::vector<WPEw>  WavePacketEw;
 struct UAsMW
 {
     int numberOfWells;
-    double wa,wb,ua,ub,ubias;
+    double wa,wb,ua,ub;//,ubias;
     bool operator != (const UAsMW& o) 
     { 
         return numberOfWells != o.numberOfWells 
             || wa != o.wa || wb != o.wb 
-            || ua != o.ua || ub != o.ub || ubias != o.ubias; 
+            || ua != o.ua || ub != o.ub;// || ubias != o.ubias; 
     }
 };
 
+struct LevelNumberParameters
+{
+    int nmin, nmax, hn;
+    bool operator != (const LevelNumberParameters& o) 
+    { 
+        return nmin != o.nmin 
+            || nmax != o.nmax || hn != o.hn; 
+    }
+};
 struct EmWP
 {
     int nmin, nmax, hn;
@@ -105,6 +114,46 @@ struct ScalePsinParameters
             ||Psinmax != o.Psinmax; 
     }
 };
+struct ScaleWPXParameters
+{
+    double Xmin,Xmax,Hx;
+    double WPXmin,WPXmax;
+    bool operator != (const ScaleWPXParameters& o) 
+    { 
+        return Hx != o.Hx
+            ||Xmin != o.Xmin 
+            ||Xmax != o.Xmax 
+            ||WPXmin != o.WPXmin 
+            ||WPXmax != o.WPXmax; 
+    }
+};
+struct ScaleWPKParameters
+{
+    double Kmin,Kmax,Hk;
+    double WPKmin,WPKmax;
+    bool operator != (const ScaleWPKParameters& o) 
+    { 
+        return Hk != o.Hk
+            ||Kmin != o.Kmin 
+            ||Kmax != o.Kmax 
+            ||WPKmin != o.WPKmin 
+            ||WPKmax != o.WPKmax; 
+    }
+};
+
+struct ScalePhinParameters
+{
+    double Kmin,Kmax,Hk;
+    double Phinmin,Phinmax;
+    bool operator != (const ScalePhinParameters& o) 
+    { 
+        return Hk != o.Hk
+            ||Kmin != o.Kmin 
+            ||Kmax != o.Kmax 
+            ||Phinmin != o.Phinmin 
+            ||Phinmax != o.Phinmax; 
+    }
+};
 
 struct zParameters
 {
@@ -129,11 +178,20 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
+    LevelNumberParameters getLevelNumberParameters() const;
+    void setLevelNumberParameters(const LevelNumberParameters&);
+    ScaleWPXParameters getScaleWPXParam() const;
+    void setScaleWPXParam(const ScaleWPXParameters&);
+    ScaleWPKParameters getScaleWPKParam() const;
+    void setScaleWPKParam(const ScaleWPKParameters&);
     ScalePsinParameters getScalePsinParam() const;
     void setScalePsinParam(const ScalePsinParameters&);
+    ScalePhinParameters getScalePhinParam() const;
+    void setScalePhinParam(const ScalePhinParameters&);
     ScalesUParameters getScalesUParam() const;
     void setScalesUParam(const ScalesUParameters&);
     Uparab getUparab() const;
+    void set_z(double v);
 
     void setUparab(const Uparab&);
 //    zParameters getzParam();
@@ -147,14 +205,20 @@ public:
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
     QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
 signals:
+
+    void signalScaleWPXChanged();
+    void signalScaleWPKChanged();
     void signalPotentialChanged();
     void signalEnergyChanged(double);
     void signalTransmissionChanged(double);
     void signalEboundChanged();
     void signalScalesUChanged();
     void signalScalePsinChanged();
+    void signalScalePhinChanged();
+    void signalLevelNumberChanged();
     void signalTimeChanged(double);
     void signalZChanged(double);
+    void signalScaleZChanged();
     void signalWavePacketChanged();
 public slots:
     void slotU1();
@@ -201,10 +265,13 @@ public:
 //    void slotU1();
 //    void slotU2();
     void set_Uxz(double z);
+    void set_Uxz_forTz(double z);
+    void getTatE(); 
     bool flagBondaryCondition;
-    double getTatE(double E);
-    double get_U(int n);
+//    double getTatE(double E);
+  double get_U(int n);//comment
     double get_Ub() const { return Ub; }
+    double getUbias() const { return Ubias; }
     double get_E0() const { return E0; }
     double get_Time() const { return this->time; }
 //---------WavePacket---------------- 
@@ -227,8 +294,11 @@ public:
 
 //potential:
     void set_Ub(double _Ub);
+    void setUbias(double _Ubias);
+//    QVector<double> get_U() const { return U; }//added
     QVector<double> get_Ui() const { return Ui; }
     double get_Ui(int n) const { return Ui.at(n); }
+//    double get_U(int n) const { return U.at(n); }//added
     void   set_Ui(int n, double v);
     QVector<double> get_d() const { return d; }
     double get_d(int n) const { return d.at(n); }
@@ -244,15 +314,18 @@ public:
     QVector<double> getEn();
     double getEn(int n);
     double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;  
+    double Phinmin,Phinmax,Kmin,Kmax,Hk;  
+    double WPKmin,WPKmax;  
+    double WPXmin,WPXmax;  
     QPair<double,double> getUminUmax();
     QPair<double,double> getXminXmax();
-    int get_LevelNmin() const { return this->LevelNmin; };
+ /*   int get_LevelNmin() const { return this->LevelNmin; };
     int get_LevelNmax() const { return this->LevelNmax; };
     int get_LevelHn() const { return LevelHn; };
     void set_LevelNmin(int n1);
     void set_LevelNmax(int n2);
     void set_LevelHn(int hn);
-
+*/
     void split_d(int n,double fraction);
     void remove_d(int n);
 
@@ -343,6 +416,7 @@ public:
       QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
+      QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints); 
 
 private:
     void matching( );

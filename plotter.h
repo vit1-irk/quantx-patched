@@ -62,7 +62,7 @@ private:
 //    enum {BGMode=0};
     enum {Margin = 50};
 //    enum {Margin = 60};
-    QToolButton *zoomInButton;
+    QToolButton *zoomInButton; 
     QToolButton *zoomOutButton;
     QToolButton *zoomAllButton;
     QToolButton *eraseButton;

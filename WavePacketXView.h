@@ -14,6 +14,7 @@
 #include "myparam.h"
 #include "WPparametersP.h"
 #include "WPparametersM.h"
+#include "ScaleWPX.h"
 
 class WavePacketXView;
 
@@ -35,6 +36,7 @@ class WavePacketXView : public QGraphicsView
 public:
 
     WavePacketXView(PhysicalModel *m, QWidget *parent = 0);
+    virtual ~WavePacketXView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     CoordinateDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
@@ -44,12 +46,13 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_WavePacket_of_t();
-    void slot_rebuildWavePacket();
     void slotSetWPEm();
     void slotSetWPEp();
     void slotSetTime();
+    void updateWidth();
 signals:
     void infoMouseMovedTo(QPointF);
+    void signalWidthChanged();    
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -60,29 +63,50 @@ protected:
 public:
     void showDialogScaleY();
     void showDialogWavePacket();
-    void showDialogViewPsiX();
-    void showDialogDefWP();
+//    void showDialogViewPsiX();
+//    void showDialogDefWP();
 private:
-    WPparametersM *dialogWPEm;
+    void initDialogWidth();
+    void showDialogWidth();
+    void setWidth();
+    QLineEdit *leW;
+    QGroupBox  *gbWidth;
+     WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
-    double widthLineV;
-    double widthLineH;
-    double widthLineE;
-    MyParamD psiMax, psiMin; 
-    MyParamD xmin,xmax;
-    MyParamD tmin,tmax, time, htime;
-    MyParamI nmaxWP,nminWP,hnWP;  
-//    MyParamI nMax, nMin, hn;  
-    MyParamD wpE_lo, wpE_hi, wpN;
+//    double widthLineV;
+    double widthLine;
+    double widthLineWP;
+    double psiMax, psiMin; 
+    double xmin,xmax,dx;
+    ScaleWPX *dialogScaleWPX;
+    double tmin,tmax, time, htime;
     QGraphicsLineItem *lineh,*linev;
-    MyParamI viewWF;  
     PhysicalModel *model;
-    QGroupBox  *gbScaleXY, *gbDefWP, *gbVPsi;
-    QGroupBox *grrb;
-    QPushButton *butTTime;
+//    QGroupBox  *gbDefWP;
     TimeView *dialogTime;
-    //    QRadioButton *rad1,*rad2;
-    QButtonGroup *bgR,*bgRVF;
-    bool need_build_WavePacket;
     QMap<int,CoordinateDistributionCurve*> curves;
+    
+    int whatToDraw;
+public slots:
+    void setWhatToDraw(int);
+signals:
+    void whatToDrawChanged(int);
+public:
+    int getWhatToDraw();
+
 };
+class WavePacketXWidget : public QGroupBox
+{
+    Q_OBJECT
+public:
+    WavePacketXWidget(PhysicalModel *model, QWidget * parent = 0);
+private:
+    QButtonGroup *bgR;
+    WavePacketXView *wavePacketXView;
+    QToolButton *bRunPsiXT;	
+
+public slots:
+    void slotRunWP();
+
+};
+

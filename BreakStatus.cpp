@@ -8,13 +8,15 @@ void BreakStatus::set1()
     localBreakStatus = 1;
 }
 
-bool BreakStatus::onButton(QPushButton *button)
+bool BreakStatus::onButton(QToolButton *button)
+//bool BreakStatus::onButton(QPushButton *button)
 {
     localBreakStatus = 0;
     return connect(button,SIGNAL(clicked()),this,SLOT(set1()),Qt::DirectConnection);
 }
 
-bool BreakStatus::noButton(QPushButton *button)
+bool BreakStatus::noButton(QToolButton *button)
+//bool BreakStatus::noButton(QPushButton *button)
 {
     return disconnect(button,SIGNAL(clicked()),this,SLOT(set1()));
 }

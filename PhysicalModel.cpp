@@ -126,6 +126,7 @@ QPair<double,double> PhysicalModel::getXminXmax()
 void PhysicalModel::findBoundStates()
 {   
     double dE=1e-5;
+    double Eold=this->E0;
     double E, emax;
     QPair<double,double> umin_umax = getUminUmax();
     double Umin = umin_umax.first;
@@ -161,6 +162,7 @@ void PhysicalModel::findBoundStates()
             EbandDown.push_back(E);
         }
     }
+    this->E0=Eold;
 }
 /*************************************************
   k(n) = sqrt( 2*m(n)/h2*(E0-U(n)) );
@@ -245,15 +247,15 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
 }
 
 //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
-
-/*-----------------------------------------------
+/*
+//-----------------------------------------------
   Makes U(x) = Ui(x) + Uc*x
--------------------------------------------------*/
-void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
+//-------------------------------------------------
+void PhysicalModel::build_U() 
+// input:Ub,Ui --- result:U 
 {
     if (! need_build_U)
         return;
-
     U[0] = Ui[0] + this->Ub;
     
     double width=0; 
@@ -283,6 +285,18 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     }
     need_build_U = false;///!!!!!!!!!!!
 }
+*/
+void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
+{
+    if (! need_build_U)
+        return;
+    U[0] = Ui[0];
+    for(int n=d.size()-1; n >= 0; n--)
+    {
+        U[n] = Ui[n];
+    }
+    need_build_U = false;
+}
 
 QRectF PhysicalModel::getGoodViewportAtU() const
 {
@@ -295,12 +309,15 @@ QRectF PhysicalModel::getGoodViewportAtU() const
     {
         x += get_d(n);
         if (n == getN()) Xmax = x;
-        y = get_Ui(n);
+//        y = get_U(n);
+      y = get_Ui(n);
         if (y > ymax) ymax = y; 
         if (y < ymin) ymin = y;
     }
-    if (get_Ui(getN()+1) > ymax)
-        ymax = get_Ui(getN()+1);
+//    if (get_U(getN()+1) > ymax)
+  if (get_Ui(getN()+1) > ymax)
+//        ymax = get_U(getN()+1);
+      ymax = get_Ui(getN()+1);
 
     Xmax=1.3*Xmax;
     Xmin=-0.3*Xmax;  
@@ -787,6 +804,31 @@ double PhysicalModel::findOneLevel(double emin, double emax)
         }
         return this->E0;
 }
+void PhysicalModel::setUbias(double u)
+{
+//    if(Ubias!=u)
+    {
+        this->Ubias=u;
+        Ui[0] = Ui[0] + this->Ubias;
+
+        double width=0; 
+        int nn=d.size();
+        for (int n=0; n < d.size(); n++) //!!!n=1 
+            width += this->d[n];
+
+        double pos=0;
+        int NN=d.size();
+        for(int n=d.size()-1; n > 0; n--)
+        {
+            pos += this->d[n]/2.;
+            double dd=d[n];
+            double UU=Ui[n];
+            Ui[n] = Ui[n] + pos/width * this->Ubias;
+            pos += this->d[n]/2.;
+        }
+        markUchanged();
+    }
+}
 
 Uparab PhysicalModel::getUparab() const
 {
@@ -859,6 +901,36 @@ tp.Psinmin=this->Psinmin;
 tp.Psinmax=this->Psinmax;
 return tp;
 }
+ScaleWPXParameters PhysicalModel::getScaleWPXParam() const
+{
+ScaleWPXParameters tp;
+tp.Hx=this->Hx;
+tp.Xmin=this->Xmin;
+tp.Xmax=this->Xmax;
+tp.WPXmin=this->WPXmin;
+tp.WPXmax=this->WPXmax;
+return tp;
+}
+ScaleWPKParameters PhysicalModel::getScaleWPKParam() const
+{
+ScaleWPKParameters tp;
+tp.Hk=this->Hk;
+tp.Kmin=this->Kmin;
+tp.Kmax=this->Kmax;
+tp.WPKmin=this->WPKmin;
+tp.WPKmax=this->WPKmax;
+return tp;
+}
+ScalePhinParameters PhysicalModel::getScalePhinParam() const
+{
+ScalePhinParameters tp;
+tp.Hk=this->Hk;
+tp.Kmin=this->Kmin;
+tp.Kmax=this->Kmax;
+tp.Phinmin=this->Phinmin;
+tp.Phinmax=this->Phinmax;
+return tp;
+}
 TimeParameters PhysicalModel::getTimeParam() const
 {
 TimeParameters tp;
@@ -868,24 +940,60 @@ tp.tmax=this->tmax;
 tp.ht=this->ht;
 return tp;
 }
+void PhysicalModel::set_z(double v)
+{
+ zParameters u = getzParam();
+ if(v!=u.z)
+ {
+     u.z=v;      
+     setzParam(u);
+ }
+/* if(v!=this->zz)
+ {
+     this->set_Uxz(v);
+     emit(signalZChanged(v));
+     this->zz=v;
+     u.z=this->zz;
+     markUchanged();
+ }
+ */
+}
 
 void  PhysicalModel::setzParam(const zParameters& u)
 {
- double v=u.z;
- if(v!=this->zz)
- {
-     emit(signalZChanged(v));
-     this->set_Uxz(v);
-     this->zz=v;
- }
- v=u.zmin;
- this->zmin=u.zmin;
- v=u.zmax;
- this->zmax=u.zmax;
- v=u.hz;
- this->hz=u.hz;
- v=u.zmax;
- 
+    bool changed = false;
+    double v=u.z;
+    double E_old=this->E0;
+    if(v!=this->zz)
+    {   
+        this->zz=v;
+        this->set_Uxz(v);
+        emit(signalZChanged(v));
+    }
+    this->E0=E_old;
+    v=u.zmin;
+    if(v!=this->zmin)
+    {
+        changed = true;
+        this->zmin=u.zmin;
+    }
+    v=u.zmax;
+    if(v!=this->zmax)
+    {
+        changed = true;
+        this->zmax=u.zmax;
+    }
+    v=u.hz;
+    if(v!=this->hz)
+    {
+        changed = true;
+        this->hz=u.hz;
+    }
+    if (changed)
+    {
+        emit(signalScaleZChanged());
+    }
+
 }
 void  PhysicalModel::setTimeParam(const TimeParameters& u)
 {
@@ -955,9 +1063,150 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
     }
     if (changed_x)
     {
+    ScalePsinParameters t;
+    t.Xmax=Xmax;
+    t.Xmin=Xmin;
+    t.Hx=Hx;
+    t.Psinmax=Psinmax;
+    t.Psinmin=this->Psinmin;
     emit(signalScalePsinChanged());
+    ScaleWPXParameters twp;
+    twp.Xmax=Xmax;
+    twp.Xmin=Xmin;
+    twp.Hx=Hx;
+    twp.WPXmax=WPXmax;
+    twp.WPXmin=this->WPXmin;
+    emit(signalScaleWPXChanged());
     }
 
+}
+void  PhysicalModel::setScalePhinParam(const ScalePhinParameters& u)
+{
+ bool changed = false;
+ double v=u.Kmax;
+ if(v!=this->Kmax)
+ {
+     this->Kmax=v;
+     changed = true;
+ }
+ v=u.Kmin;
+ if(v!=this->Kmin)
+ {
+     changed = true;
+     this->Kmin=v;
+ }
+ v=u.Phinmax;
+ if(v!=this->Phinmax)
+ {
+     this->Phinmax=v;
+     changed = true;
+ }
+
+ v=u.Phinmin;
+ if(v!=this->Phinmin)
+ {
+     changed = true;
+     this->Phinmin=v;
+ }
+
+ if(this->Hk!=u.Hk)
+ {
+ changed = true;
+ this->Hk=u.Hk;
+ }
+    if (changed)
+    {
+    emit(signalScalePhinChanged());
+    }
+}
+
+void  PhysicalModel::setScaleWPXParam(const ScaleWPXParameters& u)
+{
+    bool changed_x = false;
+    bool changed_y = false;
+    double v=u.Xmax;
+    if(v!=this->Xmax)
+    {
+        this->Xmax=v;
+        changed_x = true;
+    }
+    v=u.Xmin;
+    if(v!=this->Xmin)
+    {
+        changed_x = true;
+        this->Xmin=v;
+    }
+    v=u.WPXmax;
+    if(v!=this->WPXmax)
+    {
+        this->WPXmax=v;
+        changed_y = true;
+    }
+
+    v=u.WPXmin;
+    if(v!=this->WPXmin)
+    {
+        changed_y = true;
+        this->WPXmin=v;
+    }
+
+    if(this->Hx!=u.Hx)
+    {
+        changed_x = true;
+        this->Hx=u.Hx;
+    }
+    if (changed_x||changed_y)
+    {
+        emit(signalScaleWPXChanged());
+    }
+    if (changed_x)
+    {
+        emit(signalScalesUChanged());
+    }
+}
+void  PhysicalModel::setScaleWPKParam(const ScaleWPKParameters& u)
+{
+ bool changed_x = false;
+ bool changed_y = false;
+ double v=u.Kmax;
+ if(v!=this->Kmax)
+ {
+     this->Kmax=v;
+     changed_x = true;
+ }
+ v=u.Kmin;
+ if(v!=this->Kmin)
+ {
+     changed_x = true;
+     this->Kmin=v;
+ }
+ v=u.WPKmax;
+ if(v!=this->WPKmax)
+ {
+     this->WPKmax=v;
+     changed_y = true;
+ }
+
+ v=u.WPKmin;
+ if(v!=this->WPKmin)
+ {
+     changed_y = true;
+     this->WPKmin=v;
+ }
+
+ if(this->Hk!=u.Hk)
+ {
+ changed_x = true;
+ this->Hk=u.Hk;
+ }
+    if (changed_x||changed_y)
+    {
+    emit(signalScaleWPKChanged());
+    }
+/*    if (changed_x)
+    {
+    emit(signalScalesUChanged());
+    }*/
 }
 void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
 {
@@ -1000,7 +1249,15 @@ void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
     }
     if (changed_x)
     {
-    emit(signalScalesUChanged());
+        ScalesUParameters tp;
+        tp.Hx=this->Hx;
+        tp.Xmin=this->Xmin;
+        tp.Xmax=this->Xmax;
+        tp.Umin=this->Umin;
+        tp.Umax=this->Umax;
+        tp.Psimin=this->Psimin;
+        tp.Psimax=this->Psimax;
+        emit(signalScalesUChanged());
     }
 }
 
@@ -1057,8 +1314,45 @@ void  PhysicalModel::setEmWP(const EmWP& u)
     if (changed)
     {
     need_build_WP = true;
-//    emit(signalWavePacketChanged());
     }
+}
+
+void  PhysicalModel::setLevelNumberParameters(const LevelNumberParameters& u)
+{
+  bool changed = false;
+  int n = u.nmin;
+  if(n<0) n=0;
+ if(n!=this->LevelNmin)
+ {
+    this->LevelNmin = n;
+ changed = true;
+ }
+  n = u.nmax;
+  if(n<0) n=0;
+  if(n!=this->LevelNmax)
+ {
+    this->LevelNmax = n;
+ changed = true;
+ }
+  n = u.hn;
+  if(n==0) n=1;
+  if(n!=this->LevelHn)
+ {
+    this->LevelHn = n;
+ changed = true;
+ }
+    if (changed)
+    {
+    emit(signalLevelNumberChanged());
+    }
+}
+LevelNumberParameters  PhysicalModel::getLevelNumberParameters() const
+{
+    LevelNumberParameters u;
+    u.nmin=this->LevelNmin;
+    u.nmax=this->LevelNmax;
+    u.hn=this->LevelHn;
+    return u;
 }
 EmWP  PhysicalModel::getEmWP() const
 {
@@ -1085,7 +1379,7 @@ UAsMW PhysicalModel::getUAsMW() const
     u.wb = 1;
     u.ua = -10;
     u.ub = 0;
-    u.ubias = 0;
+//    u.ubias = 0;
     return u;
 }
 
@@ -1097,7 +1391,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
     this->m[0] = 0.5;
     this->d[0] = 0;
     this->Ui[0] = 0; 
-    this->Ub = u.ubias; 
+//    this->Ub = u.ubias; 
     for (int n = 1; n <= u.numberOfWells; n++)
     {
         int i = 2*n-1;
@@ -1119,10 +1413,16 @@ PhysicalModel::PhysicalModel(QObject *parent)
   N(0), E0(0), psi(0), Ub(0), x(0), 
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
- zz(1),zmin(0.),zmax(1.),hz(0.02),
+ zz(-1),zmin(0.),zmax(1.),hz(0.005),
 // zold({0.2,0.1,0.8,0.05}),
 Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), 
-Psimin(-1.), Psimax(4.),Psinmin(-1.), Psinmax(1.),
+Psimin(-1.), Psimax(4.),
+Psinmin(-1.), Psinmax(1.),
+WPXmin(-0.1), WPXmax(1.),
+WPKmin(-0.1), WPKmax(5.),
+//HWPx(0.05), XWPmax(20.), XWPmin(-0.5),
+Phinmin(-0.2), Phinmax(10.),
+Hk(0.025), Kmax(5.), Kmin(-5),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
  psi_real(0), Phi_real(0),Ubias(0),
  psi_imag(0), Phi_imag(0), typeOfU(FINITE),need_build_WP(true),
@@ -1255,16 +1555,6 @@ void PhysicalModel::remove_d(int n)
         markUchanged();
     }
 }
-/*
-void PhysicalModel::set_BondCond(int n, double v)
-{
-    if (Ui[n] != v)
-    {
-        Ui[n] = v;
-        markUchanged();
-    }
-}
-*/
 void PhysicalModel::set_Ui(int n, double v)
 {
     if (Ui[n] != v)
@@ -1294,6 +1584,7 @@ void PhysicalModel::set_Energy(double v)
     if (E0 != v)
     {
         this->E0 = v;
+        set_E0(v);
         emit(signalEnergyChanged(v));
     }
 }
@@ -1305,14 +1596,6 @@ void PhysicalModel::set_Time(double v)
         emit(signalTimeChanged(v));
     }
 }
-/*void PhysicalModel::set_Z(double v)
-{
-    if (zz != v)
-    {
-        this->zz = v;
-        emit(signalZChanged(v));
-    }
-}*/
 void PhysicalModel::markUchanged()
 {
     need_build_U = true;
@@ -1320,38 +1603,7 @@ void PhysicalModel::markUchanged()
     need_build_WP = true;
     emit(signalPotentialChanged());
     emit(signalEboundChanged());
-//    emit(signalWavePacketChanged());
 }
-//void PhysicalModel::markWPchanged()
-//{
-//    emit(signalWavePacketChanged());
-//}
-void PhysicalModel::set_LevelNmax(int n1)
-{
-    if(n1<0) n1=0;
-    if (this->LevelNmax != n1)
-    {
-        this->LevelNmax = n1;
-    }
-}
-void PhysicalModel::set_LevelNmin(int n1)
-{
-    if(n1<0) n1=0;
-//    if(n1>numberOfLevels-1) n1=numberOfLevels-1;
-    if (this->LevelNmin != n1)
-    {
-        this->LevelNmin = n1;
-    }
-}
-void PhysicalModel::set_LevelHn(int hn)
-{
-    if (LevelHn != hn)
-    {
-        LevelHn = hn;
-    }
-}
-
-
 QVector<double> PhysicalModel::getEn()
 {
     if (need_build_U)
@@ -1363,7 +1615,9 @@ QVector<double> PhysicalModel::getEn()
     }
     if (need_build_En)
     {
+        double Eold=this->E0;
         findBoundStates();
+        this->E0=Eold;
         need_build_En = false;
     }
     return Ebound;
@@ -1394,10 +1648,10 @@ double PhysicalModel::get_U(int n)
     }
     return U[n];
 }
-
 QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF)
 {
-    double y,tt,num; 
+    double y,tt,num;
+    double Eold=this->E0;
     set_E0(E);
     if(E>0)
     {
@@ -1405,21 +1659,15 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
         build_ab();
         build_RT();
         tt = this->TT;
-        y=tt;
     }
     else   
     {
         num = findNumberOfLevels(E);
-        y=0.1*num;
     }
-//        emit(signalEnergyChanged(E));
-        if(E>0) emit(signalTransmissionChanged(TT));
-        else  emit(signalTransmissionChanged(num));
-
     QVector<double> waveFunction(npoints);
     double dx = (xmax-xmin)/(npoints-1);
-    double fmin=1e-6;
-    double fmax=1e2;
+ //   double fmin=1e-6;
+ //   double fmax=1e2;
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
@@ -1427,7 +1675,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
         y = psi_real;
         if(viewWF==1) y = psi_imag;
         else if(viewWF>1) y = Psi2;
-        if (fabs(y)<fmin)
+/*        if (fabs(y)<fmin)
         {
          y=0.;
         }
@@ -1436,37 +1684,48 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
             if(y>fmax) y = fmax;
             else y=-fmax;
         }
+        */
         waveFunction[i] = y;
     }
+//---------------
+    this->E0=Eold;
+    if(E0>0)
+    {
+        build_k();
+        build_ab();
+        build_RT();
+    }
+    else   
+    {
+        num = findNumberOfLevels(E0);
+    }
+        if(E0>0) emit(signalTransmissionChanged(TT));
+        else  emit(signalTransmissionChanged(num));
     return waveFunction;
 }
-double PhysicalModel::getTatE(double E)
+void PhysicalModel::getTatE()//(double E)
 {
-        set_E0(E);
-        double y,tt,num; 
-        if(E>0)
+    double num; 
+    if(this->E0>0)
         {
         build_k();
         build_ab();
         build_RT();
-        tt = this->TT;
-        y=tt;
         }
         else   
         {
-            num = findNumberOfLevels(E);
-            y=0.1*num;
+            num = findNumberOfLevels(E0);
         }
-        emit(signalEnergyChanged(E));
-        if(E>0) emit(signalTransmissionChanged(TT));
+        if(E0>0) emit(signalTransmissionChanged(TT));
         else  emit(signalTransmissionChanged(num));
-        return y;
 }
 QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int npoints)
 {
     QVector<double> transmission(npoints);
     double dE = (Emax-Emin)/(npoints-1);
     double y;
+    double Eold=this->E0;
+    double z=this->zz;
     for (int i=0; i < npoints; i++)
     {
         set_E0(Emin+i*dE);
@@ -1484,6 +1743,69 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
             transmission[i] = y;
         }
     }
+    this->E0=Eold;
+    return transmission;
+
+}
+void PhysicalModel::set_Uxz_forTz(double z)
+{
+    if(U1.size()==U2.size())
+    {
+        int N = U1.size()-2;
+        set_N(U1.size()-2);
+         if (N < 0) return;
+
+        QVector<double> Uz(1+N+1);
+        QVector<double> dz(1+N+1);
+        QVector<double> mz(1+N+1);
+         double UU,mm,dd;
+        for(int n=0; n<=N+1; n++)
+        {
+            Ui[n] = U1[n] + z*(U2[n]-U1[n]);
+            U[n] = Ui[n];
+            d[n] = d1[n] + z*(d2[n]-d1[n]);
+            m[n] = m1[n] + z*(m2[n]-m1[n]);
+        }
+    }
+}
+
+QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int npoints)
+{
+    QVector<double> transmission(npoints);
+    double dZ = (Zmax-Zmin)/(npoints-1);
+    double y;
+    double Eold=this->E0;
+    double zold=this->zz;
+    for (int i=0; i < npoints; i++)
+    {   double z=Zmin+i*dZ;
+        set_Uxz_forTz(z);
+        set_E0(Eold);
+        build_k();
+        build_ab();
+        if(this->E0>0)
+        {
+        build_RT();
+         transmission[i] = this->TT;
+        }
+        else   
+        {
+            if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(this->E0);
+            else y=0; 
+            transmission[i] = y;
+        }
+    }
+    this->E0=Eold;
+    if(zold==-1) 
+    {
+        zold=(Zmin+Zmax)*0.5;
+        set_z(zold);
+    }
+    else 
+        set_Uxz_forTz(zold);
+//        build_k();
+//        build_ab();
+//    this->zz=Zmax;
+//    set_z(zold);
     return transmission;
 
 }
@@ -1524,15 +1846,19 @@ void PhysicalModel::set_Uxz(double z)
             UU = U1[n] + z*(U2[n]-U1[ n]);
             dd = d1[n] + z*(d2[n]-d1[n]);
             mm = m1[n] + z*(m2[n]-m1[n]);
+//            U[n] = U1[n] + z*(U2[n]-U1[n]);
             Ui[n] = U1[n] + z*(U2[n]-U1[n]);
             d[n] = d1[n] + z*(d2[n]-d1[n]);
             m[n] = m1[n] + z*(m2[n]-m1[n]);
         }
-            this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
-    need_build_U = true;
+//            this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
+            this->markUchanged();
+/*            need_build_U = true; 
     need_build_En = true;
+//    need_build_WP = true; addded!!!!
     emit(signalPotentialChanged());
     emit(signalEboundChanged());
+*/
     }
 }
 void PhysicalModel::slotU1()
@@ -1546,11 +1872,12 @@ void PhysicalModel::slotU1()
         double UU = get_Ui(n);
         double dd = get_d(n);
         double mm = get_m(n);
-        U1[n] = get_Ui(n);
+//        U1[n] = get_U(n);
+      U1[n] = get_Ui(n);
         d1[n] = get_d(n);
         m1[n] = get_m(n);
     }
-    Ub1 = get_Ub();
+//  Ub1 = get_Ub();
 }
 void PhysicalModel::slotU2()
 {
@@ -1563,11 +1890,12 @@ void PhysicalModel::slotU2()
         double UU = get_Ui(n);
         double dd = get_d(n);
         double mm = get_m(n);
-        U2[n] = get_Ui(n);
+      U2[n] = get_Ui(n);
+//        U2[n] = get_U(n);
         d2[n] = get_d(n);
         m2[n] = get_m(n);
     }
-    Ub2=get_Ub();
+//  Ub2=get_Ub();
 }
 void PhysicalModel::set_WPmE()
 {
@@ -1697,6 +2025,7 @@ void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
 
 QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF)//, bool need_build_WavePacket)
 {
+    double Eold=this->E0;
     QVector<double> waveFunction(npoints);
     const int N = this->getN();
     this->time=t;
@@ -1712,8 +2041,12 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
             this->set_WPmE();
             if(Ebound.size()==0) 
             {
-                type_of_WP=1;
-                set_WPpE();
+                for (int i=0; i < npoints; i++)
+                {
+                    waveFunction[i]=0;
+                }
+                need_build_WP=false;
+                return waveFunction;
             }
         }
         need_build_WP=false;
@@ -1787,10 +2120,13 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
              this->ht=tp.ht;
         }
         emit(signalTimeChanged(this->time));
+        this->E0=Eold;
     return waveFunction;
 }
 QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints)
-{
+{   
+    double Eold;
+    Eold=this->E0;
     const int N = this->getN();
     int M=EWofWP.size();
     if(M==0) 
@@ -1845,5 +2181,6 @@ QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints
             }
             waveFunction[i]=y;
         }
+        this->E0=Eold;
     return waveFunction;
 }

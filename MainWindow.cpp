@@ -43,7 +43,14 @@ public:
 
 void MainWindow::initMenuBar()
 {
-     QMenu *fileMenu = menuBar()->addMenu(tr("File"));
+     QMenu *fileMenu = new QMenu;
+     menuBar()->addMenu(fileMenu);
+     QFont font( "Serif", 10, QFont::DemiBold );
+     menuBar()->setFont(font);
+     fileMenu->setFont(font);
+     fileMenu->setTitle(tr("File"));
+     menuBar()->addSeparator();
+//     fileMenu->setFont(QFont("Serif", 12, QFont::Bold )); 
 //     QMenu *fileMenu = new QMenu(tr("&File"), this);
 //     fileMenu->addAction(tr("&Quit"), this, SLOT(close()));
      QAction *quitAction = fileMenu->addAction(tr("Quit"));
@@ -51,16 +58,16 @@ void MainWindow::initMenuBar()
      quitAction->setShortcut(QKeySequence(tr("Ctrl+Q")));
      connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-     QAction *openAction = fileMenu->addAction(tr("&Open..."));
+/*     QAction *openAction = fileMenu->addAction(tr("&Open..."));
      openAction->setShortcut(tr("Ctrl+O"));
      connect(openAction, SIGNAL(triggered()), this, SLOT(openFile())); //TODO: openFile(str)
 
      QAction *saveAction = fileMenu->addAction(tr("&Save As..."));
      saveAction->setShortcut(tr("Ctrl+S"));
      connect(saveAction, SIGNAL(activated()), this, SLOT(saveAs()));
-
+*/
      aboutAction = new QAction(tr("&О программе"),this);
-     aboutAction->setStatusTip(tr("Сведения о программе"));
+//     aboutAction->setStatuslTip(tr("Сведения о программе"));
      connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
      fileMenu->addAction(aboutAction);  
      fileMenu->addSeparator();
@@ -73,7 +80,152 @@ void MainWindow::initMenuBar()
 
 //     QMenu *helpMenu = menuBar()->addMenu("&Help");
 //     helpMenu->addAction(aboutAction);
+     QMenu *wMenu = menuBar()->addMenu(tr("Зависимости"));
+     wMenu->setWhatsThis(tr("What calculates"));
+//     wMenu->setStatusTip(tr("What calculates"));
+     wMenu->setFont(font);
+     QString psi=QChar(0x03C8);
+     QString Psi=QChar(0x03A8);
+     QString phi=QChar(0x03C6);
+     QString Phi=QChar(0x03A6);
+     QString to2=QChar(0x00B2);
+     QString phinofk=phi+"_n(k)";
+     QString Phinofkt=Phi+"_n(k,t)";
+     QString psiofx=psi+"(x)";
+     QString psinofx=psi+"_n(x)";
+     QString mod_psiofx="|"+psiofx+"|"+to2;
+     QString mod_phinofk="|"+phinofk+"|"+to2;
+     QString mod_Phinofkt="|"+Phinofkt+"|"+to2;
+
+     //     QAction *mU = new QAction("U(x), En, "+psi+"(x,E)", this);
+     //     wMenu->addAction(mU);
+     Uaction = new QAction("U(x), En, "+psi+"(x,E)", this);
+     wMenu->addAction(Uaction);
+     wMenu->addSeparator();
+     //Uaction->setStatusTip(tr("Calculated energy levels and wave function at energy E for potential U(x)"));
+     Uaction->setStatusTip(tr("Уровни энергии в потенциале U(x) и волновая функция для энергии E"));
+     QAction *mPsinX = new QAction(psinofx, this);
+     wMenu->addAction(mPsinX);
+     wMenu->addSeparator();
+     mPsinX->setStatusTip(tr("Волновые функции для уровней энергии"));
+//     mPsinX->setStatusTip(tr("Wave functions for energy levels"));
+     QAction *mPhinK = new QAction(mod_phinofk, this);
+     wMenu->addAction(mPhinK);
+     wMenu->addSeparator();
+     mPhinK->setStatusTip(tr("Импульсное распределение для уровней энергии"));
+//     mPhinK->setStatusTip(tr("Momentum distributions for energy levels"));
+     QAction *mPsiXT = new QAction(Psi+"(x,t)", this);
+     wMenu->addAction(mPsiXT);
+     wMenu->addSeparator();
+     mPsiXT->setStatusTip(tr("Временная эволюция волнового пакета: координатное распределение"));
+//     mPsiXT->setStatusTip(tr("Coordinate distribution: time development of wave packet"));
+     QAction *mPhiKT = new QAction(mod_Phinofkt, this);
+     wMenu->addAction(mPhiKT);
+     wMenu->addSeparator();
+
+     mPsiXT->setStatusTip(tr("Временная эволюция волнового пакета: импульсное распределение"));
+//     mPhiKT->setStatusTip(tr("Momentum distribution: time development of wave packet"));
+     QAction *mTE = new QAction(tr("T(E)"), this);
+     wMenu->addAction(mTE);
+     wMenu->addSeparator();
+     mTE->setStatusTip(tr("Коэффициент прохождения в зависимости от энергии"));
+     QAction *mTZ = new QAction(tr("T(z)"), this);
+     wMenu->addAction(mTZ);
+     wMenu->addSeparator();
+     mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
+//     mTE->setStatusTip(tr("Transmission coefficient as a function of energy"));
+     QAction *mEnz = new QAction(tr("Enz"), this);
+     wMenu->addAction(mEnz);
+     wMenu->addSeparator();
+     mEnz->setStatusTip(tr("Уровни энергии как функция деформации потенциала z"));
+//     mEnz->setStatusTip(tr("Energy levels as a function of potential deformation z"));
+//     mEnz->setWhatsThis(tr("Click this option to create a new file."));
+
+     connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux_Psix()));
+     connect(mPsinX, SIGNAL(triggered()), this, SLOT(window_psi_x()));
+     connect(mPhinK, SIGNAL(triggered()), this, SLOT(window_phi_k()));
+    connect(mPsiXT, SIGNAL(triggered()), this, SLOT(window_psi_xt()));
+     connect(mPhiKT, SIGNAL(triggered()), this, SLOT(window_phi_kt()));
+     connect(mTE, SIGNAL(triggered()), this, SLOT(window_TE()));
+     connect(mTZ, SIGNAL(triggered()), this, SLOT(window_TZ()));
+     connect(mEnz, SIGNAL(triggered()), this, SLOT(window_Enz()));
+
+     QMenu *uMenu = menuBar()->addMenu(tr("Потенциалы"));
+//     QMenu *uMenu = menuBar()->addMenu(tr("U(x)"));
+     uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold )); 
+     QAction *uTable = new QAction(tr("Табличный"), uMenu);
+     QAction *uLinear = new QAction(tr("Линейный"),uMenu);
+     QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
+//     QAction *uTable = new QAction(tr("Tabular"), uMenu);
+//     QAction *uParabolic = new QAction(tr("Parabolic"),uMenu);
+//     QAction *uZdef = new QAction(tr("U(x)=(1-z)*U1(x)+z*U2(x)"),uMenu);
+     uMenu->addAction(uTable);
+     uMenu->addSeparator();
+     uMenu->addAction(uLinear);
+     uMenu->addSeparator();
+     uMenu->addAction(uParabolic);
+     uMenu->addSeparator();
+//     uMenu->addAction(uZdef);
+     connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
+     connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
+     connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
+//     connect(uZdef, SIGNAL(triggered()), this, SLOT(slotSetZ()));
+
+     QToolBar *uTool = new QToolBar;
+     uTool->setFont(font);
+     addToolBar(uTool);
+     QAction *uMulti = new QAction(tr("Un"), uTool);
+     uTool->addAction(uMulti);
+     uTool->addSeparator();
+     uMulti->setToolTip(tr("Система одинаковых ям/барьеров"));
+//     uMulti->setToolTip("Multi-well/barrier potential");
+     connect(uMulti, SIGNAL(triggered()), this, SLOT(slotSetUmwb()));
+
+     QToolBar *EnTool = new QToolBar;
+     addToolBar(EnTool); 
+     QAction *EnAction = new QAction(tr("En"), EnTool);
+     EnTool->addAction(EnAction);
+     EnAction->setToolTip(tr("Таблица уровней энергии En"));
+//   EnAction->setToolTip("Values of energy levels En");
+     connect(EnAction, SIGNAL(triggered()), this, SLOT(slotSetEn()));
+
+     QToolBar *U1Tool = new QToolBar;
+     addToolBar(U1Tool);
+     QAction *U1Action = new QAction(tr("U1"), U1Tool);
+     U1Tool->addAction(U1Action);
+     U1Action->setToolTip(tr("Начальный потенциал"));
+//     U1Action->setToolTip("Initial Potential");
+     connect(U1Action, SIGNAL(triggered()), model, SLOT(slotU1()));
+
+     QToolBar *U2Tool = new QToolBar;
+     addToolBar(U2Tool);
+     QAction *U2Action = new QAction(tr("U2"), U2Tool);
+     U2Tool->addAction(U2Action);
+     U2Action->setToolTip(tr("Конечный потенциал"));
+//   U2Action->setToolTip("Final Potential");
+     connect(U2Action, SIGNAL(triggered()), model, SLOT(slotU2()));
+
+     QToolBar *ubiasTool = new QToolBar;
+     addToolBar(ubiasTool);
+     QAction *ubiasAc = new QAction(tr("Ubias"), ubiasTool);
+     ubiasTool->addAction(ubiasAc);
+     ubiasAc->setToolTip(tr("Структура в электрическом поле"));
+     connect(ubiasAc, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
 }
+void MainWindow::about()
+{
+    QMessageBox *mb = new QMessageBox(this); 
+    QMessageBox::about(this, tr("О программе Кванте"), 
+        tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
+        "окно, которое при желании можно закрыть. Масштабы и дополнительные параметры,\n"
+        "такие как номера уровней, параметры волнового пакета, можно задать в\n" 
+        "контекстно-зависящем меню, которое открывается при нажатии на правую кнопку\n"
+        "мышки в поле графика. Потенциал меняется мышкой в окне <<Потенциала>> или\n"
+        "задается численно в меню <<U(x)>> или на панели инструментов кнопкой <<Un>>,\n"
+        "которая запрашивает потенциал из одинаковых ям или барьеров. Таблица уровней\n"
+        "открывается при нажатии кнопки <<En>>"));
+}
+
 void MainWindow::openFile(const QString &path)
  {
      QString fileName;
@@ -201,6 +353,17 @@ void  MainWindow::slotSetUs()
     dialogUparab->activateWindow();
     dialogUparab->setFocus();
 }
+void  MainWindow::slotSetUlinear()
+{
+    if (!dialogUlinear)
+    {
+        dialogUlinear = new Ulinear(this);
+        dialogUlinear->setModel(model);
+    }
+    dialogUlinear->show(); 
+    dialogUlinear->activateWindow();
+    dialogUlinear->setFocus();
+}
 void  MainWindow::slotSetUmwb()
 {
     if (!dialogUAsMW)
@@ -212,7 +375,7 @@ void  MainWindow::slotSetUmwb()
     dialogUAsMW->activateWindow();
     dialogUAsMW->setFocus();
 }
-void  MainWindow::slotScaleP()
+/*void  MainWindow::slotScaleP()
 {   
         if (!gbScaleP) 
         {
@@ -247,7 +410,8 @@ void  MainWindow::slotScaleX()
     gbScaleX->activateWindow();
     gbScaleX->setFocus();
 }
-void  MainWindow::slotScaleZ()
+*/
+/* void  MainWindow::slotScaleZ()
 {   
     if (!gbScaleZ) 
     {
@@ -261,31 +425,14 @@ void  MainWindow::slotScaleZ()
         this->zmax.setDisplay(("zmax"),("upper bond of z-interval"),vl0);
         this->hz.setDisplay(("hz"),("z-increment"),vl0);
  
-/*        {   
-        QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        QHBoxLayout *hl = new QHBoxLayout;
-        QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
-        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
-        hl->addWidget(bInit);
-
-        QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
-        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
-        hl->addWidget(bFin);
-
-        vl->addLayout(hl);
-        gb->setLayout(vl);
-        vl0->addWidget(gb);
-    }
-*/
         gbScaleZ->setLayout(vl0);
     }
     gbScaleZ->show(); 
     gbScaleZ->activateWindow();
     gbScaleZ->setFocus();
 }
-
-void  MainWindow::slotScalePsi()
+*/
+/*void  MainWindow::slotScalePsi()
 {   
     if (!gbScalePsi) 
     {
@@ -322,7 +469,8 @@ void  MainWindow::slotIntN()
     gbIntN->raise();//activateWindow();
     gbIntN->setFocus();
 }
-void  MainWindow::slotIntE()
+*/
+/*void  MainWindow::slotIntE()
 {   
         if (!gbIntE) 
         {
@@ -376,7 +524,8 @@ void  MainWindow::defWP()
     gbWPr->raise();//activateWindow();
     gbWPr->setFocus();
 }
-void  MainWindow::slotWPacket()
+*/
+/*void  MainWindow::slotWPacket()
 {   
         if (!gbWP) 
         {
@@ -435,6 +584,7 @@ void  MainWindow::slotWPacket()
     gbWP->raise();//activateWindow();
     gbWP->setFocus();
 }
+*/
 /*static const char* image_xpm[]=
 {
 "8 8 4 1", 
@@ -472,17 +622,6 @@ void MainWindow::updateMouseMovedTo(QPointF f)
 
 void MainWindow::windowTopRight()
 {
-//    if (gbRightTop->isVisible())
-//        gbRightTop->hide();
-//    else
-//        gbRightTop->show();
- /*       QLayoutItem *child;
-    if ((child = rightTopLayout->takeAt(0)) != 0) 
-    {
-        child->widget()->hide();
-        delete child;
-    }
-*/
     int NN=this->splitterR->count();
     int iTopRight=topRightWin->QComboBox::currentIndex();
     {    
@@ -567,24 +706,8 @@ void MainWindow::windowDownLeft()
     }
 }
 
-void MainWindow::windowTopLeft()
+/*void MainWindow::windowTopLeft()
 {
-//    int number_of_items=leftTopLayout->count();
-    //    QLayoutItem *qw0;
-    //    qw0 = leftTopLayout->TakeAt(0);
-    //    if((qw0 = leftTopLayout->takeAt(0))=!0) 
-    //    {
-    //        delete qw0;
-    //    }
-    //            QLayoutItem *qw0 = leftTopLayout->itemAt(0);
-    //            qw0->widget()->hide();
-/*    QLayoutItem *child;
-    if ((child = leftTopLayout->takeAt(0)) != 0) 
-    {
-        child->widget()->hide();
-        delete child;
-    }
-    */
     int NN=this->splitterL->count();
     int iTopLeft=topLeftWin->QComboBox::currentIndex();
     {    
@@ -613,114 +736,36 @@ void MainWindow::windowTopLeft()
         }
      NN=this->splitterL->count();
     }
-//    number_of_items=leftLayout->count();
-/*    number_of_items=leftTopLayout->count();
-    //   updateGeometry();
-    leftTopLayout->update();
-#if 0
-    static int n;
-    if (5 == n++)
-    {
-        QLayout *p = QLayout(gbLeftTop->parentWidget());
-
-        delete gbLeftTop;
-        gbLeftTop = new EnzView(model);
     }
-#endif
 */
-    }
-void MainWindow::window_TE()
+    void MainWindow::window_TE()
 {
     if(!gbTEview)
     {
-    gbTEview = new QGroupBox("Transmission T(E)");
-    transmissionView = new TransmissionView(model);
-    QVBoxLayout *vl = new QVBoxLayout();
-    vl->addWidget(transmissionView);
-    QPushButton *reset = new QPushButton("&Resize");	
-    connect(reset,SIGNAL(clicked()),transmissionView,SLOT(resizePicture()));
-    QLabel *lTtext= new QLabel(this);
-    lTtext->setText("T:");
-//    lTtext->setAlignment(Qt::AlignRight);
-    QLabel *lT= new QLabel(this);
-    lT->setTextFormat(Qt::AutoText);
-    connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
-
-    QLabel *lEtext= new QLabel(this);
-//    lEtext->setAlignment(Qt::AlignRight);
-    lEtext->setText("energy:");
-    QLabel *lE= new QLabel(this);
-//    lE->setTextFormat(Qt::AutoText);
-
-    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
-
-//    gbLeftTop = gbTEview;
-//    splitterL->addWidget(gbLeftTop);
-    splitterL->addWidget(gbTEview);
-//    leftTopLayout->addWidget(gbLeftTop);
-
-    QHBoxLayout *hl = new QHBoxLayout();
-    hl->addWidget(reset);		
-    hl->addWidget(lEtext);
-    hl->addWidget(lE);
-    hl->addWidget(lTtext);
-    hl->addWidget(lT);
-    hl->addStretch();
-    vl->addLayout(hl);
-    gbTEview->setLayout(vl);
-//    gbLeftTop->setLayout(vl);
+    gbTEview = new TransmissionWidget(model);
     }
+    splitterL->addWidget(gbTEview);
+    gbTEview->show();
+}
+void MainWindow::window_TZ()
+{
+    if(!gbTZview)
+    {
+    gbTZview = new TofzViewWidget(model);
+    }
+    splitterL->addWidget(gbTZview);
+    gbTZview->show();
 }
 void MainWindow::window_Ux_Psix()
 {
     if(!gbPview)
     {
-    gbPview = new QGroupBox("Graphic definition of potential");
-    potentialViewMovable = new PotentialViewMovable(model);
-    QVBoxLayout *vl = new QVBoxLayout();
-    vl->addWidget(potentialViewMovable);
-    QPushButton * reset = new QPushButton("&Resize");	
-    connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(resizePicture()));
-//    connect(reset,SIGNAL(clicked()),potentialViewMovable,SLOT(energyAutoChanged()));
-    QLabel *lEtext= new QLabel(this);
-    lEtext->setText("energy:");
-//    lEtext->setAlignment(Qt::AlignRight);
-    QLabel *lE= new QLabel(this);
-//    lE->setAlignment(Qt::AlignLeft);
-    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
-
-    QLabel *lTtext= new QLabel(this);
-//    lTtext->setAlignment(Qt::AlignRight);
-    lTtext->setText("T:");
-    QLabel *lT= new QLabel(this);
-    lT->setTextFormat(Qt::AutoText);
-//    lT->setAlignment(Qt::AlignLeft);
-    connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
-
-//    gbRightTop = gbPview;
-//    rightTopLayout->addWidget(gbRightTop);
-    splitterR->addWidget(gbPview);
-    QHBoxLayout *hl = new QHBoxLayout();
-    hl->addWidget(reset);		
-
-/*    mouseAtX = new QLabel("x-coord");
-    hl->addWidget(mouseAtX);
-    mouseAtY = new QLabel("y-coord");
-    hl->addWidget(mouseAtY);
-    connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
-        this,SLOT(updateMouseMovedTo(QPointF)));
-*/
-    hl->addWidget(lEtext);
-    hl->addWidget(lE);
-    hl->addWidget(lTtext);
-    hl->addWidget(lT);
-
-    hl->addStretch();
-
-    vl->addLayout(hl);
-    gbPview->setLayout(vl);
+    gbPview = new PotentialMovableWidget(model);//QGroupBox("Wave Function");
     }
+    splitterR->addWidget(gbPview);
+    gbPview->show();
 }
+
 void  MainWindow::slotSetTime()
 {
     if (!dialogTime)
@@ -750,308 +795,76 @@ void MainWindow::window_psi_xt()
 {
     if(!gbviewPsixT)
     {
-    gbviewPsixT = new QGroupBox("Wave Packet Development");
-    QVBoxLayout *vl = new QVBoxLayout();
-    wavePacketXView = new WavePacketXView(model);
-    vl->addWidget(wavePacketXView);
-
-    QHBoxLayout *hl = new QHBoxLayout();
-    bRunPsiXT = new QPushButton("Run ");	
-    connect(bRunPsiXT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
-//    connect(reset,SIGNAL(clicked()),wavePacketXView,SLOT(resizePicture()));
-//    QLabel *ltextWP= new QLabel(this);
-//    ltextWP->setText("Wave packet definition:");
-
-/*    QPushButton *bWPEm = new QPushButton("En<0 ");	
-    connect(bWPEm,SIGNAL(clicked()),this, SLOT(slotSetWPEm()));
-
-    QPushButton *bWPEp = new QPushButton("Ej>0 ");	
-    connect(bWPEp,SIGNAL(clicked()),this, SLOT(slotSetWPEp()));
-
-    QPushButton *butTime = new QPushButton(tr("Time:")); 
-    connect(butTime, SIGNAL(clicked()), this, SLOT(slotSetTime()));
-*/   
-    QLabel *ltext= new QLabel(this);
-    ltext->setText("time:");
-    QLabel *ltime= new QLabel(this);
-    connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
-
-//    gbRightDown = gbviewPsixT;
-    splitterR->addWidget(gbviewPsixT);
-//    rightDownLayout->addWidget(gbRightDown);
-    hl->addWidget(bRunPsiXT);		
-//    hl->addWidget(ltextWP);
-    hl->addWidget(ltext);
-
-//    hl->addWidget(bWPEm);		
-//    hl->addWidget(bWPEp);		
-//    hl->addWidget(butTime);//ltext);
-    hl->addWidget(ltime);
-    hl->addStretch();
-    vl->addLayout(hl);
-
-    gbviewPsixT->setLayout(vl);
+    gbviewPsixT = new WavePacketXWidget(model);
     }
+    splitterR->addWidget(gbviewPsixT);
+    gbviewPsixT->show();
 }
-void MainWindow::slotRunWP()
-{
-    bRunPsiXT->setText("STOP");
-    disconnect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
-    breakStatus.onButton(bRunPsiXT);
-//    wavePacketXView->slot_WavePacket_of_t();
-    wavePacketXView->resizePicture();
-    breakStatus.noButton(bRunPsiXT);
-    bRunPsiXT->setText("RUN ");
-    connect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
-}
-
 void MainWindow::window_psi_x()
 {
     if(!gbviewPsix)
     {
-    gbviewPsix = new QGroupBox("Wave Function");
-    QVBoxLayout *vl = new QVBoxLayout();
-    waveFunctionView = new WaveFunctionView(model);
-    vl->addWidget(waveFunctionView);
-
-    QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton * reset = new QPushButton("&Resize");	
-    connect(reset,SIGNAL(clicked()),waveFunctionView,SLOT(resizePicture()));
-//    gbRightDown = gbviewPsix;
-    waveFunctionView->setViewportMapping();
-    splitterR->addWidget(gbviewPsix);
-//    rightDownLayout->addWidget(gbRightDown);
-    hl->addWidget(reset);		
-    hl->addStretch();
-//-------------
-/*    QString psi=QChar(0x03C8);
-//               QString Psi=QChar(0x03A8);
-            QString to2=QChar(0x00B2);
-            QString psiofx=psi+"(x)";
-            QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
-//            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
-            psi_type = new QComboBox(this);
-            psi_type->addItem(mod_psiofx);
-            psi_type->addItem("real "+psi);
-            psi_type->addItem("imag "+psi);
-            psi_type->setCurrentIndex(0);
-            hl->addWidget(psi_type);
-*/
-            //--------
-    vl->addLayout(hl);
-
-    gbviewPsix->setLayout(vl);
+    gbviewPsix = new WaveFunctionWidget(model);//QGroupBox("Wave Function");
     }
+    splitterR->addWidget(gbviewPsix);
+    gbviewPsix->show();
 }
 void MainWindow::window_phi_kt()
 {
     if(!gbviewMT)
     {
-    gbviewMT = new QGroupBox("Momentum distribution time development");
-    wavePacketKView = new WavePacketKView(model);
-    QVBoxLayout *vl = new QVBoxLayout();
-    vl->addWidget(wavePacketKView);
-    QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton * reset = new QPushButton("Resize");	
-    connect(reset,SIGNAL(clicked()),wavePacketKView,SLOT(resizePicture()));
-//    gbLeftDown = gbviewMT;
-    splitterL->addWidget(gbviewMT);
-//    leftDownLayout->addWidget(gbLeftDown);
-    hl->addWidget(reset);		
-    QLabel *ltext= new QLabel(this);
-    ltext->setText("time:");
-    QLabel *ltime= new QLabel(this);
-    hl->addWidget(ltext);		
-    hl->addWidget(ltime);		
-    connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
-
-    hl->addStretch();
-    vl->addLayout(hl);
-    gbviewMT->setLayout(vl);
+    gbviewMT = new WavePacketKWidget(model);
     }
+    splitterL->addWidget(gbviewMT);
+    gbviewMT->show();
 }
 void MainWindow::window_phi_k()
 {
     if(!gbviewM)
     {
-    gbviewM = new QGroupBox("Momentum distribution");
-    momentumView = new MomentumView(model);
-    QVBoxLayout *vl = new QVBoxLayout();
-    vl->addWidget(momentumView);
-    QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton * reset = new QPushButton("&Resize");	
-    connect(reset,SIGNAL(clicked()),momentumView,SLOT(resizePicture()));
-//    gbLeftDown = gbviewM;
-    splitterL->addWidget(gbviewM);
-//    leftDownLayout->addWidget(gbLeftDown);
-    hl->addWidget(reset);		
-    hl->addStretch();
-    vl->addLayout(hl);
-    gbviewM->setLayout(vl);
+        gbviewM = new MomentumViewWidget(model);
     }
+    splitterL->addWidget(gbviewM);
+    gbviewM->show();
 }
+
 void MainWindow::window_Enz()
 {
     if(!gbEnzview)
     {
-        gbEnzview = new QGroupBox("En(z)");
-        enzView = new EnzView(model);
-        QVBoxLayout *vl = new QVBoxLayout();
-        gbEnzview->setLayout(vl);
-        vl->addWidget(enzView);
-        bRunEnz = new QPushButton("Run ");	
-        connect(bRunEnz,SIGNAL(clicked()),this,SLOT(slotRunEnz()));
-        //        connect(reset,SIGNAL(clicked()),enzView,SLOT(resizePicture()));
-        //    gbLeftTop = gbEnzview;
-        splitterL->addWidget(gbEnzview);
-        //    leftTopLayout->addWidget(gbLeftTop);
-        QHBoxLayout *hl = new QHBoxLayout();
-        hl->addWidget(bRunEnz);		
-/*
-        QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
-//        connect(bInit, SIGNAL(clicked()), this, SLOT(slot1()));
-        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
-        hl->addWidget(bInit);
-
-        QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
-        connect(bFin, SIGNAL(clicked()),model, SLOT(slotU2()));
-        hl->addWidget(bFin);
-*/
-        QPushButton *bsz = new QPushButton("&z-deformation of U(x)");	
-        connect(bsz,SIGNAL(clicked()),this,SLOT(slotSetZ()));
-        hl->addWidget(bsz);
-
-        QLabel *lz= new QLabel(this);
-        hl->addWidget(lz);		
-        connect(model, SIGNAL(signalZChanged(double)), lz, SLOT(setNum(double)));
-        hl->addStretch();
-
-        vl->addLayout(hl);
-        gbEnzview->setLayout(vl);
+        gbEnzview = new EnzWidget(model);
     }
-}
-void MainWindow::slotRunEnz()
-{
-    bRunEnz->setText("STOP");
-    disconnect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
-    breakStatus.onButton(bRunEnz);
-    enzView->resizePicture();
-    breakStatus.disconnect();
-    bRunEnz->setText("RUN ");
-    connect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
+    splitterL->addWidget(gbEnzview);
+    gbEnzview->show();
 }
 void MainWindow::initControlDockWindow()
 {
     splitterR = new MySplitter(Qt::Vertical);
     splitterL = new MySplitter(Qt::Vertical);
     splitterLR = new MySplitter(Qt::Horizontal);
-//    splitterR->setHandleWidth(55);
-//    QSplitterHandle *hSR=new QSplitterHandle( Qt::Vertical, splitterR );
-//    hSR->setAutoFillBackground ( true );
-//    hSR->setBackgroundRole(QPalette::Text);
-//    QPen quiteDark = palette().color(QPalette::Dark);
-//    hSR->setPen(quiteDark);
-//    hSR->show();
-    topLeftWin = new QComboBox(this);
-    topLeftWin->addItem("En(z)");
-    topLeftWin->addItem("T(E)");
-    topLeftWin->addItem("phi_n(k)");
-    topLeftWin->addItem("Phi_n(k,t)");
-    topLeftWin->setCurrentIndex(2);
-//  window_Enz();
-//    window_TE();
-     window_phi_k();
-     gbviewM->show();
-//    window_phi_kt();
-//    this->gbTEview->show();
-
-     topRightWin = new QComboBox(this);
-    topRightWin->addItem("U(x), En, psi(x,E)");
-    topRightWin->addItem("psi_n(x)");
-    topRightWin->addItem("Psi(x,t)");
-    topRightWin->setCurrentIndex(0);
+//    QPushButton *bMenu = new QPushButton("Dependencies");
     window_Ux_Psix();
-    window_psi_x();
     gbPview->show();
-    gbviewPsix->show();
-     
-    QGroupBox *gbButtons = new QGroupBox("Left and Right Windows:");
-    QHBoxLayout *hltop = new QHBoxLayout();
-    QHBoxLayout *hltop1 = new QHBoxLayout();
-    QHBoxLayout *hltop2 = new QHBoxLayout();
-    gbButtons->setLayout(hltop1);
-    {   
-//        QVBoxLayout *vl1 = new QVBoxLayout();
-        QVBoxLayout *vl1a = new QVBoxLayout();
 
- //       QLabel *tll =new QLabel(tr("Left"));
- //       vl1->addWidget(tll);
-        vl1a->addWidget(topLeftWin);
-        connect(topLeftWin,SIGNAL(currentIndexChanged(int)),this,SLOT(windowTopLeft()));
+    QVBoxLayout * vl0 = new QVBoxLayout;
+    splitterLR->addWidget(splitterL);
+    splitterLR->addWidget(splitterR);
+    vl0->addWidget(splitterLR);
 
-        QVBoxLayout *vl2 = new QVBoxLayout();
-//        QVBoxLayout *vl2a = new QVBoxLayout();
-
-//        vl2a->addWidget(new QLabel(tr("Right")));
-        vl2->addWidget(topRightWin);
-        connect(topRightWin,SIGNAL(currentIndexChanged(int)),this,SLOT(windowTopRight()));
-
-//        hltop1->addLayout(vl1);
-        hltop1->addLayout(vl1a);
-        hltop1->addLayout(vl2);
-//        hltop1->addLayout(vl2a);
-    }
-        hltop->addWidget(gbButtons);
-
-        QGroupBox *gbp = new QGroupBox("Numeric definition of potential");
-        gbp->setLayout(hltop2);
-        {
-        QHBoxLayout *vlp = new QHBoxLayout;
-        QPushButton *butUxt = new QPushButton(tr("U-Table")); 
-        connect(butUxt, SIGNAL(clicked()), this, SLOT(slotSetUxt()));
-        vlp->addWidget(butUxt);
-
-        QPushButton *butUmwb = new QPushButton(tr("Barriers/wells")); 
-        connect(butUmwb, SIGNAL(clicked()), this, SLOT(slotSetUmwb()));
-        vlp->addWidget(butUmwb);
-
-        QPushButton *butUs = new QPushButton(tr("U special")); 
-        connect(butUs, SIGNAL(clicked()), this, SLOT(slotSetUs()));
-        vlp->addWidget(butUs);
-
-        hltop2->addLayout(vlp);
-        }
-        hltop->addWidget(gbp);
-
-        QVBoxLayout *vle = new QVBoxLayout;
-        QPushButton *butEn = new QPushButton(tr("En table")); 
-        connect(butEn, SIGNAL(clicked()), this, SLOT(slotSetEn()));
-        vle->addWidget(butEn);
-
-        hltop->addLayout(vle);
-        hltop->addStretch();
-
-
-QVBoxLayout * vl0 = new QVBoxLayout;
-splitterLR->addWidget(splitterL);
-splitterLR->addWidget(splitterR);
-vl0->addWidget(splitterLR);
-
-QVBoxLayout * mainLayout = new QVBoxLayout;
-mainLayout->addLayout(hltop);
-mainLayout->addLayout(vl0);
-QWidget *widget = new QWidget;
-widget->setLayout(mainLayout);
-widget->raise();
-setCentralWidget(widget);
-
+    QVBoxLayout * mainLayout = new QVBoxLayout;
+    mainLayout->addLayout(vl0);
+    QWidget *widget = new QWidget;
+    widget->setLayout(mainLayout);
+    widget->raise();
+    setCentralWidget(widget);
 }
+
 void MainWindow::resizeEvent (QResizeEvent * event)
 {
     QWidget::resizeEvent(event);
-    //XXX view->fitInView(scene->sceneRect());
 }
-void MainWindow::compute()
+
+/*void MainWindow::compute()
 {
     model->set_E0(this->E0);
     model->build_k();
@@ -1065,46 +878,47 @@ void MainWindow::compute()
     }
 
     updateValues();
-}
+}*/
 //--------------
-void MainWindow::updateValues()
-    {
-    this->E0=model->get_E0();
+//void MainWindow::updateValues()
+//    {
+//    this->E0=model->get_E0();
 //    this->zz=model->get_zz();
-    this->time=model->get_Time();
-    this->E0.updateDisplay();
+//    this->time=model->get_Time();
+//    this->E0.updateDisplay();
 //    this->zz.updateDisplay();
-    this->time.updateDisplay();
+//    this->time.updateDisplay();
 //    this->Ubias.updateDisplay();
-    this->nLevel.updateDisplay();
+//    this->nLevel.updateDisplay();
 
-    QString s;
+/*    QString s;
     double E=this->E0;
     s.sprintf("Energy E: %.3lg",E);
     this->dispEnergy->setText(s);
     this->dispEnergy->update();
-
+*/
  /*   double z=this->zz;
     s.sprintf("z: %.3lg",z);
     this->dispZ->setText(s);
     this->dispZ->update();
 */
-    double t=this->time;
+/*    double t=this->time;
     s.sprintf("Time: %.3lg",t);
     this->dispTime->setText(s);
     this->dispTime->update();
-
+*/
 /*    double Ub=this->Ubias;
     s.sprintf("Bias: %.3lg",Ub);
     this->dispBias->setText(s);
     this->dispBias->update();
 */
-}
+//}
+
 void MainWindow::initStatusBar()
 {
     createStatusBar();
     this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold )); 
-    this->dispEnergy = new QLabel("Energy E: --------------",
+    this->dispEnergy = new QLabel("Comments:",
             this->statusBar());
     this->statusBar()->addWidget(this->dispEnergy);
 
@@ -1112,10 +926,10 @@ void MainWindow::initStatusBar()
             this->statusBar());
     this->statusBar()->addWidget(this->dispZ);
 */
-    this->dispTime = new QLabel("Time t: --------------",
+ /*   this->dispTime = new QLabel("Time t: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispTime);
-
+*/
 /*    this->dispBias = new QLabel("Bias: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispBias);
@@ -1124,15 +938,16 @@ void MainWindow::initStatusBar()
             this->statusBar());
     this->statusBar()->addWidget(this->dispR);
     */
-    this->dispT = new QLabel("T: --------------",
+/*    this->dispT = new QLabel("T: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispT);
     this->dispRT = new QLabel("(T+R): ---------",
             this->statusBar());
     this->statusBar()->addWidget(this->dispRT);
+    */
  }
 
-void MainWindow::Bound_States()
+/*void MainWindow::Bound_States()
 {
     int i = this->En_type->QComboBox::currentIndex();
 
@@ -1159,7 +974,8 @@ void MainWindow::Bound_States()
         break;
     }
 }
-void MainWindow::compute_NE()
+*/
+/*void MainWindow::compute_NE()
 {
     double y,_dE;
     winPlotNE->show();
@@ -1186,7 +1002,8 @@ void MainWindow::compute_NE()
 //    this->plotNE->setCurveData(this->numOfCurveNE,this->dataNE);
 //    this->numOfCurveNE++;
 }
-void MainWindow::compute_D()
+*/
+/*void MainWindow::compute_D()
 {
     wPlotT->show();
     wPlotT->raise();
@@ -1223,9 +1040,9 @@ void MainWindow::compute_D()
     }
 
 }
-
-inline double squre_module(complex& a){ return fabs(real(a)*real(a))+fabs(imag(a)*imag(a)); }
-
+*/
+//inline double squre_module(complex& a){ return fabs(real(a)*real(a))+fabs(imag(a)*imag(a)); }
+/*
 void MainWindow::compute_TE()
 {
     std::vector<double> dataR;
@@ -1322,6 +1139,7 @@ void MainWindow::compute_TE()
     this->numOfCurveT++;
 
 }
+*/
 /*
 void MainWindow::compute_TE()
 {
@@ -1370,7 +1188,7 @@ void MainWindow::compute_TE()
     this->numOfCurveT++;
 }
 */
-void MainWindow::compute_Tz()
+/*void MainWindow::compute_Tz()
 {
     std::vector<double> dataT;
     if(this->flgEraseT->isChecked()) 
@@ -1414,7 +1232,8 @@ void MainWindow::compute_Tz()
     this->plotterT->setCurveData(this->numOfCurveT,dataT);
     this->zz=this->zz+this->hz;
 
-}
+}*/
+/*
 void MainWindow::TEz()
 {
     double z0=this->zz;
@@ -1490,6 +1309,8 @@ void MainWindow::compute_BE()
     this->numOfCurveUx++;
 
 }
+*/
+/*
 static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter)
 {
     const int N = model->getN();
@@ -2316,10 +2137,10 @@ void MainWindow::slotBound_States()
     connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
 
 }
-
+*/
 static void setSomeInitialU(PhysicalModel *m)
 {
-    UAsMW u = { 1, 1, 1, -20, 0 , 0};
+    UAsMW u = { 1, 1, 1, -20, 0 };
     m->setUAsMW( u );
 }
 
@@ -2339,24 +2160,24 @@ psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
 wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),gbScales(0),gbIntervals(0),
-dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
+dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-gbTEview(0),gbEnzview(0),
+gbTEview(0),gbTZview(0),gbEnzview(0),
 gbviewMT(0),gbviewM(0), 
 gbPview(0),gbviewPsix(0),gbviewPsixT(0)
 {
     this->model = new PhysicalModel();
-    UAsMW u2 = { 1, 0.1, 1, -10, 0 ,0};
+    UAsMW u2 = { 1, 0.1, 1, -10, 0 };
     model->setUAsMW( u2 );
     model->slotU2();
-    UAsMW u1 = { 1, 10, 1, -10, 0 , 0};
+    UAsMW u1 = { 1, 10, 1, -10, 0 };
     model->setUAsMW( u1 );
     model->slotU1();
 //    setSomeInitialU(this->model);
-    UAsMW u = { 1, 3, 1, -10, 0 , 0};
+    UAsMW u = { 1, 3, 1, -10, 0 };
     this->model->setUAsMW( u );
-//    this->initStatusBar();
+    this->initStatusBar();
 /*    this->initPlotEnz();
     this->initPlotUx();
     this->initPlotT();
@@ -2365,7 +2186,7 @@ gbPview(0),gbviewPsix(0),gbviewPsixT(0)
     this->initPlotNofE();*/
     this->initControlDockWindow();
     this->initMenuBar(); 
-    init();
+//    init();
 }
 
 bool MainWindow::save()
@@ -2422,13 +2243,13 @@ void MainWindow::createStatusBar()
 
 void MainWindow::help()
 {
-    static QMessageBox *about;
- /*   if (!about)
+/*    static QMessageBox *about;
+    if (!about)
     {
               char buf[200];
 //        MKLGetVersionString(buf,sizeof(buf)-1);
         buf[sizeof(buf)-1] = 0;
-        about = new QMessageBox("Photon-assisted transmission",buf,
+        about = new QMessageBox("New version of the KVANT packet",buf,
         QMessageBox::Information, 1, 0, 0, this, 0, FALSE );
          
     }
@@ -2436,7 +2257,7 @@ void MainWindow::help()
     about->show();
 */
     }
-
+/*
 void MainWindow::init()
 {
 }
@@ -2703,7 +2524,7 @@ void MainWindow::WavePacketPoft()
         this->plotterPhi->setCurveData(2,data);
     }
 }
-
+*/
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) 

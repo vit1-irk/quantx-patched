@@ -11,16 +11,18 @@
 #include "WPparametersP.h"
 #include "WPparametersM.h"
 #include "Uparabolic.h"
+#include "Ulinear.h"
 #include "PotentialModel.h"
 #include "PhysicalModel.h"
 #include "PotentialViewMovable.h"
 #include "MomentumView.h"
 #include "EnzView.h"
-#include "Zview.h"
+//#include "Zview.h"
 #include "WavePacketXView.h"
 #include "WavePacketKView.h"
 #include "WaveFunctionView.h"
 #include "TransmissionView.h"
+#include "TofzView.h"
 struct WPE
 {
     double E,w;
@@ -44,7 +46,7 @@ public slots:
     void windowTopRight();
     void windowDownRight();
     void windowDownLeft();
-    void windowTopLeft();
+//    void windowTopLeft();
 //    void slotScaleX();
 //    void slotScaleZ();
 //    void slotIntE();
@@ -55,26 +57,35 @@ signals:
     void closed();
 
 private slots:
+    void about();
+    void window_TE();
+    void window_TZ();
+    void window_Enz();
+    void window_Ux_Psix();
+    void window_psi_x();
+    void window_psi_xt();
+    void window_phi_k();
+    void window_phi_kt();
 
     void updateMouseMovedTo(QPointF);
 //    void createToolBars();
-    void slotBound_States();
-    void slotCompute_Psi();
-    void slotCompute_Phi();
-    void slotCompute_D();
+//    void slotBound_States();
+//    void slotCompute_Psi();
+//    void slotCompute_Phi();
+//    void slotCompute_D();
 
-    void slotRunWP();
-    void slotRunEnz();
+//    void slotRunWP();
+//    void slotRunEnz();
 
-    void slotIntN();
-    void slotIntE();
+//    void slotIntN();
+//    void slotIntE();
 //    void slotIntT();
-    void slotWPacket();
+//    void slotWPacket();
 //     void slotScales();
-    void slotScaleX();
-    void slotScaleZ();
-    void slotScaleP();
-    void slotScalePsi();
+//    void slotScaleX();
+//    void slotScaleZ();
+//    void slotScaleP();
+//    void slotScalePsi();
 //    void slotIntervals();
     void slotSetUxt();
     void slotSetEn();
@@ -83,17 +94,18 @@ private slots:
 //    void slotSetWPEm();
     void slotSetTime();
     void slotSetUs();
+    void slotSetUlinear();
     void  slotSetZ();
 
     void chooseFont();
-    void defWP();
-    void defSP();
-    void init();
+//    void defWP();
+//    void defSP();
+//    void init();
     bool save();
     bool saveAs();
     void openFile(const QString &path);
     void createStatusBar();
-    void compute();
+/*    void compute();
     void Bound_States();
     void compute_BE();
     void compute_En();
@@ -109,24 +121,20 @@ private slots:
     void compute_D();
     void compute_TE();
     void compute_Tz();
-    WavePacket buildWPpE();
-    WavePacket buildWPmE();
-    void WavePacketXoft();
-    void WavePacketPoft();
-    void TEz();
-    void TzE();
-    void compute_Enz();
-    void showU();
-    void showEn(double En);
-    void compute_Phi_n();
+    */
+//    WavePacket buildWPpE();
+//    WavePacket buildWPmE();
+//    void WavePacketXoft();
+//    void WavePacketPoft();
+//    void TEz();
+//    void TzE();
+//    void compute_Enz();
+//    void showU();
+//    void showEn(double En);
+//    void compute_Phi_n();
 
-//    void myU1();
-//    void myU2();
-    //    void slotU1();
-//    void slotU2();
-//    void Uxz(double z);
-    void compute_Uxz();
-//    void listLevels();
+//    void compute_Uxz();
+
 protected:
     void keyPressEvent(QKeyEvent *event);
     void closeEvent(QCloseEvent *event);
@@ -137,24 +145,26 @@ private:
     QSplitter *splitterLR;
     void slotWindowsActivated(int);
     void slotWindows();
-    void initPlotT(); 
-    void initPlotPhik(); 
-    void initPlotPsix(); 
-    void initPlotUx(); 
-    void initPlotEnz(); 
-    void initPlotNofE(); 
     void initMenuBar();
     void initStatusBar();
     void initControlDockWindow();
     void initTable();
     void initTableEn();
+/*    void initPlotT(); 
+    void initPlotPhik(); 
+    void initPlotPsix(); 
+    void initPlotUx(); 
+    void initPlotEnz(); 
+    void initPlotNofE(); 
     void updateValues();
     void setScalesPsi();
+    */
 //    void initGraphicsView();
 //----------Kostia
     void resizeEvent(QResizeEvent * event);
     PotentialViewMultiWell *dialogUAsMW;
     Uparabolic *dialogUparab;
+    Ulinear *dialogUlinear;
     WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
     TimeView *dialogTime;
@@ -164,7 +174,6 @@ private:
     QGroupBox *gbNumrange;
     QToolBox * toolBox;
     PotentialViewMovable *potentialViewMovable;
-    MomentumView *momentumView;
     EnzView *enzView;
     WavePacketXView *wavePacketXView;
     WavePacketKView *wavePacketKView;
@@ -199,8 +208,15 @@ private:
 //    QVector<double> m2; //!< Final potential step masses for z-animations
 //    double Ubias; 
 //    double Ub1,Ub2; 
-    QGroupBox *gbviewPsix, *gbviewPsixT,*gbPview,*gbviewM,*gbviewMT,*gbTEview, *gbEnzview;
-//    QGroupBox *gbEnzview;
+//    QGroupBox *gbviewPsixT,*gbPview,*gbviewMT,*gbTEview;
+    WavePacketXWidget *gbviewPsixT;
+    WavePacketKWidget *gbviewMT;
+    PotentialMovableWidget *gbPview;
+    MomentumViewWidget *gbviewM;
+    WaveFunctionWidget *gbviewPsix;
+    EnzWidget *gbEnzview;
+    TransmissionWidget *gbTEview;
+    TofzViewWidget *gbTZview;
     QGroupBox *grrb;
     QRadioButton *rad1,*rad2;
     QButtonGroup *bgR;
@@ -210,7 +226,7 @@ private:
     QPushButton *bRunD;
     
     QPushButton *bRunPsiXT;
-    QPushButton *bRunEnz;
+//    QPushButton *bRunEnz;
 
     int countW;
     int numOfCurveR,numOfCurveT,numOfCurveNE, numOfCurve, numOfCurveUx, numOfCurveEn;
@@ -251,20 +267,17 @@ private:
 //    QListWidget *listEn;
     QLabel *mouseAtX;
     QLabel *mouseAtY;
+    QAction *Uaction;
 
     QVBoxLayout *leftLayout,*leftTopLayout,*leftDownLayout, *rightDownLayout,*rightTopLayout,*rightLayout, *sideLayout;
 
-//    QGroupBox *gbLeftTop;
-//    QGroupBox *gbLeftDown;
-//    QGroupBox *gbRightDown;
-//    QGroupBox *gbRightTop;
-    void window_TE();
+/*    void window_TE();
     void window_Enz();
     void window_Ux_Psix();
     void window_psi_x();
     void window_psi_xt();
     void window_phi_k();
-    void window_phi_kt();
+    void window_phi_kt();*/
     QComboBox *topLeftWin;
     QComboBox *topRightWin;
     QComboBox *downLeftWin;

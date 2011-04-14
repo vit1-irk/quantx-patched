@@ -11,6 +11,7 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include "ScaleWPK.h"
 
 class WavePacketKView;
 
@@ -32,6 +33,7 @@ class WavePacketKView : public QGraphicsView
 public:
 
     WavePacketKView(PhysicalModel *m, QWidget *parent = 0);
+    virtual ~WavePacketKView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MomentumDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
@@ -52,6 +54,9 @@ protected:
     void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
 
+private:
+    ScaleWPK *dialogScaleWPK;
+
 public:
     void showDialogScaleY();
 
@@ -59,13 +64,27 @@ private:
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    MyParamD phiMax, phiMin; 
-    MyParamD kmin,kmax;
+    double widthLineEn;
+    double phiMax, phiMin; 
+    double kmin,kmax,dk;
     QGraphicsLineItem *lineh,*linev;
 
     PhysicalModel *model;
-    QGroupBox  *gbScaleXY;
 
     QMap<int,MomentumDistributionCurve*> curves;
 
 };
+class WavePacketKWidget : public QGroupBox
+{
+    Q_OBJECT
+public:
+    WavePacketKWidget(PhysicalModel *model, QWidget * parent = 0);
+private:
+    WavePacketKView *wavePacketKView;
+//    QPushButton *bRunPsiKT;	
+
+//public slots:
+//    void slotRunWP();
+
+};
+

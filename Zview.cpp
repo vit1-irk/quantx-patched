@@ -9,7 +9,7 @@
 Zview::Zview(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-        this->setWindowTitle("z parameters:");
+        this->setWindowTitle(tr("z parameters:"));
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
 
@@ -19,38 +19,38 @@ Zview::Zview(QWidget *parent, Qt::WindowFlags f)
         h->addWidget(new QLabel("z",this));
         h->addWidget(this->leZ = new QLineEdit(this));
         this->leZ->setEnabled(true);
-        this->leZ->setToolTip("Current value of z");
+        this->leZ->setToolTip(tr("Current value of z"));
         connect(this->leZ,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("zmin",this));
+        h->addWidget(new QLabel(tr("zmin"),this));
         h->addWidget(this->leZmin= new QLineEdit(this));
-        this->leZmin->setToolTip("Lower bound of z interval");
+        this->leZmin->setToolTip(tr("Lower bound of z interval"));
         connect(this->leZmin,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("zmax",this));
+        h->addWidget(new QLabel(tr("zmax"),this));
         h->addWidget(this->leZmax= new QLineEdit(this));
-        this->leZmax->setToolTip("High bound of z interval");
+        this->leZmax->setToolTip(tr("High bound of z interval"));
         connect(this->leZmax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("hz",this));
+        h->addWidget(new QLabel(tr("hz"),this));
         h->addWidget(this->leHz= new QLineEdit(this));
-        this->leHz->setToolTip("z increment");
+        this->leHz->setToolTip(tr("z increment"));
         connect(this->leHz,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
-        {   
+/*      {   
         QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
         QVBoxLayout *vlb = new QVBoxLayout;
         QHBoxLayout *hl = new QHBoxLayout;
@@ -66,7 +66,7 @@ Zview::Zview(QWidget *parent, Qt::WindowFlags f)
         gb->setLayout(vlb);
         vl->addWidget(gb);
     }
-
+*/
     this->setLayout(vl);
     this->modelChanged();
 }
@@ -87,12 +87,14 @@ void Zview::setCurrentZ(double d)
 
 void Zview::setModel(PhysicalModel *_model)
 {
+    if (model != _model)
+    {
         disconnect(model,0,this,0);
         model = _model;
         modelChanged();
-        connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
-        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
+    }
         connect(model,SIGNAL(signalZChanged(double)),this,SLOT(setCurrentZ(double)));
+
   }
 
 void Zview::modelChanged()

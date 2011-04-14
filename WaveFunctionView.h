@@ -12,6 +12,7 @@
 #include <QMap>
 #include "myparam.h"
 #include "ScalePsin.h"
+#include "LevelNumber.h"
 
 class WaveFunctionView;
 
@@ -20,6 +21,7 @@ class CoordinateDistribution : public QGraphicsPolygonItem
     WaveFunctionView *view;
 public:
     CoordinateDistribution(const QPolygonF& p, WaveFunctionView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
+//    CoordinateDistribution(const QPolygon& p, WaveFunctionView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
         : QGraphicsPolygonItem(p,parent,scene), view(_view)
     {
     }
@@ -33,7 +35,11 @@ class WaveFunctionView : public QGraphicsView
 public:
 
     WaveFunctionView(PhysicalModel *m, QWidget *parent = 0);
+    virtual ~WaveFunctionView();
+
+//    void setCurve(int id,const QPolygon&, const QPen& = QPen());
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
+private:
     CoordinateDistribution *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
     void contextMenuEvent(QContextMenuEvent *event);
@@ -43,10 +49,14 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_Psi_n_of_x();
+    void clearAll();
+    void slotEnergyChanged();
 signals:
     void infoMouseMovedTo(QPointF);
-
+    void signalViewChanged();
+//    void signalScalesChanged();
 protected:
+    void scrollView(int dx, int dy);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void resizeEvent(QResizeEvent *e);
@@ -55,27 +65,38 @@ protected:
 
 public:
     void showDialogScaleY();
-    void showDialogViewPsiX();
     void showDialogLevNum();
 private:
     ScalePsin  *dialogScalePsin;
+    LevelNumber *dialogLevNum;
     void setScalesFromModel();
     QRectF a_old;
     double widthLineV;
     double widthLineH;
     double widthLineE;
+    double widthLineEn;
+    double widthLine;
     double psiMax, psiMin,xmin,xmax,dx; 
-//    MyParamD psiMax, psiMin; 
-//    MyParamD xmin,xmax;
-    MyParamI   nMax, nMin, hn;  
-//    int   nMax, nMin, hn;  
+    int   nMax, nMin, hn;  
     QGraphicsLineItem *lineh,*linev;
-    int  viewWF;  
     PhysicalModel *model;
-    QGroupBox  *gbScaleXY, *gbLevNum, *gbVPsi;
-    QRadioButton *rad1,*rad2,*rad3;
-    QButtonGroup *bgR;
     QMap<int,CoordinateDistribution*> curves;
 
+    int whatToDraw;
+public slots:
+    void setWhatToDraw(int);
+signals:
+    void whatToDrawChanged(int);
+public:
+    int getWhatToDraw();
+};
 
+class WaveFunctionWidget : public QGroupBox
+{
+    Q_OBJECT
+public:
+    WaveFunctionWidget(PhysicalModel *model, QWidget * parent = 0);
+private:
+//    QButtonGroup *bgR;
+    WaveFunctionView *waveFunctionView;
 };

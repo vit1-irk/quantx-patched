@@ -11,11 +11,12 @@
 #include <QWidget>
 #include <QAction>
 #include <QPainterPath>
+#include "BreakStatus.h"
+
 
 WavePacketKView::WavePacketKView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), gbScaleXY(0),lineh(0),linev(0),
-kmin(-5.), kmax(5.), 
-phiMax(10), phiMin(-0.1)
+: QGraphicsView(parent), model(m),lineh(0),linev(0),
+dialogScaleWPK(0)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -30,11 +31,35 @@ phiMax(10), phiMin(-0.1)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    connect(model,SIGNAL(signalScaleWPKChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalTimeChanged(double)),this,SLOT(slot_WavePacket_of_t()));
     resizePicture();
 }
+WavePacketKView::~WavePacketKView()
+{
+    disconnect(this, 0, 0, 0);
+//    if (!gbDefWP) delete gbDefWP;
+//    if (!dialogTime) delete dialogTime;
+//    if (!dialogWPEp) delete dialogWPEp;
+//    if (!dialogWPEm) delete dialogWPEm;
+    if (dialogScaleWPK) delete dialogScaleWPK;
+    for (QMap<int,MomentumDistributionCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
+    {
+        int n = i.key();
+        removeCurve(n);
+    }
+    if (lineh) delete lineh;
+    if (linev) delete linev;
+}
+
 void WavePacketKView::resizePicture()
 {
+    ScaleWPKParameters tp = model->getScaleWPKParam();
+    dk=tp.Hk;
+    kmin=tp.Kmin;
+    kmax=tp.Kmax;
+    phiMax=tp.WPKmax;
+    phiMin=tp.WPKmin;
     setViewportMapping();
     slot_WavePacket_of_t();
 }
@@ -136,27 +161,12 @@ void WavePacketKView::slot_WavePacket_of_t()
         linev->setLine(0., phiMin, 0., phiMax);
         lineh->setLine(kmin,0.,kmax,0.);
     }
-//    model->buildWPmE(nmaxWP, nminWP, hnWP);
-//    int nmin=model->get_nminWP();
-//    int nmax=model->get_nmaxWP();
-//    int hn=model->get_hnWP();
-//     if(nmin!=this->nminWP||nmax!=this->nmaxWP||hn!=this->hnWP) 
-//    {
-//        need_build_WavePacket=true;
-//        model->set_nminWP(this->nminWP);
-//        model->set_nmaxWP(this->nmaxWP);
-//        model->set_hnWP(this->hnWP);
-//    }
-//    else
-//    {
-//       need_build_WavePacket=false;
-//    }
-    int npoints=501;
+    int npoints;//=501;
     QVector<double> waveFunction;
     QPolygonF psi;
+    npoints=1+(kmax-kmin)/this->dk;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    double dk = (kmax-kmin)/(npoints-1);
     {
             waveFunction = model->getPsiOfKT(kmin, kmax, npoints);
             for (int i=0; i < npoints; i++)
@@ -204,31 +214,21 @@ void MomentumDistributionCurve::paint(QPainter * painter, const QStyleOptionGrap
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPolyline(polygon().data(),polygon().size());
 }
-
 void WavePacketKView::showDialogScaleY()
 {   
-    if (!gbScaleXY) 
+    if (!dialogScaleWPK) 
     {
-        gbScaleXY = new QGroupBox(this);
-        gbScaleXY->setWindowTitle("Scales for plots Phi(k)");
-        gbScaleXY->setWindowFlags(Qt::Window);
-        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        phiMin.setDisplay(("PhiMin"),("Y-scale for momentum distribution"),vl);
-        phiMax.setDisplay(("PhiMax"),("Y-scale for momentum distribution"),vl);
-        this->kmin.setDisplay(("kmin"),("lower bond of k-interval"),vl);
-        this->kmax.setDisplay(("kmax"),("upper bond of k-interval"),vl);
-        gbScaleXY->setLayout(vl);
+        dialogScaleWPK = new ScaleWPK(this);
+        dialogScaleWPK->setModel(model);
     }
-    gbScaleXY->show(); 
-    gbScaleXY->raise();
-    gbScaleXY->setFocus();
+    dialogScaleWPK->show(); 
+    dialogScaleWPK->activateWindow();
+    dialogScaleWPK->setFocus();
 }
-
 void WavePacketKView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
-        QAction *scalePsi = m.addAction("Scales");
+        QAction *scalePsi = m.addAction(m.tr("Scales"));
         QAction *what = m.exec(event->globalPos());
         if (what == scalePsi)
         {
@@ -237,3 +237,43 @@ void WavePacketKView::contextMenuEvent(QContextMenuEvent *event)
         }
         event->accept();
 }
+WavePacketKWidget::WavePacketKWidget(PhysicalModel *model, QWidget *parent)
+: QGroupBox(parent)
+{
+    setTitle(tr("Momentum distribution: time development"));
+    QVBoxLayout *vl = new QVBoxLayout();
+    wavePacketKView = new WavePacketKView(model,this);
+    vl->addWidget(wavePacketKView);
+
+    QHBoxLayout *hl = new QHBoxLayout();
+//    bRunPsiKT = new QPushButton(tr("Run "));	
+//    connect(bRunPsiKT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
+    QString Phi=QChar(0x03A6);
+    QLabel *ltext= new QLabel(this);
+    ltext->setText(tr("time:"));
+    QLabel *ltime= new QLabel(this);
+    connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
+    hl->addWidget(ltext);
+    hl->addWidget(ltime);
+
+    QToolButton *buttonClose = new QToolButton(this);
+//     QPushButton *buttonClose = new QPushButton(tr("Close"));
+    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->adjustSize();//QPushButton(tr("Close"));
+    hl->addStretch();
+    hl->addWidget(buttonClose);
+
+    vl->addLayout(hl);
+    setLayout(vl);
+}
+/*void WavePacketKWidget::slotRunWP()
+{
+    bRunPsiKT->setText(tr("STOP"));
+    disconnect(bRunPsiKT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
+    breakStatus.onButton(bRunPsiKT);
+    wavePacketKView->resizePicture();
+    breakStatus.noButton(bRunPsiKT);
+    bRunPsiKT->setText(tr("RUN "));
+    connect(bRunPsiKT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
+}
+*/

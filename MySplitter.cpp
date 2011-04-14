@@ -13,7 +13,7 @@ private:
 };
 
 MySplitterHandle::MySplitterHandle(Qt::Orientation orientation, QSplitter *parent)
-: QSplitterHandle(orientation,parent), c0(Qt::blue), c1(Qt::red)
+: QSplitterHandle(orientation,parent), c0(Qt::gray), c1(Qt::gray)
 {
 }
 

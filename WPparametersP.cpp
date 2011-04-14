@@ -8,35 +8,35 @@
 WPparametersP::WPparametersP(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-        this->setWindowTitle("Wavepacket definition E>0");
+        this->setWindowTitle(tr("Wavepacket definition E>0"));
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
 
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("Number of the wavepacket modes",this));
+        h->addWidget(new QLabel(tr("Number of the wavepacket modes"),this));
         h->addWidget(this->leNumberOfModes = new QLineEdit(this));
         this->leNumberOfModes->setEnabled(true);
-        this->leNumberOfModes->setToolTip("Number of wavepacket modes");
+//        this->leNumberOfModes->setToolTip(tr("Number of wavepacket modes"));
         connect(this->leNumberOfModes,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("E_lowest",this));
+        h->addWidget(new QLabel(tr("E_lowest"),this));
         h->addWidget(this->leE_low= new QLineEdit(this));
-        this->leE_low->setToolTip("Lowest bound of the wp energy");
+        this->leE_low->setToolTip(tr("Lowest bound of the wp energy"));
         connect(this->leE_low,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel("E_highest",this));
+        h->addWidget(new QLabel(tr("E_highest"),this));
         h->addWidget(this->leE_high= new QLineEdit(this));
-        this->leE_high->setToolTip("Highest bound of the wp energy");
+        this->leE_high->setToolTip(tr("Highest bound of the wp energy"));
         connect(this->leE_high,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }

@@ -1,4 +1,4 @@
-#include "PlotterDialog.h"
+ #include "PlotterDialog.h"
 #include <QVBoxLayout>
 #include "MainWindow.h"
 PlotterDialog::PlotterDialog(QWidget *parent, Qt::WindowFlags flags)

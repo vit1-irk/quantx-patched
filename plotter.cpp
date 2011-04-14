@@ -1,4 +1,4 @@
-//#include <qpainter.h>
+ //#include <qpainter.h>
 //#include <qstyle.h>
 //#include <qtoolbutton.h>
 //Added by qt3to4:

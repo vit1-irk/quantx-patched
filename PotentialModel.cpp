@@ -80,9 +80,9 @@ PotentialModel::headerData(int section, Qt::Orientation orientation, int role) c
     case Qt::Horizontal:
         switch (section)
         {
-        case 0: return QVariant("width");
-        case 1: return QVariant("U");
-        case 2: return QVariant("mass");
+        case 0: return QVariant(tr("width"));
+        case 1: return QVariant(tr("U"));
+        case 2: return QVariant(tr("mass"));
         default: return QVariant();
         }
     case Qt::Vertical:

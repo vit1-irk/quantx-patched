@@ -11,11 +11,10 @@
 #include <QWidget>
 #include <QAction>
 #include <QPainterPath>
+#include "ScalePhin.h"
 
 MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), gbScaleXY(0),lineh(0),linev(0),
-kmin(-5.), kmax(5.), 
-phiMax(10), phiMin(-0.1)
+: QGraphicsView(parent), model(m), dialogScalePhin(0),lineh(0),linev(0)//,
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -30,10 +29,32 @@ phiMax(10), phiMin(-0.1)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Phi_n_of_k()));
+    connect(model,SIGNAL(signalScalePhinChanged()),this,SLOT(resizePicture()));
+    connect(model,SIGNAL(signalLevelNumberChanged()),this,SLOT(resizePicture()));
     resizePicture();
 }
+
+MomentumView::~MomentumView()
+{
+    disconnect(this, 0, 0, 0);
+    if (!dialogScalePhin) delete dialogScalePhin;
+    for (QMap<int,MomentumDistribution*>::iterator i = curves.begin(); i != curves.end(); ++i)
+    {
+        int n = i.key();
+        removeCurve(n);
+    }
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
+}
+
 void MomentumView::resizePicture()
 {
+    ScalePhinParameters tp = model->getScalePhinParam();
+    dk=tp.Hk;
+    kmin=tp.Kmin;
+    kmax=tp.Kmax;
+    phiMax=tp.Phinmax;
+    phiMin=tp.Phinmin;
     setViewportMapping();
     slot_Phi_n_of_k();
 }
@@ -84,11 +105,22 @@ void MomentumView::scaleView(qreal scaleFactor)
 
     scale(scaleFactor, scaleFactor);
 }
-
+void MomentumView::clearAll()
+{
+    
+        for ( QMap<int,MomentumDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int m = i.key();
+            removeCurve(m);
+    }
+}
 void MomentumView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
     {
+    case Qt::Key_Delete:
+        clearAll();
+        break;
     case Qt::Key_Plus:
         scaleView(qreal(1.2));
         break;
@@ -104,16 +136,24 @@ void MomentumView::keyPressEvent(QKeyEvent *event)
 
 void MomentumView::slot_Phi_n_of_k()
 {
-    static const QColor colorForIds[6] = {
-        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
+    static const QColor colorForIds[12] = {
+//        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
+//    };
+            Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+        Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
+
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
 
     QVector<double> Ebound = model->getEn();
     int number_of_levels = Ebound.size();
     if(number_of_levels==0) return;
-    int nmin=model->get_LevelNmin();
-    int nmax=model->get_LevelNmax();
+    LevelNumberParameters wp = model->getLevelNumberParameters();
+    int nMin=wp.nmin;
+    int nMax=wp.nmax;
+    int hn=wp.hn;  
+//   int nmin=model->get_LevelNmin();
+//    int nmax=model->get_LevelNmax();
 /*    if(nmax>=number_of_levels) 
     {
         nmax=number_of_levels-1;
@@ -125,8 +165,8 @@ void MomentumView::slot_Phi_n_of_k()
         {
             removeCurve(n);
         }
-        if(n>nmax&&nmax<number_of_levels-1) removeCurve(n);
-        if(n<nmin&&nmin<number_of_levels-1) removeCurve(n);
+        if(n>nMax&&nMax<number_of_levels-1) removeCurve(n);
+        if(n<nMin&&nMin<number_of_levels-1) removeCurve(n);
     }
 
 /*    for (int n = 0; n < number_of_levels; ++n)
@@ -153,21 +193,14 @@ void MomentumView::slot_Phi_n_of_k()
         lineh->setLine(kmin,0.,kmax,0.);
     }
 
-    int npoints=500;
+    int npoints;//=500;
     QVector<double> waveFunction;
     QPolygonF phi;
+    npoints=1+(kmax-kmin)/this->dk;
     phi.resize(npoints);
     waveFunction.resize(npoints);
-    double dk = (kmax-kmin)/(npoints-1);
-//    int nmin=model->get_LevelNmin();
-//    int nmax=model->get_LevelNmax();
-//    if(nmax>=number_of_levels) 
-//    {
-//        nmax=number_of_levels-1;
-//    }
-//    if(nmin>nmax) return;
-    for (int n = nmin; n <= nmax; ++n)
-//    for (int n = 0; n < number_of_levels; ++n)
+//    double dk = (kmax-kmin)/(npoints-1);
+    for (int n = nMin; n <= nMax; n+= hn)
     {
             if(n>number_of_levels-1) break;    
             waveFunction = model->getPhiOfk(Ebound[n],kmin,kmax,npoints);
@@ -215,26 +248,18 @@ void MomentumDistribution::paint(QPainter * painter, const QStyleOptionGraphicsI
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPolyline(polygon().data(),polygon().size());
 }
-
-void MomentumView::showDialogScaleY()
+void MomentumView::showDialogScale()
 {   
-    if (!gbScaleXY) 
+    if (!dialogScalePhin) 
     {
-        gbScaleXY = new QGroupBox(this);
-        gbScaleXY->setWindowTitle("Scales for plots Phi(k)");
-        gbScaleXY->setWindowFlags(Qt::Window);
-        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        phiMin.setDisplay(("PhiMin"),("Y-scale for momentum distribution"),vl);
-        phiMax.setDisplay(("PhiMax"),("Y-scale for momentum distribution"),vl);
-        this->kmin.setDisplay(("kmin"),("lower bond of k-interval"),vl);
-        this->kmax.setDisplay(("kmax"),("upper bond of k-interval"),vl);
-        gbScaleXY->setLayout(vl);
+        dialogScalePhin = new ScalePhin(this);
+        dialogScalePhin->setModel(model);
     }
-    gbScaleXY->show(); 
-    gbScaleXY->raise();
-    gbScaleXY->setFocus();
+    dialogScalePhin->show(); 
+    dialogScalePhin->activateWindow();
+    dialogScalePhin->setFocus();
 }
+
 void MomentumView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
@@ -242,45 +267,34 @@ void MomentumView::contextMenuEvent(QContextMenuEvent *event)
         QAction *what = m.exec(event->globalPos());
         if (what == scalePsi)
         {
-            this->showDialogScaleY();
+            this->showDialogScale();
             update();
         }
 }
-/*void MomentumDistribution::mousePressEvent(QGraphicsSceneMouseEvent * event)
-{
-    if (event->buttons() & Qt::RightButton)
-    {
-        QMenu m;
-//        QAction *scaleX = m.addAction("Set something");
-        QAction *scalePsi = m.addAction("Set scales");
-        QAction *what = m.exec(event->screenPos());
-        if (what == scalePsi)
-        {
-            view->showDialogScaleY();
-            update();
-        }
-        event->accept();
-#if 0
-        QPainterPath p = shape();
-        QPointF v = event->pos();
-        QRectF r = QRectF(v,v).adjusted(-0.1,-0.1,0.1,0.1);
 
-        bool i = p.intersects(r);
-        if (i)
-        {
-            QMenu m;
-            QAction *scaleX = m.addAction("Set something");
-            QAction *scaleY = m.addAction("Set scales");
-            QAction *what = m.exec(event->screenPos());
-            if (what == scaleY)
-            {
-                view->scaleY();
-            }
-               update();// repaint();
-            event->accept();
-            return;
-        }
-#endif
-    }
+MomentumViewWidget::MomentumViewWidget(PhysicalModel *model, QWidget *parent)
+: QGroupBox(parent)
+{
+    setTitle(tr("Momentum distribution: bound states"));
+
+    QVBoxLayout *vl = new QVBoxLayout();
+    MomentumView *momentumView = new MomentumView(model);
+    vl->addWidget(momentumView);
+
+    QHBoxLayout *hl = new QHBoxLayout();
+//    QPushButton * reset = new QPushButton("&Resize");	
+//    QPushButton *buttonClose = new QPushButton(tr("Close"));
+    QToolButton *buttonClose = new QToolButton(this);
+    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->adjustSize();//QPushButton(tr("Close"));
+    hl->addStretch();
+    hl->addWidget(buttonClose);
+
+//    hl->addWidget(reset);		
+
+//    connect(reset,SIGNAL(clicked()),momentumView,SLOT(resizePicture()));
+    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
+    vl->addLayout(hl);
+
+    setLayout(vl);
 }
-*/

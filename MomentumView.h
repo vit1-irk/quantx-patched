@@ -11,6 +11,7 @@
 #include <QPolygonF>
 #include <QMap>
 #include "myparam.h"
+#include "ScalePhin.h"
 
 class MomentumView;
 
@@ -32,7 +33,10 @@ class MomentumView : public QGraphicsView
 public:
 
     MomentumView(PhysicalModel *m, QWidget *parent = 0);
+    virtual ~MomentumView();
+
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
+private:
     MomentumDistribution *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
     void contextMenuEvent(QContextMenuEvent *event);
@@ -50,21 +54,33 @@ protected:
     void resizeEvent(QResizeEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
+    void clearAll();
 
-public:
-    void showDialogScaleY();
+public: 
+    void showDialogScale();
 
 private:
+    ScalePhin  *dialogScalePhin;
+
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    MyParamD phiMax, phiMin; 
-    MyParamD kmin,kmax;
+    double phiMax, phiMin; 
+    double kmin,kmax,dk;
+//    MyParamD phiMax, phiMin; 
+//    MyParamD kmin,kmax;
     QGraphicsLineItem *lineh,*linev;
 
     PhysicalModel *model;
-    QGroupBox  *gbScaleXY;
+//    QGroupBox  *gbScaleXY;
 
     QMap<int,MomentumDistribution*> curves;
 
+};
+
+class MomentumViewWidget : public QGroupBox
+{
+    Q_OBJECT
+public:
+    MomentumViewWidget(PhysicalModel *model, QWidget * parent = 0);
 };
