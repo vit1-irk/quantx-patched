@@ -1877,8 +1877,8 @@ bool MainWindow::save()
     if (! f.open(QFile::WriteOnly | QFile::Text))
         return false;
     {
-        QXmlStreamWriter writer;
-        writer.setDevice(&f);
+        QXmlStreamWriter writer(&f);
+        writer.setAutoFormatting(true);
         writer.writeStartDocument();
         model->writeToXml(&writer);
         writer.writeEndDocument();

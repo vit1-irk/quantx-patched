@@ -2221,10 +2221,8 @@ void skipUnknownElement(QXmlStreamReader *r)
     while (!r->atEnd())
     {
         r->readNext();
-
         if (r->isEndElement())
             break;
-
         if (r->isStartElement())
             skipUnknownElement(r);
     }
@@ -2236,32 +2234,27 @@ void ModelXML::read()
     while (!r->atEnd())
     {
         r->readNext();
-        if (r->isEndElement())
+        if ( r->isEndElement())
             break;
-
-/*        switch (r->name())
-        {
-        case "E0":
-            readE0();
-//            break;
-        case "udm":
-            reaUdm();
-//            break;
-        case "time":
-            readTime();
-//            break;
-        default:
-            skipUnknownElement(r);
-
-        }*/
+        if (!r->isStartElement())
+            continue;
         if (r->name() == "E0")
-        readE0();
+        {
+            readE0();
+        }
         else if (r->name() == "udm")
-        readUdm();
+        {
+            readUdm();
+        }
         else if (r->name() == "time")
-        readTime();
+        {
+            readTime();
+        }
         else
-        skipUnknownElement(r);
+        {
+            skipUnknownElement(r);
+        }
+
     }
 }
 
@@ -2299,7 +2292,8 @@ void ModelXML::readUdm()
         r->readNext();
         if (r->isEndElement())
             break;
-
+        if (!r->isStartElement())
+            continue;
         if (r->name() == "step")
         {
             double du,dd,dm;
@@ -2319,17 +2313,7 @@ void ModelXML::readStep(double *u, double *d, double *m)
 
     QString s = r->readElementText();
     *u = *d = 0; *m = 1;
-//    if (sizeof(QChar)==sizeof(char))
-    {
-        sscanf_s(s.toAscii(),"%lg %lg %lg",u,d,m);
-//        sscanf(s.toAscii(),"%lg %lg %lg",u,d,m);
-//        sscanf(s.toLatin1s.latin.latin1(),"%lg %lg %lg",u,d,m);
-//        sscanf(reinterpret_cast<const char*>(s.data()),"%lg %lg %lg",u,d,m);
-    }
-//    else
-//    {
-//        Q_ASSERT(0);
-//    }
+    sscanf_s(s.toAscii(),"%lg %lg %lg",u,d,m);
 }
 void ModelXML::writeUdm()
 {
@@ -2368,8 +2352,7 @@ void ModelXML::readTime()
     tmin=0;
     tmax=1000;
     QString s = r->readElementText();
-//    sscanf(s.toLatin1(),"%lg %lg %lg %lg",t,ht,tmin,tmax);
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",t,ht,tmin,tmax);
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&t,&ht,&tmin,&tmax);
     TimeParameters tp;
     tp.time=t;
     tp.ht=ht;
