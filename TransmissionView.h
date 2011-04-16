@@ -74,7 +74,6 @@ public:
 private:
     void initDialogScaleY();
     void updateRubberBandRegion();
-    double widthLine;
     double tMax, tMin; 
     double Emin,Emax,hE;
     QGraphicsLineItem *lineh,*linev;
@@ -85,6 +84,7 @@ private:
     QLineEdit *leEmin;
     QLineEdit *leEmax;
     QLineEdit *leHE;
+    double widthLine;
     
     PhysicalModel *model;
     QGroupBox  *gbScaleXY;

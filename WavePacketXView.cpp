@@ -31,8 +31,10 @@ whatToDraw(2)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    setMinimumSize(260, 220);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(reDraw()));
 //    connect(model,SIGNAL(signalScaleWPXChanged()),this,SLOT(resizePicture()));
 
 }
@@ -40,17 +42,17 @@ WavePacketXView::~WavePacketXView()
 {
     disconnect(this, 0, 0, 0);
 //    if (gbDefWP) delete gbDefWP;
-    if (dialogTime) delete dialogTime;
-    if (dialogWPEp) delete dialogWPEp;
-    if (dialogWPEm) delete dialogWPEm;
-    if (dialogScaleWPX) delete dialogScaleWPX;
+    if (!dialogTime) delete dialogTime;
+    if (!dialogWPEp) delete dialogWPEp;
+    if (!dialogWPEm) delete dialogWPEm;
+    if (!dialogScaleWPX) delete dialogScaleWPX;
     for (QMap<int,CoordinateDistributionCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
     {
         int n = i.key();
         removeCurve(n);
     }
-    if (lineh) delete lineh;
-    if (linev) delete linev;
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
 }
 
 void WavePacketXView::resizePicture()
@@ -66,7 +68,6 @@ void WavePacketXView::resizePicture()
 }
 void WavePacketXView::setViewportMapping()
 {
-//    QRectF vp = QRectF(QPointF(this->xmin,this->psiMin),QPointF(this->xmax,this->psiMax));
         ScaleWPXParameters sc = model->getScaleWPXParam();
         if(dx!=sc.Hx||xmin!=sc.Xmin||xmax!=sc.Xmax||psiMax!=sc.WPXmax||psiMin!=sc.WPXmin)
         {
@@ -76,7 +77,6 @@ void WavePacketXView::setViewportMapping()
             psiMax=sc.WPXmax;
             psiMin=sc.WPXmin;
         }
-//    int npoints=1+(xmax-xmin)/this->dx;
     QRectF a = QRectF(this->viewport()->rect());
     double rxmin=0;
     double rxmax=a.width();//npoints-1;
@@ -84,19 +84,8 @@ void WavePacketXView::setViewportMapping()
     double rpsiMax=a.height();//a.height();
     QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
     scene()->setSceneRect(b);
-/*    QRect a = QRect(this->viewport()->rect());
-    int Ixmin=0;
-    int Ixmax=300;//npoints-1;
-    int IpsiMin=0;
-    int IpsiMax=200;//a.height();
-    QRectF b = QRectF(QPoint(Ixmin,IpsiMin),QPoint(Ixmax,IpsiMax));
-    scene()->setSceneRect(b);
-    QRect a = QRect(this->viewport()->rect());
-*/
-    QRectF sr = scene()->sceneRect();
-//    if (vp != sr)
+//    QRectF sr = scene()->sceneRect();
     {
-//        scene()->setSceneRect(vp);
         qreal m11 = a.width() / b.width();
         qreal m22 = - a.height() / b.height();
         qreal dx = - m11 * a.x();
@@ -104,21 +93,14 @@ void WavePacketXView::setViewportMapping()
         QMatrix m(m11,0,0,m22,dx,dy);
         this->setMatrix(m);
         scene()->update(scene()->sceneRect());
-        sr = scene()->sceneRect();
-     double ax=fabs(this->xmax-this->xmin)*widthLine/2000;
-//     double ax=fabs(this->xmax-this->xmin)*widthLine/a.width();
-     double ay=fabs(this->psiMax-this->psiMin)/100*widthLine;
-//     double ay=fabs(this->psiMax-this->psiMin)*widthLine/a.height();
-     double ax1=a.width()/fabs(xmax-xmin)*widthLine;
-     double ay1=a.height()/fabs(psiMax-psiMin)*widthLine;
-
     }
     update();
 } 
 void WavePacketXView::resizeEvent(QResizeEvent *) 
 {
     setViewportMapping();
-//    resizePicture();
+    reDraw();
+//    clearAll();
 }
 
 void WavePacketXView::mouseMoveEvent(QMouseEvent *e)
@@ -143,7 +125,10 @@ void WavePacketXView::scaleView(qreal scaleFactor)
 void WavePacketXView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
-    {
+    {    
+    case Qt::Key_Delete:
+        clearAll();
+        break;
     case Qt::Key_Plus:
         scaleView(qreal(1.2));
         break;
@@ -165,10 +150,61 @@ void WavePacketXView::keyPressEvent(QKeyEvent *event)
     }
     QGraphicsView::keyPressEvent(event);
 }
+void WavePacketXView::clearAll()
+{
+    
+        for ( QMap<int,CoordinateDistributionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int m = i.key();
+            removeCurve(m);
+    }
+}
+void WavePacketXView::reDraw()
+{ 
+    QRectF vp = scene()->sceneRect();
+    QPen p;
+    p.setWidthF(widthLineWP);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
+//    if(linev)
+    if(!linev)
+    {
+        lineh = new QGraphicsLineItem();
+        linev = new QGraphicsLineItem();
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+        scene()->addItem(lineh);
+        scene()->addItem(linev);
+    }
+    else
+    {
+        p.setColor(Qt::darkCyan);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+        int npoints;
+        QPolygonF psi;
+        npoints=1+(xmax-xmin)/this->dx;
+        psi.resize(npoints);
+        waveFunction.resize(npoints);
+        for (int i=0; i < npoints; i++)
+        {
+            double x = (i*vp.width())/(npoints-1);
+            double y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
+            psi[i]  = QPointF(x, y);
+        }
+        setCurve(0, psi, p);
+    }
+}
 
 void WavePacketXView::slot_WavePacket_of_t()
 {
     QRectF vp = scene()->sceneRect();
+    QRectF vp_old=vp;
     QRect a = QRect(this->viewport()->rect());
     QPen p;
     p.setWidthF(widthLineWP);
@@ -197,11 +233,8 @@ void WavePacketXView::slot_WavePacket_of_t()
         lineh->setPen(p);
         linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
         lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-//        linev->setLine(0., psiMin, 0., psiMax);
-//        lineh->setLine(xmin,0.,xmax,0.);
     }
     int npoints;
-    QVector<double> waveFunction;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
@@ -224,10 +257,12 @@ void WavePacketXView::slot_WavePacket_of_t()
     }
     p.setColor(Qt::darkCyan);
     p.setWidthF(widthLineWP);
+
     for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
     {
         ScaleWPXParameters sc = model->getScaleWPXParam();
-        if(dx!=sc.Hx||xmin!=sc.Xmin||xmax!=sc.Xmax||psiMax!=sc.WPXmax||psiMin!=sc.WPXmin)
+        vp = scene()->sceneRect();
+        if(vp!=vp_old||dx!=sc.Hx||xmin!=sc.Xmin||xmax!=sc.Xmax||psiMax!=sc.WPXmax||psiMin!=sc.WPXmin)
         {
             dx=sc.Hx;
             xmin=sc.Xmin;
@@ -238,35 +273,32 @@ void WavePacketXView::slot_WavePacket_of_t()
             psi.resize(npoints);
             waveFunction.resize(npoints);
             setViewportMapping();
-            vp = scene()->sceneRect();
+            //            vp = scene()->sceneRect();
             QRect a = QRect(this->viewport()->rect());
             linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
             lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
             p.setWidthF(widthLineWP);
+            vp_old=vp;
         }
-    TimeParameters tt=model->getTimeParam(); 
+        TimeParameters tt=model->getTimeParam(); 
         if(t!=tt.time||htime!=tt.ht)
         {
-        this->time=tt.time;
-        htime=tt.ht;
+            this->time=tt.time;
+            htime=tt.ht;
         }
         waveFunction = model->getPsiOfXT(t, xmin, xmax, npoints, whatToDraw);
-            for (int i=0; i < npoints; i++)
-            {
-//                double x = xmin + dx*i;
-//                double y = waveFunction[i];
-//                psi[i]  = QPointF(x, y);
+        for (int i=0; i < npoints; i++)
+        {
             double x = (i*vp.width())/(npoints-1);
             double y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
             psi[i]  = QPointF(x, y);
-             }
+        }
         setCurve(0, psi, p);
-//            setCurve(0,psi,QPen(Qt::darkCyan));
-            tp=model->getTimeParam();
-             if (getBreakStatus(0)) 
-            {
-                return;
-            }
+        tp=model->getTimeParam();
+        if (getBreakStatus(0)) 
+        {
+            return;
+        }
     }
 }
 
@@ -367,6 +399,8 @@ void WavePacketXView::showDialogScaleY()
 void WavePacketXView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
+        QFont font( "Serif", 10, QFont::DemiBold );
+        m.setFont(font);
         QAction *wpdefEm = m.addAction(m.tr("Wave packet definition:E_n<0"));
         QAction *wpdefEp = m.addAction(m.tr("Wave packet definition:E_j>0"));
         QAction *time = m.addAction(m.tr("Time parameters"));
@@ -538,32 +572,150 @@ void WavePacketXWidget::slotRunWP()
     connect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
 }
 
-/*void CoordinateDistributionCurve::mousePressEvent(QGraphicsSceneMouseEvent * event)
+/*class ModelXML
 {
-    if (event->buttons() & Qt::RightButton)
+    WavePacketXView *view;//PhysicalModel *model;
+    QXmlStreamReader *r;
+    QXmlStreamWriter *w;
+public:
+    ModelXML(WavePacketXView *_m,QXmlStreamReader *_r,QXmlStreamWriter *_w)
+        : view(_m), r(_r), w(_w) {}
+    void read();
+    void write();
+    void readTime();
+    void writeTime();
+    void readScale();
+    void writeScale();
+    void readStep(double *u,double *d, double *m);
+};
+
+void skipUnknownElement(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement());
+
+    while (!r->atEnd())
     {
-        QMenu m;
-        QAction *scalePsi = m.addAction("Scales");
-        QAction *wavepacketViewAction = m.addAction("Real, imag or |psi|^2?");
-//        QAction *wavepacketAction = m.addAction("Wavepacket");
-        QAction *what = m.exec(event->screenPos());
-        if (what == scalePsi)
-        {
-            view->showDialogScaleY();
-            update();
-        }
-//        if (what == wavepacketAction)
-//        {
-//            view->showDialogWavePacket();
-//            update();
-//        }
-        if (what == wavepacketViewAction)
-        {
-            view->showDialogViewPsiX();
-            update();
-        }
-        event->accept();
+        r->readNext();
+
+        if (r->isEndElement())
+            break;
+
+        if (r->isStartElement())
+            skipUnknownElement(r);
     }
 }
 
+void ModelXML::read()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "viewWPX");
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+
+        if (r->name() == "Time")
+            readTime();
+        else if (r->name() == "ScaleWPX")
+            readScaleWPX();
+        else
+            skipUnknownElement(r);
+    }
+}
+
+void ModelXML::write()
+{
+    w->writeStartElement("viewWPX");
+    writeTime();
+    writeScaleWPX();
+    w->writeEndElement();
+}
+
+void ModelXML::readTime()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "Time");
+    TimeParameters tp=model->getTimeParam(); 
+    this->time=tp.time;
+    this->htime=tp.ht;
+    this->tmin=tp.tmin;
+    this->tmax=tp.tmax;
+
+    QString s = r->readElementText();
+    model->set_E0(s.toDouble());//?
+}
+void ModelXML::writeTime()
+{
+    QString s;
+    s.sprintf("%lg",model->get_E0());//?
+    w->writeTextElement("Time",s);
+}
+
+void ModelXML::readScaleWPX()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "udm");
+
+    QVector<double> u,d,m;
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+
+        if (r->name() == "step")
+        {
+            double du,dd,dm;
+            readStep(&du,&dd,&dm);
+            u.push_back(du);
+            d.push_back(dd);
+            m.push_back(dm);
+        }
+        else
+            skipUnknownElement(r);
+    }
+    model->set_Ui_d_m(u,d,m);
+}
+void ModelXML::readStep(double *u, double *d, double *m)
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "step");
+
+    QString s = r->readElementText();
+    *u = *d = 0; *m = 1;
+//    if (sizeof(QChar)==sizeof(char))
+    {
+        sscanf(s.toAscii(),"%lg %lg %lg",u,d,m);
+//        sscanf(s.toLatin1s.latin.latin1(),"%lg %lg %lg",u,d,m);
+//        sscanf(reinterpret_cast<const char*>(s.data()),"%lg %lg %lg",u,d,m);
+    }
+//    else
+//    {
+//        Q_ASSERT(0);
+//    }
+}
+void ModelXML::writeUdm()
+{
+    w->writeStartElement("udm");
+    for (int n = 0; n < model->getN() + 2; ++n)
+    {
+        QString step;
+        double u=model->get_Ui(n);
+        double d=model->get_d(n);
+        double m=model->get_m(n);
+        step.sprintf("%lg %lg %lg",u,d,m);
+        w->writeTextElement("step",step);
+    }
+    w->writeEndElement();
+}
+
+void PhysicalModel::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "model");
+    ModelXML reader(this, r, NULL);
+    reader.read();
+}
+void PhysicalModel::writeToXml(QXmlStreamWriter *w)
+{
+    ModelXML writer(this, NULL, w);
+    writer.write();
+}
 */

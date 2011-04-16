@@ -18,7 +18,7 @@
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogLevNum(0), lineh(0), linev(0),
 xmin(-1.), xmax(10.),dx(0.01), 
-nMax(4),nMin(0),hn(1),widthLine(4),
+nMax(4),nMin(0),hn(1),widthLine(3),
 psiMax(1.), psiMin(-1.), dialogScalePsin(0), whatToDraw(0)
 {
     setScene(new QGraphicsScene(this));
@@ -33,7 +33,7 @@ psiMax(1.), psiMin(-1.), dialogScalePsin(0), whatToDraw(0)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+    setMinimumSize(260, 220);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Psi_n_of_x()));
     connect(model,SIGNAL(signalScalePsinChanged()),this,SLOT(resizePicture()));
@@ -78,15 +78,15 @@ void WaveFunctionView::slotEnergyChanged()
 WaveFunctionView::~WaveFunctionView()
 {
     disconnect(this, 0, 0, 0);
-    if (dialogScalePsin) delete dialogScalePsin;
-    if(dialogLevNum) delete dialogLevNum;
+    if(!dialogScalePsin) delete dialogScalePsin;
+    if(!dialogLevNum) delete dialogLevNum;
     for (QMap<int,CoordinateDistribution*>::iterator i = curves.begin(); i != curves.end(); ++i)
     {
         int n = i.key();
         removeCurve(n);
     }
-    if (lineh) delete lineh;
-    if (linev) delete linev;
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
 }
 void WaveFunctionView::resizePicture()
 {       
@@ -126,21 +126,12 @@ void WaveFunctionView::setScalesFromModel()
 void WaveFunctionView::setViewportMapping()
 {
     QRectF a = QRectF(this->viewport()->rect());
-
     double rxmin=0;
     double rxmax=a.width();//npoints-1;
     double rpsiMin=0;
     double rpsiMax=a.height();//a.height();
     QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
     scene()->setSceneRect(b);
-/*    int npoints=(xmax-xmin)/this->dx;
-    int Ixmin=0;
-    int Ixmax=npoints;
-    int IpsiMin=0;
-    int IpsiMax=200;//a.height();
-    QRectF b = QRectF(QPoint(Ixmin,IpsiMin),QPoint(Ixmax,IpsiMax));
-    scene()->setSceneRect(b);
-    QRect a = QRect(this->viewport()->rect());*/
         qreal m11 = a.width() / b.width();
         qreal m22 = - a.height() / b.height(); 
         qreal dx = - m11 * a.x();
@@ -439,26 +430,79 @@ void WaveFunctionView::showDialogScaleY()
 void WaveFunctionView::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu m;
+    QFont font( "Serif", 10, QFont::DemiBold );
+    m.setFont(font);
+
     QAction *levNum = m.addAction(tr("Level numbers"));
-    QString psi=QChar(0x03C8);
-    QString to2=QChar(0x00B2);
-    QString psiofx=psi+"(x)";
-    QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
-    QAction *viewPsiX = m.addAction("Real, imag or " +mod_psiofx+"?");
     QAction *scalePsi = m.addAction(tr("Scales"));
     QAction *what = m.exec(event->globalPos());
+    QAction *width = m.addAction(m.tr("width of line"));
+    if (what == width)
+    {
+        this->showDialogWidth();
+        update();
+    }
     if (what == levNum)
     {
         this->showDialogLevNum();
-//        update();
+        //        update();
     }
     if (what == scalePsi)
     {
         this->showDialogScaleY();
-//        update();
+        //        update();
     }
     event->accept();
 }
+void WaveFunctionView::initDialogWidth()
+{   
+    gbWidth = new QGroupBox(this);
+    gbWidth->setWindowTitle("Width of lines");
+    gbWidth->setWindowFlags(Qt::Window);
+    gbWidth->setFont(QFont("Serif", 12, QFont::Bold )); 
+
+    QVBoxLayout *vl = new QVBoxLayout;
+    {
+        QWidget *line = new QWidget(this);
+        QHBoxLayout *h = new QHBoxLayout(line);
+        h->addWidget(new QLabel("width",this));
+        h->addWidget(this->leW = new QLineEdit(this));
+        this->leW->setToolTip("width: 1-10");
+        QString x;
+        x.sprintf("%lg",this->widthLine);
+        this->leW->setText(x);
+        connect(this->leW,SIGNAL(editingFinished()),this,SLOT(updateWidth()));
+        vl->addWidget(line);
+    }
+    gbWidth->setLayout(vl);
+}
+void WaveFunctionView::showDialogWidth()
+{
+    gbWidth->show();
+    gbWidth->raise();
+    gbWidth->setFocus();
+}
+void WaveFunctionView::setWidth()
+{
+    QString buf;
+    buf.sprintf("%lg",this->widthLine);
+    this->leW->setText(buf);
+}
+void WaveFunctionView::updateWidth()
+{
+    double a = this->leW->text().toDouble();
+    bool changed = false;
+    if (widthLine != a)
+    {
+        widthLine=a;
+        changed = true;
+    }
+    if(changed)
+    {
+        emit(signalWidthChanged());
+    }
+}
+
 WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {

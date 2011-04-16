@@ -65,10 +65,9 @@ public:
     void showDialogZ();
 private:
     void initDialogScaleY();
-//    void updateRubberBandRegion();
-    double widthLine;
     double tMax, tMin; 
     double Zmin,Zmax,hZ;
+    double widthLine; 
     QGraphicsLineItem *lineh,*linev;
     ZTDraggable *lineZ;
 

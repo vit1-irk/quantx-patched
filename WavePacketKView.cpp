@@ -30,7 +30,7 @@ dialogScaleWPK(0)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+    setMinimumSize(160, 220);
     connect(model,SIGNAL(signalScaleWPKChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalTimeChanged(double)),this,SLOT(slot_WavePacket_of_t()));
     resizePicture();
@@ -38,18 +38,14 @@ dialogScaleWPK(0)
 WavePacketKView::~WavePacketKView()
 {
     disconnect(this, 0, 0, 0);
-//    if (!gbDefWP) delete gbDefWP;
-//    if (!dialogTime) delete dialogTime;
-//    if (!dialogWPEp) delete dialogWPEp;
-//    if (!dialogWPEm) delete dialogWPEm;
-    if (dialogScaleWPK) delete dialogScaleWPK;
+    if (!dialogScaleWPK) delete dialogScaleWPK;
     for (QMap<int,MomentumDistributionCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
     {
         int n = i.key();
         removeCurve(n);
     }
-    if (lineh) delete lineh;
-    if (linev) delete linev;
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
 }
 
 void WavePacketKView::resizePicture()
@@ -228,6 +224,8 @@ void WavePacketKView::showDialogScaleY()
 void WavePacketKView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
+        QFont font( "Serif", 10, QFont::DemiBold );
+        m.setFont(font);
         QAction *scalePsi = m.addAction(m.tr("Scales"));
         QAction *what = m.exec(event->globalPos());
         if (what == scalePsi)
@@ -260,6 +258,8 @@ WavePacketKWidget::WavePacketKWidget(PhysicalModel *model, QWidget *parent)
 //     QPushButton *buttonClose = new QPushButton(tr("Close"));
     buttonClose->setIcon(QIcon("images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
+    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
+
     hl->addStretch();
     hl->addWidget(buttonClose);
 

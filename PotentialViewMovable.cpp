@@ -411,7 +411,7 @@ psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(260, 220);
+    setMinimumSize(300, 200);
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
 //    connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotPsiofE()));
@@ -447,23 +447,23 @@ void PotentialViewMovable::setScalesFromModel()
     tp.Xmax = xmax;
     tp.Umin = Umin;
     tp.Umax = Umax;
-    tp.Psimin = psiMin;
-    tp.Psimax = psiMax;
+//    tp.Psimin = psiMin;
+//    tp.Psimax = psiMax;
     model->setScalesUParam(tp);
 }
 void PotentialViewMovable::resizePicture()
 {   
     ScalesUParameters tp = model->getScalesUParam();
     if(this->dx!=tp.Hx||xmin!=tp.Xmin||xmax!=tp.Xmax||
-        Umin!=tp.Umin||Umax!=tp.Umax||psiMax!=tp.Psimax||psiMin!=tp.Psimin)
+        Umin!=tp.Umin||Umax!=tp.Umax)//||psiMax!=tp.Psimax||psiMin!=tp.Psimin)
     {
         dx=tp.Hx;
         xmin=tp.Xmin;
         xmax=tp.Xmax;
         Umin=tp.Umin;
         Umax=tp.Umax;
-        psiMax=tp.Psimax;
-        psiMin=tp.Psimin;
+//        psiMax=tp.Psimax;
+//        psiMin=tp.Psimin;
         if(dialogScalesU)dialogScalesU->modelChanged();
         else
         {
@@ -584,8 +584,8 @@ void PotentialViewMovable::scrollView(int hx, int hy)
     xmax=tp.Xmax;
     Umin=tp.Umin;
     Umax=tp.Umax;
-    psiMax=tp.Psimax;
-    psiMin=tp.Psimin;
+//    psiMax=tp.Psimax;
+//    psiMin=tp.Psimin;
     setViewportMapping();
     double stepX=(xmax-xmin)/5;//numTTicks;
     xmin +=hx*stepX;
@@ -599,8 +599,8 @@ void PotentialViewMovable::scrollView(int hx, int hy)
     tt.Xmax = xmax;
     tt.Umin = Umin;
     tt.Umax = Umax;
-    tt.Psimin = psiMin;
-    tt.Psimax = psiMax;
+//    tt.Psimin = psiMin;
+//    tt.Psimax = psiMax;
     model->setScalesUParam(tt);
     if(dialogScalesU)dialogScalesU->modelChanged();
     else
@@ -974,7 +974,7 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             {
                 QLineF r = right->line();
                 QPointF p1 = r.p1();
-                QPointF p2 = r.p2();
+                QPointF p2 = r.p2(); 
 //                right->setLine(p1.x(),newU,p2.y());
                 right->setLine(p1.x(),newU,p2.y()-newU);
             }
@@ -1107,6 +1107,8 @@ void PotentialViewMovable::contextMenuEvent(QContextMenuEvent *event)
 {
     {
         QMenu m;
+        QFont font( "Serif", 10, QFont::DemiBold );
+        m.setFont(font);
         QAction *scalePsi = m.addAction(tr("Scales"));
         QAction *U1Action = m.addAction(tr("Set U(x) as initial"));
         QAction *U2Action = m.addAction(tr("Set U(x) as final"));

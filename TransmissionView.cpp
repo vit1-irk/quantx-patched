@@ -29,6 +29,7 @@ public:
     void setLine(double x1,double y1,double height)
     {
         QPointF p = pos();
+        QRectF vp = view->sceneRect();//
         if (x1 != p.x() || y1 != p.y() || height != p2.y())
         {
             prepareGeometryChange();
@@ -95,14 +96,8 @@ public:
         qreal ax1 = view->mapFromGlobal(QPoint(1,1)).x();
         qreal ax2 = view->mapFromScene(QPoint(1,1)).x();
         qreal ax3 = view->width();
-
-
-//        double ay = fabs(sa.y() - sb.y());
-//        view->widthLineE=0;
-        penForPainter.setWidthF(ax);
-//        penForPainter.setWidthF(ay);
+        penForPainter.setWidthF(view->widthLine);
         painter->setPen(penForPainter);
-        //qreal x2 = penForPainter.widthF();
         QPainter::RenderHints saved_hints = painter->renderHints();
         painter->setRenderHint(QPainter::Antialiasing, false);
         painter->drawLine(QLineF(QPointF(),p2));
@@ -114,14 +109,7 @@ public:
     {
         if (event->buttons() & Qt::RightButton)
         {
-/*            QMenu m;
-            QAction *scaleE = m.addAction("Scale E");
-            QAction *what = m.exec(event->screenPos());
-            if (what == scaleE)
-            {
-//                view->scaleE();
-            }
-*/               update();// repaint();
+               update();// repaint();
         }
     }
 
@@ -131,7 +119,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m)
 {
     Erase = true; // this must initially be true
-    widthLine = 10;
+    widthLine = 3;//10;
     tMax = 1.1;
     tMin = -0.1;
     Emin = -0.5;
@@ -162,6 +150,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
+    setMinimumSize(300, 150);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     //rubberBandIsShown = false;
@@ -180,10 +169,10 @@ TransmissionView::~TransmissionView()
         int n = i.key();
         removeCurve(n);
     }
-    if (gbScaleXY) delete gbScaleXY;
-    if (lineE) delete lineE;
-    if (lineh) delete lineh;
-    if (linev) delete linev;
+    if (!gbScaleXY) delete gbScaleXY;
+    if (!lineE) delete lineE;
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
 }
 
 void TransmissionView::setScalesFromModel()
@@ -192,20 +181,17 @@ void TransmissionView::setScalesFromModel()
 }
 void TransmissionView::slotEline()
 {
+    QRectF vp = scene()->sceneRect();
     double E=model->get_E0(); 
-//        if (lineE) 
-//    {
-//        if(Eold!=E) model->set_E0(Eold);
-//        E=Eold;
-//    }
     if (!lineE) 
     {
         lineE = new EnergyDraggable(this);
-        lineE->setLine(E,tMin,tMax-tMin);
+        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
         scene()->addItem(lineE);
     }
     else 
-        lineE->setLine(E,tMin,tMax-tMin);
+        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
+//        lineE->setLine(E,tMin,tMax-tMin);
 }
 void TransmissionView::resizePicture()
 {
@@ -216,9 +202,26 @@ void TransmissionView::resizePicture()
 }
 void TransmissionView::setViewportMapping()
 {
+    QRectF a = QRectF(this->viewport()->rect());
+    double rEmin=0;
+    double rEmax=a.width();//npoints-1;
+    double rTMin=0;
+    double rTMax=a.height();//a.height();
+    QRectF b = QRectF(QPointF(rEmin,rTMin),QPointF(rEmax,rTMax));
+    scene()->setSceneRect(b);
+    {
+        qreal m11 = a.width() / b.width();
+        qreal m22 = - a.height() / b.height();
+        qreal dx = - m11 * a.x();
+        qreal dy = - m22 * (a.y() + a.height());
+        QMatrix m(m11,0,0,m22,dx,dy);
+        this->setMatrix(m);
+        scene()->update(scene()->sceneRect());
+    }
+    /*
     if(Emin>Emax) Emax=1.5*Emin;
     QRectF vp  = QRectF(QPointF(this->Emin,this->tMin),QPointF(this->Emax,this->tMax));
-    QRectF sr  = scene()->sceneRect();
+//    QRectF sr  = scene()->sceneRect();
     {
         scene()->setSceneRect(vp);
 
@@ -231,15 +234,17 @@ void TransmissionView::setViewportMapping()
         QMatrix m(m11,0,0,m22,dx,dy);
         this->setMatrix(m);
         scene()->update(scene()->sceneRect());
-        sr = scene()->sceneRect();
+//        sr = scene()->sceneRect();
     }
+    */
     update();
 } 
 void TransmissionView::resizeEvent(QResizeEvent *)
 {
 //    QSize s = e->size();
 //    QSize o = e->oldSize();
-    setViewportMapping();
+    this->resizePicture();
+//    setViewportMapping();
     //QWidget::resizeEvent(e);
 }
 
@@ -319,14 +324,17 @@ void TransmissionView::keyPressEvent(QKeyEvent *event)
 
 void TransmissionView::slot_whole_T_of_E()
 {
-    static const QColor colorForIds[6] = {
-        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
-    };
-    const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+    QRectF vp = scene()->sceneRect();
+    QRectF vp_old=vp;
+    QPen p;
+    p.setWidthF(widthLine);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
+    if(Emin>Emax) Emax=1.5*Emin;
     if(Erase) curve_number=0;
     else curve_number=curve_number+1;
     int n=curve_number;
-    if(Emin>Emax) Emax=1.5*Emin;
     if(Erase)
     {
         for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
@@ -339,21 +347,27 @@ void TransmissionView::slot_whole_T_of_E()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        lineh->setLine(Emin,0.,Emax,0);
-        linev->setLine(0, tMin, 0., tMax);
-//        lineh->setLine(tMin, 0., tMax, 0);
-//        linev->setLine(0.,Emin,0.,Emax);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
     else
     {
-        lineh->setLine(Emin,0.,Emax,0);
-        linev->setLine(0, tMin, 0., tMax);
-//        lineh->setLine(tMin, 0., tMax, 0);
-//        linev->setLine(0.,Emin,0.,Emax);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
     }
+//--------------------------
+    static const QColor colorForIds[6] = {
+        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
+    };
+    const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     int npoints;//=501;
+    p.setColor(colorForIds[n % size_colorForIds]);
     double x0=Emin;
     if(Emin<0) x0=1e-7;
     QVector<double> transmission;
@@ -361,15 +375,15 @@ void TransmissionView::slot_whole_T_of_E()
     npoints=1+(Emax-x0)/hE;
     curveTE.resize(npoints);
     transmission.resize(npoints);
-//    double dE = (Emax-Emin)/(npoints-1);
     transmission=model->getTransmissionOfE(x0,Emax,npoints);
     for (int i=0; i < npoints; i++)
     {
-        double x = x0 + hE*i;
-        double y = transmission[i];
+        double x = vp.width()*(-Emin)/(Emax-Emin)+(x0 + hE*i)*vp.width()/(Emax-Emin);//x0 + hE*i;
+        double y = vp.height()*(transmission[i]-tMin)/(tMax-tMin);//transmission[i];
         curveTE[i]  = QPointF(x,y);
     }
-    setCurve(n,curveTE,colorForIds[n % size_colorForIds]);
+    setCurve(n,curveTE,p);
+//    setCurve(n,curveTE,colorForIds[n % size_colorForIds]);
 }
 /*
 void TransmissionView::slot_T_of_E()
@@ -598,6 +612,8 @@ void TransmissionView::updateScaleTE()
 void TransmissionView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
+        QFont font( "Serif", 10, QFont::DemiBold );
+        m.setFont(font);
         QAction *scaleT = m.addAction("Set scales");
         QAction *what = m.exec(event->globalPos());
         if (what == scaleT)
@@ -682,11 +698,13 @@ EnergyDraggable::EnergyDraggable(TransmissionView *v,QGraphicsItem *parent)
     //TODO: how do I control the width of this draggable line?
     setCursor(Qt::SizeVerCursor);
     penHover.setStyle(Qt::DashLine);
+    penHover.setWidth(v->widthLine);
 //    penHover.setStyle(Qt::DotLine);
     penHover.setColor(Qt::blue);
 //    pen.setStyle(Qt::DashLine);
     pen.setStyle(Qt::DotLine);
     pen.setColor(Qt::blue);
+    pen.setWidth(v->widthLine);
 
     setCursor(Qt::SizeHorCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);		
@@ -711,7 +729,8 @@ QVariant EnergyDraggable::itemChange(GraphicsItemChange change, const QVariant &
         if (isSelected())
         {
             double newE = pos().x();
-            //double newy = pos().y();
+            QRectF vp = view->sceneRect();//
+            newE=view->Emin+(view->Emax-view->Emin)*newE/vp.width();
             view->model->set_Energy(newE);
             return QVariant();
         }

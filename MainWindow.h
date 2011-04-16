@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QSplitter>
 #include <QDialog>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include <vector>
 #include "plotter.h"
 #include "myparam.h"
@@ -103,7 +105,7 @@ private slots:
 //    void init();
     bool save();
     bool saveAs();
-    void openFile(const QString &path);
+    bool openFile();
     void createStatusBar();
 /*    void compute();
     void Bound_States();

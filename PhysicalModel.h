@@ -5,6 +5,8 @@
 #include <QVector>
 #include <QRectF>
 #include <QPair>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include <complex>
 //#include <cmath>
 typedef std::complex<double> complex;
@@ -87,7 +89,7 @@ struct TimeParameters
 struct ScalesUParameters
 {
     double Xmin,Xmax,Hx;
-    double Psimin,Psimax;
+//    double Psimin,Psimax;
     double Umin,Umax;
     bool operator != (const ScalesUParameters& o) 
     { 
@@ -95,9 +97,9 @@ struct ScalesUParameters
             ||Xmin != o.Xmin 
             ||Xmax != o.Xmax 
             ||Umin != o.Umin 
-            ||Umax != o.Umax 
-            ||Psimin != o.Psimin 
-            ||Psimax != o.Psimax; 
+            ||Umax != o.Umax; 
+//            ||Psimin != o.Psimin 
+//            ||Psimax != o.Psimax; 
     }
 };
 
@@ -204,6 +206,8 @@ public:
     void setUAsMW(const UAsMW&);
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
     QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
 signals:
 
     void signalScaleWPXChanged();
@@ -231,7 +235,6 @@ private:
     //! Heterostructural potential
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
-    double Ub;
     double E0;
     QVector<double> U1; //!< Inital potential values for z-animations
     QVector<double> U2; //!< Final potential values for z-animations
@@ -239,7 +242,7 @@ private:
     QVector<double> d2; //!< Final potential step widths for z-animations
     QVector<double> m1; //!< Initial potential step masses for z-animations
     QVector<double> m2; //!< Final potential step masses for z-animations
-    double Ub1,Ub2; 
+//    double Ub1,Ub2; 
     double Ubias; 
     int numberOfLevels, LevelNmin, LevelNmax, LevelHn; // min, max and step for the level numbers of wavefunctions at E<0
     zParameters zold;
@@ -270,7 +273,7 @@ public:
     bool flagBondaryCondition;
 //    double getTatE(double E);
   double get_U(int n);//comment
-    double get_Ub() const { return Ub; }
+//    double get_Ub() const { return Ub; }
     double getUbias() const { return Ubias; }
     double get_E0() const { return E0; }
     double get_Time() const { return this->time; }
@@ -293,7 +296,7 @@ public:
     void set_NofWP(int n);
 
 //potential:
-    void set_Ub(double _Ub);
+//    void set_Ub(double _Ub);
     void setUbias(double _Ubias);
 //    QVector<double> get_U() const { return U; }//added
     QVector<double> get_Ui() const { return Ui; }
@@ -308,7 +311,7 @@ public:
     void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
     void   set_m(int n, double v);
-    void set_Ui_d_m_Ub(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m, const double& Ub);
+    void set_Ui_d_m(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m);
 //    void set_E_lo_E_hi_wpN(double E_lo,double E_hi, int wpN);
 //    void set_nminWP_nmaxWP_hnWP(int nminWP, int nmaxWP, int hnWP);
     QVector<double> getEn();

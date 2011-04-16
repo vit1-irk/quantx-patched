@@ -21,8 +21,8 @@ private:
     PhysicalModel *model;
     ScalesUParameters last;
 
-    QLineEdit *lePsimin;
-    QLineEdit *lePsimax;
+//    QLineEdit *lePsimin;
+//    QLineEdit *lePsimax;
     QLineEdit *leUmin;
     QLineEdit *leUmax;
     QLineEdit *leXmin;

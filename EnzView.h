@@ -71,10 +71,9 @@ private:
     double Enzmin, Enzmax;
     void setScaleEnz();
     QGroupBox  *gbScaleXY;
+    double widthLine; 
 
-
-    double widthLine;
-    double zmax, zmin; 
+    double zmax, zmin, hz; 
 //    double Umin, Umax;
     QGraphicsLineItem *lineh,*linev;
     void contextMenuEvent(QContextMenuEvent *event);

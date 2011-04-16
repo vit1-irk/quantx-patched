@@ -887,8 +887,8 @@ tp.Xmin=this->Xmin;
 tp.Xmax=this->Xmax;
 tp.Umin=this->Umin;
 tp.Umax=this->Umax;
-tp.Psimin=this->Psimin;
-tp.Psimax=this->Psimax;
+//tp.Psimin=this->Psimin;
+//tp.Psimax=this->Psimax;
 return tp;
 }
 ScalePsinParameters PhysicalModel::getScalePsinParam() const
@@ -1038,7 +1038,7 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
      changed_y = true;
      this->Umin=v;
  }
- v=u.Psimax;
+/* v=u.Psimax;
  if(v!=this->Psimax)
  {
      this->Psimax=v;
@@ -1050,7 +1050,7 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
  {
      changed_y = true;
      this->Psimin=v;
- }
+ }*/
 
  if(this->Hx!=u.Hx)
  {
@@ -1067,8 +1067,8 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
     t.Xmax=Xmax;
     t.Xmin=Xmin;
     t.Hx=Hx;
-    t.Psinmax=Psinmax;
-    t.Psinmin=this->Psinmin;
+  //  t.Psinmax=Psinmax;
+  //  t.Psinmin=this->Psinmin;
     emit(signalScalePsinChanged());
     ScaleWPXParameters twp;
     twp.Xmax=Xmax;
@@ -1255,8 +1255,8 @@ void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
         tp.Xmax=this->Xmax;
         tp.Umin=this->Umin;
         tp.Umax=this->Umax;
-        tp.Psimin=this->Psimin;
-        tp.Psimax=this->Psimax;
+//        tp.Psimin=this->Psimin;
+//        tp.Psimax=this->Psimax;
         emit(signalScalesUChanged());
     }
 }
@@ -1410,7 +1410,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
 
 PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
-  N(0), E0(0), psi(0), Ub(0), x(0), 
+  N(0), E0(0), psi(0), x(0), 
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(-1),zmin(0.),zmax(1.),hz(0.005),
@@ -1439,20 +1439,29 @@ zold.zmax=1.;
 zold.hz=0.025;
 }
 
-void PhysicalModel::set_Ui_d_m_Ub(const QVector<double>& _Ui,
+#if 0
+PhysicalModel::PhysicalModel(const PhysicalModel& o)
+{
+    N = o.N;
+    d = o.d;
+    ...
+}
+#endif
+
+void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
                                const QVector<double>& _d,
-                               const QVector<double>& _m, 
-                               const double& _Ub)
+                               const QVector<double>& _m)
+//                               const double& _Ub)
 {
     bool changed = false;
 
     int _N = _Ui.size() - 2;
 
-    if(_Ub!=Ub)
+/*    if(_Ub!=Ub)
     {
         Ub=_Ub;
         changed=true;
-    }
+    }*/
     if (_N != Ui.size() - 2)
     {
         changed = true;
@@ -1571,14 +1580,14 @@ void PhysicalModel::set_m(int n, double v)
         markUchanged();
     }
 }
-void PhysicalModel::set_Ub(double v)
+/*void PhysicalModel::set_Ub(double v)
 {
     if (Ub != v)
     {
         Ub = v;
         markUchanged();
     }
-}
+}*/
 void PhysicalModel::set_Energy(double v)
 {
     if (E0 != v)
@@ -2184,3 +2193,260 @@ QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints
         this->E0=Eold;
     return waveFunction;
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+class ModelXML
+{
+    PhysicalModel *model;
+    QXmlStreamReader *r;
+    QXmlStreamWriter *w;
+public:
+    ModelXML(PhysicalModel *_m,QXmlStreamReader *_r,QXmlStreamWriter *_w)
+        : model(_m), r(_r), w(_w) {}
+    void read();
+    void write();
+    void readTime();
+    void writeTime();
+    void readE0();
+    void writeE0();
+    void readUdm();
+    void writeUdm();
+    void readStep(double *u,double *d, double *m);
+};
+
+void skipUnknownElement(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement());
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+
+        if (r->isEndElement())
+            break;
+
+        if (r->isStartElement())
+            skipUnknownElement(r);
+    }
+}
+
+void ModelXML::read()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "model");
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+
+/*        switch (r->name())
+        {
+        case "E0":
+            readE0();
+//            break;
+        case "udm":
+            reaUdm();
+//            break;
+        case "time":
+            readTime();
+//            break;
+        default:
+            skipUnknownElement(r);
+
+        }*/
+        if (r->name() == "E0")
+        readE0();
+        else if (r->name() == "udm")
+        readUdm();
+        else if (r->name() == "time")
+        readTime();
+        else
+        skipUnknownElement(r);
+    }
+}
+
+void ModelXML::write()
+{
+    w->writeStartElement("model");
+    writeE0();
+    writeUdm();
+    writeTime();
+    w->writeEndElement();
+}
+
+void ModelXML::readE0()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "E0");
+
+    QString s = r->readElementText();
+    model->set_E0(s.toDouble());
+}
+void ModelXML::writeE0()
+{
+    QString s;
+    s.sprintf("%lg",model->get_E0());
+    w->writeTextElement("E0",s);
+}
+
+void ModelXML::readUdm()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "udm");
+
+    QVector<double> u,d,m;
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+
+        if (r->name() == "step")
+        {
+            double du,dd,dm;
+            readStep(&du,&dd,&dm);
+            u.push_back(du);
+            d.push_back(dd);
+            m.push_back(dm);
+        }
+        else
+            skipUnknownElement(r);
+    }
+    model->set_Ui_d_m(u,d,m);
+}
+void ModelXML::readStep(double *u, double *d, double *m)
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "step");
+
+    QString s = r->readElementText();
+    *u = *d = 0; *m = 1;
+//    if (sizeof(QChar)==sizeof(char))
+    {
+        sscanf_s(s.toAscii(),"%lg %lg %lg",u,d,m);
+//        sscanf(s.toAscii(),"%lg %lg %lg",u,d,m);
+//        sscanf(s.toLatin1s.latin.latin1(),"%lg %lg %lg",u,d,m);
+//        sscanf(reinterpret_cast<const char*>(s.data()),"%lg %lg %lg",u,d,m);
+    }
+//    else
+//    {
+//        Q_ASSERT(0);
+//    }
+}
+void ModelXML::writeUdm()
+{
+    w->writeStartElement("udm");
+    for (int n = 0; n < model->getN() + 2; ++n)
+    {
+        QString step;
+        double u=model->get_Ui(n);
+        double d=model->get_d(n);
+        double m=model->get_m(n);
+        step.sprintf("%lg %lg %lg",u,d,m);
+        w->writeTextElement("step",step);
+    }
+    w->writeEndElement();
+}
+void ModelXML::writeTime()
+{
+//    w->writeStartElement("time");
+    QString s;
+    TimeParameters tp=model->getTimeParam(); 
+    double t=tp.time;
+    double ht=tp.ht;
+    double tmin=tp.tmin;
+    double tmax=tp.tmax;
+    s.sprintf("%lg %lg %lg %lg",t,ht,tmin,tmax);
+//    w->writeTextElement(s);
+    w->writeTextElement("time",s);
+    w->writeEndElement();
+}
+void ModelXML::readTime()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "time");
+    double t,ht,tmin,tmax;
+    t=0;
+    ht=0.1;
+    tmin=0;
+    tmax=1000;
+    QString s = r->readElementText();
+//    sscanf(s.toLatin1(),"%lg %lg %lg %lg",t,ht,tmin,tmax);
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",t,ht,tmin,tmax);
+    TimeParameters tp;
+    tp.time=t;
+    tp.ht=ht;
+    tp.tmin=tmin;
+    tp.tmax=tmax;
+    model->setTimeParam(tp); 
+}
+/*void ModelXML::readUdm()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "udm");
+
+    QVector<double> u,d,m;
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+
+        if (r->name() == "step")
+        {
+            double du,dd,dm;
+            readStep(&du,&dd,&dm);
+            u.push_back(du);
+            d.push_back(dd);
+            m.push_back(dm);
+        }
+        else
+            skipUnknownElement(r);
+    }
+    model->set_Ui_d_m(u,d,m);
+}
+*/
+
+void PhysicalModel::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "model");
+
+    ///PhysicalModel newModel;
+    ///ModelXML reader(&newModel, r, NULL);
+    ///reader.read();
+    ///if (!reader.error()) setFrom(newModel);
+
+    ModelXML reader(this, r, NULL);
+    reader.read();
+}
+void PhysicalModel::writeToXml(QXmlStreamWriter *w)
+{
+    ModelXML writer(this, NULL, w);
+    writer.write();
+}
+
+#if 0
+// надо задавать
+// потенциал и его свойства:
+Ui[i], d[i], m[i], Ubias(0),typeOfU(FINITE),
+// initial and final potentials:
+U1[i], d1[i], m1[i], Ubias1(0),
+// волновой пакет и его тип
+nminWP(0), nmaxWP(10), hnWP(1), 
+wpE_lo(5.),wpE_hi(15.), wpN(30), type_of_WP(2)
+// инициализация
+N(0), E0(0), psi(0), x(0), kwave(0),
+RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
+psi_real(0), Phi_real(0),
+psi_imag(0), Phi_imag(0),need_build_WP(true),
+//не надо записывать
+//интервалы и масштабы для сравнения
+time(0),tmin(0),tmax(100),ht(0.01),
+zz(-1),zmin(0.),zmax(1.),hz(0.005),
+Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), 
+Psinmin(-1.), Psinmax(1.),
+WPXmin(-0.1), WPXmax(1.),
+WPKmin(-0.1), WPKmax(5.),
+Phinmin(-0.2), Phinmax(10.),
+Hk(0.025), Kmax(5.), Kmin(-5),
+LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),
+Nperiod(1)
+#endif
+

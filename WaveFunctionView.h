@@ -51,9 +51,11 @@ public slots:
     void slot_Psi_n_of_x();
     void clearAll();
     void slotEnergyChanged();
+    void updateWidth();
 signals:
     void infoMouseMovedTo(QPointF);
     void signalViewChanged();
+    void signalWidthChanged();    
 //    void signalScalesChanged();
 protected:
     void scrollView(int dx, int dy);
@@ -67,6 +69,11 @@ public:
     void showDialogScaleY();
     void showDialogLevNum();
 private:
+    void initDialogWidth();
+    void showDialogWidth();
+    void setWidth();
+    QLineEdit *leW;
+    QGroupBox  *gbWidth;
     ScalePsin  *dialogScalePsin;
     LevelNumber *dialogLevNum;
     void setScalesFromModel();

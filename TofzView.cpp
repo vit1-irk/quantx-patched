@@ -99,10 +99,10 @@ public:
 
 //        double ay = fabs(sa.y() - sb.y());
 //        view->widthLineE=0;
-        penForPainter.setWidthF(ax);
-//        penForPainter.setWidthF(ay);
+
+//        penForPainter.setWidthF(ax);
+        penForPainter.setWidthF(view->widthLine);
         painter->setPen(penForPainter);
-        //qreal x2 = penForPainter.widthF();
         QPainter::RenderHints saved_hints = painter->renderHints();
         painter->setRenderHint(QPainter::Antialiasing, false);
         painter->drawLine(QLineF(QPointF(),p2));
@@ -130,7 +130,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m)
 {
     Erase = true; // this must initially be true
-    widthLine = 10;
+    widthLine = 3;
     tMax = 1.1;
     tMin = -0.1;
     Zmin = -0.1;
@@ -160,6 +160,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setMinimumSize(160, 220);
     connect(this,SIGNAL(signalScaleTChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalScaleZChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slot_whole_T_of_z()));
@@ -174,10 +175,10 @@ TofzView::~TofzView()
         int n = i.key();
         removeCurve(n);
     }
-    if (gbScaleXY) delete gbScaleXY;
-    if (lineZ) delete lineZ;
-    if (lineh) delete lineh;
-    if (linev) delete linev;
+    if (!gbScaleXY) delete gbScaleXY;
+    if (!lineZ) delete lineZ;
+    if (!lineh) delete lineh;
+    if (!linev) delete linev;
 }
 
 void TofzView::setScalesFromModel()
@@ -194,14 +195,17 @@ void TofzView::slotZline()
     double z=tp.z;
     if(z>tp.zmax) z=tp.zmax;
     if(z<tp.zmin) z=tp.zmin;
+    QRectF vp = scene()->sceneRect();
     if (!lineZ) 
     {
         lineZ = new ZTDraggable(this);
-        lineZ->setLine(z,tMin,tMax-tMin);
+        lineZ->setLine(vp.width()*(z-Zmin)/(Zmax-Zmin), 0., vp.height());
+//        lineZ->setLine(z,tMin,tMax-tMin);
         scene()->addItem(lineZ);
     }
     else 
-        lineZ->setLine(z,tMin,tMax-tMin);
+        lineZ->setLine(vp.width()*(z-Zmin)/(Zmax-Zmin), 0., vp.height());
+//        lineZ->setLine(z,tMin,tMax-tMin);
 
 }
 
@@ -226,7 +230,25 @@ void TofzView::resizePicture()
 }
 void TofzView::setViewportMapping()
 {
-    QRectF vp  = QRectF(QPointF(this->Zmin,this->tMin),QPointF(this->Zmax,this->tMax));
+    QRectF a = QRectF(this->viewport()->rect());
+    double rZmin=0;
+    double rZmax=a.width();//npoints-1;
+    double rTMin=0;
+    double rTMax=a.height();//a.height();
+    QRectF b = QRectF(QPointF(rZmin,rTMin),QPointF(rZmax,rTMax));
+    scene()->setSceneRect(b);
+    {
+        qreal m11 = a.width() / b.width();
+        qreal m22 = - a.height() / b.height();
+        qreal dx = - m11 * a.x();
+        qreal dy = - m22 * (a.y() + a.height());
+        QMatrix m(m11,0,0,m22,dx,dy);
+        this->setMatrix(m);
+        scene()->update(scene()->sceneRect());
+    }
+    update();
+//---------------
+/*    QRectF vp  = QRectF(QPointF(this->Zmin,this->tMin),QPointF(this->Zmax,this->tMax));
     QRectF sr  = scene()->sceneRect();
     {
         scene()->setSceneRect(vp);
@@ -242,14 +264,11 @@ void TofzView::setViewportMapping()
         scene()->update(scene()->sceneRect());
         sr = scene()->sceneRect();
     }
-    update();
+    update();*/
 } 
 void TofzView::resizeEvent(QResizeEvent *)
 {
-//    QSize s = e->size();
-//    QSize o = e->oldSize();
-    setViewportMapping();
-    //QWidget::resizeEvent(e);
+    resizePicture();
 }
 
 void TofzView::wheelEvent(QWheelEvent *event)
@@ -346,6 +365,13 @@ void TofzView::keyPressEvent(QKeyEvent *event)
 
 void TofzView::slot_whole_T_of_z()
 {
+    QRectF vp = scene()->sceneRect();
+    QRectF vp_old=vp;
+    QPen p;
+    p.setWidthF(widthLine);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
     static const QColor colorForIds[6] = {
         Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
     };
@@ -355,16 +381,7 @@ void TofzView::slot_whole_T_of_z()
     hZ=tp.hz;
     Zmin=tp.zmin;
     Zmax=tp.zmax;
-/*    double zz=zt+hZ;
-    if(zz>=Zmax) 
-    { 
-        zt=Zmin;
-    }
-    if(zz<Zmin) 
-    { 
-        zt=Zmax;
-    }
-*/ 
+    if(Zmin>Zmax) Zmax=1.5*Zmin;
     if(Erase) curve_number=0;
     else curve_number=curve_number+1;
     int n=curve_number;
@@ -380,15 +397,23 @@ void TofzView::slot_whole_T_of_z()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        lineh->setLine(Zmin,0.,Zmax,0);
-        linev->setLine(0, tMin, 0., tMax);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Zmin)/(Zmax-Zmin), 0, vp.width()*(-Zmin)/(Zmax-Zmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+//        lineh->setLine(Zmin,0.,Zmax,0);
+//        linev->setLine(0, tMin, 0., tMax);
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
     else
     {
-        lineh->setLine(Zmin,0.,Zmax,0);
-        linev->setLine(0, tMin, 0., tMax);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Zmin)/(Zmax-Zmin), 0, vp.width()*(-Zmin)/(Zmax-Zmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+//        lineh->setLine(Zmin,0.,Zmax,0);
+//        linev->setLine(0, tMin, 0., tMax);
     }
     int npoints;//=501;
     double x0=Zmin;
@@ -398,17 +423,19 @@ void TofzView::slot_whole_T_of_z()
     npoints=1+(Zmax-x0)/hZ;
     curveTZ.resize(npoints);
     transmission.resize(npoints);
-//    double dE = (Zmax-Zmin)/(npoints-1);
     double Eold=model->get_E0();
-//    model->set_E0(Eold);
+    p.setColor(colorForIds[n % size_colorForIds]);
     transmission=model->getTransmissionOfZ(x0,Zmax,npoints);
     for (int i=0; i < npoints; i++)
     {
-        double x = x0 + hZ*i;
-        double y = transmission[i];
+        double x = vp.width()*(-Zmin)/(Zmax-Zmin)+(x0 + hZ*i)*vp.width()/(Zmax-Zmin);
+        double y = vp.height()*(transmission[i]-tMin)/(tMax-tMin);//transmission[i];
+//        double x = x0 + hZ*i;
+//        double y = transmission[i];
         curveTZ[i]  = QPointF(x,y);
     }
-    setCurve(n,curveTZ,colorForIds[n % size_colorForIds]);
+    setCurve(n,curveTZ,p);
+//    setCurve(n,curveTZ,colorForIds[n % size_colorForIds]);
 }
 void TofzView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 {
@@ -505,6 +532,8 @@ void TofzView::updateScaleTZ()
 void TofzView::contextMenuEvent(QContextMenuEvent *event)
 {
         QMenu m;
+        QFont font( "Serif", 10, QFont::DemiBold );
+        m.setFont(font);
         QAction *scaleT = m.addAction(tr("Y-scale"));
         QAction *scaleZ = m.addAction(tr("Z-scale"));
         QAction *what = m.exec(event->globalPos());
@@ -522,14 +551,13 @@ void TofzView::contextMenuEvent(QContextMenuEvent *event)
 ZTDraggable::ZTDraggable(TofzView *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
-    //TODO: how do I control the width of this draggable line?
     setCursor(Qt::SizeVerCursor);
     penHover.setStyle(Qt::DashLine);
-//    penHover.setStyle(Qt::DotLine);
+    penHover.setWidth(v->widthLine);
     penHover.setColor(Qt::blue);
-//    pen.setStyle(Qt::DashLine);
     pen.setStyle(Qt::DotLine);
     pen.setColor(Qt::blue);
+    pen.setWidth(v->widthLine);
 
     setCursor(Qt::SizeHorCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);		
@@ -554,7 +582,8 @@ QVariant ZTDraggable::itemChange(GraphicsItemChange change, const QVariant & val
         if (isSelected())
         {
             double newZ = pos().x();
-            //double newy = pos().y();
+            QRectF vp = view->sceneRect();//
+            newZ=view->Zmin+(view->Zmax-view->Zmin)*newZ/vp.width();
             view->model->set_z(newZ);
             return QVariant();
         }

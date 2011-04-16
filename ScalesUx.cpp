@@ -57,7 +57,7 @@ ScalesUx::ScalesUx(QWidget *parent, Qt::WindowFlags f)
         connect(this->leHx,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
-    {
+/*    {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
         h->addWidget(new QLabel(tr("Psi_min"),this));
@@ -74,7 +74,7 @@ ScalesUx::ScalesUx(QWidget *parent, Qt::WindowFlags f)
         this->lePsimax->setToolTip(tr("High value of Psi"));
         connect(this->lePsimax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
-    }
+    }*/
     this->setLayout(vl);
     this->modelChanged();
 }
@@ -103,8 +103,8 @@ void ScalesUx::modelChanged()
         this->leXmax->setDisabled(true);
         this->leUmin->setDisabled(true);
         this->leUmax->setDisabled(true);
-        this->lePsimin->setDisabled(true);
-        this->lePsimax->setDisabled(true);
+//        this->lePsimin->setDisabled(true);
+//        this->lePsimax->setDisabled(true);
         return;
     }
     else
@@ -114,8 +114,8 @@ void ScalesUx::modelChanged()
         this->leXmax->setEnabled(true);
         this->leUmin->setEnabled(true);
         this->leUmax->setEnabled(true);
-        this->lePsimin->setEnabled(true);
-        this->lePsimax->setEnabled(true);
+//        this->lePsimin->setEnabled(true);
+//        this->lePsimax->setEnabled(true);
     }
 
     ScalesUParameters tp = model->getScalesUParam();
@@ -134,11 +134,11 @@ void ScalesUx::modelChanged()
     buf.sprintf("%lg",tp.Umax);
     this->leUmax->setText(buf);
 
-    buf.sprintf("%lg",tp.Psimax);
-    this->lePsimax->setText(buf);
+//    buf.sprintf("%lg",tp.Psimax);
+//    this->lePsimax->setText(buf);
 
-    buf.sprintf("%lg",tp.Psimin);
-    this->lePsimin->setText(buf);
+//    buf.sprintf("%lg",tp.Psimin);
+//    this->lePsimin->setText(buf);
 
     buf.sprintf("%lg",tp.Hx);
     this->leHx->setText(buf);
@@ -154,8 +154,8 @@ void ScalesUx::updateModel()
     tp.Xmax = this->leXmax->text().toDouble();
     tp.Umin = this->leUmin->text().toDouble();
     tp.Umax = this->leUmax->text().toDouble();
-    tp.Psimin = this->lePsimin->text().toDouble();
-    tp.Psimax = this->lePsimax->text().toDouble();
+//    tp.Psimin = this->lePsimin->text().toDouble();
+//    tp.Psimax = this->lePsimax->text().toDouble();
     if (tp != last)
     {
         model->setScalesUParam(tp);

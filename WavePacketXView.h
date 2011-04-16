@@ -69,6 +69,8 @@ private:
     void initDialogWidth();
     void showDialogWidth();
     void setWidth();
+    void clearAll();
+    void reDraw();
     QLineEdit *leW;
     QGroupBox  *gbWidth;
      WPparametersM *dialogWPEm;
@@ -85,7 +87,8 @@ private:
 //    QGroupBox  *gbDefWP;
     TimeView *dialogTime;
     QMap<int,CoordinateDistributionCurve*> curves;
-    
+    QVector<double> waveFunction;
+
     int whatToDraw;
 public slots:
     void setWhatToDraw(int);

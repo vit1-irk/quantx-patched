@@ -54,18 +54,21 @@ void MainWindow::initMenuBar()
 //     QMenu *fileMenu = new QMenu(tr("&File"), this);
 //     fileMenu->addAction(tr("&Quit"), this, SLOT(close()));
      QAction *quitAction = fileMenu->addAction(tr("Quit"));
-     quitAction->setShortcut(tr("Ctrl+Q"));
+//     quitAction->setShortcut(tr("Ctrl+Q"));
      quitAction->setShortcut(QKeySequence(tr("Ctrl+Q")));
      connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-/*     QAction *openAction = fileMenu->addAction(tr("&Open..."));
-     openAction->setShortcut(tr("Ctrl+O"));
-     connect(openAction, SIGNAL(triggered()), this, SLOT(openFile())); //TODO: openFile(str)
+     QAction *openAction = fileMenu->addAction(tr("&Open..."));
+     openAction->setShortcut(QKeySequence(tr("Ctrl+O")));
+     connect(openAction, SIGNAL(triggered()), this, SLOT(openFile()));
+     fileMenu->addAction(openAction);  
+     //TODO: openFile(str)
 
-     QAction *saveAction = fileMenu->addAction(tr("&Save As..."));
-     saveAction->setShortcut(tr("Ctrl+S"));
-     connect(saveAction, SIGNAL(activated()), this, SLOT(saveAs()));
-*/
+     QAction *saveAsAction = fileMenu->addAction(tr("&Save As..."));
+     saveAsAction->setShortcut(tr("Ctrl+S"));
+     connect(saveAsAction, SIGNAL(activated()), this, SLOT(saveAs()));
+     fileMenu->addAction(saveAsAction);  
+
      aboutAction = new QAction(tr("&О программе"),this);
 //     aboutAction->setStatuslTip(tr("Сведения о программе"));
      connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
@@ -214,7 +217,7 @@ void MainWindow::initMenuBar()
 }
 void MainWindow::about()
 {
-    QMessageBox *mb = new QMessageBox(this); 
+//    QMessageBox *mb = new QMessageBox(this); 
     QMessageBox::about(this, tr("О программе Кванте"), 
         tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
         "окно, которое при желании можно закрыть. Масштабы и дополнительные параметры,\n"
@@ -225,48 +228,6 @@ void MainWindow::about()
         "которая запрашивает потенциал из одинаковых ям или барьеров. Таблица уровней\n"
         "открывается при нажатии кнопки <<En>>"));
 }
-
-void MainWindow::openFile(const QString &path)
- {
-     QString fileName;
-     if (path.isNull())
-         fileName = QFileDialog::getOpenFileName(this, "Choose a data file",
-                                                 "", "*.cht");
-     else
-         fileName = path;
-
-     if (!fileName.isEmpty()) {
-         QFile file(fileName);
-
-         if (file.open(QFile::ReadOnly | QFile::Text)) {
-             QTextStream stream(&file);
-             QString line;
-
-/*             model->removeRows(0, model->rowCount(QModelIndex()), QModelIndex());
-
-             int row = 0;
-             do {
-                 line = stream.readLine();
-                 if (!line.isEmpty()) {
-
-                     model->insertRows(row, 1, QModelIndex());
-
-                     QStringList pieces = line.split(",", QString::SkipEmptyParts);
-                     model->setData(model->index(row, 0, QModelIndex()),
-                                    pieces.value(0));
-                     model->setData(model->index(row, 1, QModelIndex()),
-                                    pieces.value(1));
-                     model->setData(model->index(row, 0, QModelIndex()),
-                                    QColor(pieces.value(2)), Qt::DecorationRole);
-                     row++;
-                 }
-             } while (!line.isEmpty());
-
- */            file.close();
-             statusBar()->showMessage(tr("Loaded %1").arg(fileName), 2000);
-         }
-     }
- }
 
 void MainWindow::chooseFont()
 {
@@ -375,241 +336,6 @@ void  MainWindow::slotSetUmwb()
     dialogUAsMW->activateWindow();
     dialogUAsMW->setFocus();
 }
-/*void  MainWindow::slotScaleP()
-{   
-        if (!gbScaleP) 
-        {
-            gbScaleP = new QGroupBox(this);
-            gbScaleP->setWindowTitle("k-scales:");
-            gbScaleP->setWindowFlags(Qt::Window);
-            gbScaleP->setFont(QFont("Serif", 12, QFont::Bold )); 
-            QVBoxLayout *vl = new QVBoxLayout;
-            this->kmax.setDisplay(("kmax=-kmin:"), ("maximal value of wave number"),vl);
-            this->hk.setDisplay(("hk:"), ("k-increment"),vl);
-            gbScaleP->setLayout(vl);
-        }
-    gbScaleP->show(); 
-    gbScaleP->raise();//activateWindow();
-    gbScaleP->setFocus();
-}
-void  MainWindow::slotScaleX()
-{   
-    if (!gbScaleX) 
-    {
-        gbScaleX = new QGroupBox(this);
-        gbScaleX->setWindowTitle("x-scales:");
-        gbScaleX->setWindowFlags(Qt::Window);
-        gbScaleX->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        this->xmin.setDisplay(("xmin"),("lower bond of x-interval"),vl);
-        this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
-        this->hx.setDisplay(("hx"),("x-increment"),vl);
-        gbScaleX->setLayout(vl);
-    }
-    gbScaleX->show(); 
-    gbScaleX->activateWindow();
-    gbScaleX->setFocus();
-}
-*/
-/* void  MainWindow::slotScaleZ()
-{   
-    if (!gbScaleZ) 
-    {
-        gbScaleZ = new QGroupBox(this);
-        gbScaleZ->setWindowTitle("z interval");
-        gbScaleZ->setWindowFlags(Qt::Window);
-        gbScaleZ->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl0 = new QVBoxLayout;
-        this->zz.setDisplay(("z"),("z-- current value of z"),vl0);
-        this->zmin.setDisplay(("zmin"),("lower bond of z-interval"),vl0);
-        this->zmax.setDisplay(("zmax"),("upper bond of z-interval"),vl0);
-        this->hz.setDisplay(("hz"),("z-increment"),vl0);
- 
-        gbScaleZ->setLayout(vl0);
-    }
-    gbScaleZ->show(); 
-    gbScaleZ->activateWindow();
-    gbScaleZ->setFocus();
-}
-*/
-/*void  MainWindow::slotScalePsi()
-{   
-    if (!gbScalePsi) 
-    {
-        gbScalePsi = new QGroupBox(this);
-        gbScalePsi->setWindowTitle("Y-scales for plots Psi(x) and U(x)");
-        gbScalePsi->setWindowFlags(Qt::Window);
-        gbScalePsi->setFont(QFont("Serif", 12, QFont::Bold )); 
-        QVBoxLayout *vl = new QVBoxLayout;
-        this->psixmin.setDisplay(("Psixmin"),("Y-scale for wave function plots"),vl);
-        this->psixmax.setDisplay(("Psixmax"),("Y-scale for wave function plots"),vl);
-        this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
-        this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
-        gbScalePsi->setLayout(vl);
-    }
-    gbScalePsi->show(); 
-    gbScalePsi->raise();//->raactivateWindow();
-    gbScalePsi->setFocus();
-}
-void  MainWindow::slotIntN()
-{   
-        if (!gbIntN) 
-        {
-            gbIntN = new QGroupBox(this);
-            gbIntN->setWindowTitle("Number Levels interval");
-            gbIntN->setWindowFlags(Qt::Window);
-            gbIntN->setFont(QFont("Serif", 12, QFont::Bold )); 
-            QVBoxLayout *vl=new QVBoxLayout;
-            this->nminLevel.setDisplay(("nmin"),("lower bond of the level number interval>=0"),vl);
-            this->nmaxLevel.setDisplay(("nmax"),("upper bond of the level number interval<N"),vl);
-            this->nLevel.setDisplay(("n"),("number of level"),vl);
-            gbIntN->setLayout(vl);
-        }
-    gbIntN->show(); 
-    gbIntN->raise();//activateWindow();
-    gbIntN->setFocus();
-}
-*/
-/*void  MainWindow::slotIntE()
-{   
-        if (!gbIntE) 
-        {
-            gbIntE = new QGroupBox(this);
-            gbIntE->setWindowFlags(Qt::Window);
-            gbIntE->setWindowTitle("E-interval");
-            gbIntE->setFont(QFont("Serif", 12, QFont::Bold )); 
-            QVBoxLayout *vl=new QVBoxLayout;
-            this->E0.setDisplay(("E"),("energy"),vl);
-            this->Emin.setDisplay(("E_min"),("lower bound of energy, meV"),vl);
-            this->Emax.setDisplay(("E_max"),("upper bound of energy, meV"),vl);
-            this->hE.setDisplay(("h_E"),("energy increment"),vl);
-            gbIntE->setLayout(vl);
-        }
-    gbIntE->show(); 
-    gbIntE->raise();//activateWindow();
-    gbIntE->setFocus();
-}
-void  MainWindow::defSP()
-{   
-    if (!gbWPl) 
-    {
-            gbWPl=new QGroupBox(this);
-            gbWPl->setWindowTitle("Superposition of wavefunctions E<0");
-            gbWPl->setWindowFlags(Qt::Window);
-            QVBoxLayout *vl=new QVBoxLayout;
-            this->nminWP.setDisplay(("nmin"),("lower bond of the level number interval>=0"),vl);
-            this->nmaxWP.setDisplay(("nmax"),("upper bond of the level number interval<N"),vl);
-            this->hnWP.setDisplay(("hn"),("number level increment"),vl);
-            gbWPl->setLayout(vl);
-    }
-    gbWPl->show(); 
-    gbWPl->raise();//activateWindow();
-    gbWPl->setFocus();
-}
-void  MainWindow::defWP()
-{   
-    if (!gbWPr) 
-    {
-        gbWPr=new QGroupBox(this);
-        gbWPr->setFont(QFont("Serif", 12, QFont::Bold )); 
-        gbWPr->setWindowTitle("Wavepacket definition E>0");
-        gbWPr->setWindowFlags(Qt::Window);
-        QVBoxLayout *vl=new QVBoxLayout;
-        this->wpE_lo.setDisplay(("E_low"),("lower bound of the wp energy, meV"),vl);
-        this->wpE_hi.setDisplay(("E_high"),("upper bound of the wp energy, meV"),vl);
-        this->wpN.setDisplay(("Nwp"),("the number of wavepacket modes"),vl);
-        gbWPr->setLayout(vl);
-    }
-    gbWPr->show(); 
-    gbWPr->raise();//activateWindow();
-    gbWPr->setFocus();
-}
-*/
-/*void  MainWindow::slotWPacket()
-{   
-        if (!gbWP) 
-        {
-
-            gbWP = new QGroupBox(this);//"Wavepacket definition:");
-            gbWP->setFont(QFont("Serif", 12, QFont::Bold )); 
-            gbWP->setWindowFlags(Qt::Window);
-            gbWP->setWindowTitle("Time and wavepacket definition");
-            QVBoxLayout *vl=new QVBoxLayout;
-//            QHBoxLayout *hl=new QHBoxLayout;
-//            QVBoxLayout *vlr=new QVBoxLayout;
-//            QVBoxLayout *vll=new QVBoxLayout;
-            {
-                this->time.setDisplay(("time"), ("time"),vl);
-                this->htime.setDisplay(("delta_t"),("time increment"),vl);
-                this->tmin.setDisplay(("tmin"),("lower bound of the time interval"),vl);
-                this->tmax.setDisplay(("tmax"),("upper bound of the time interval"),vl);
-            }
-
-
-            grrb=new QGroupBox("Scattering or Bound States?");
-            rad1= new QRadioButton("E>0");
-            rad2= new QRadioButton("E<0");
-
-            bgR= new QButtonGroup(gbWP);
-            bgR->setExclusive(true);
-            bgR->addButton(rad1,1);
-            bgR->addButton(rad2,2);
-            bgR->button(2)->setChecked(true);
-            
-            QHBoxLayout *hlr=new QHBoxLayout;
-            hlr->addWidget(rad1);
-            hlr->addWidget(rad2);
-            grrb->setLayout(hlr);
-
-            vl->addWidget(grrb);
-
-
-    QPushButton *butWP= new QPushButton( "Wavepacket definition");
-    QMenu *menuWP =new QMenu();
-    menuWP->setFont(QFont("Serif", 12, QFont::Bold )); 
-    QAction *wpAction = menuWP->addAction(tr("&Wavepacket E>0"));
-//    wpAction->setFont(QFont("Serif", 12, QFont::Bold ));
-    QAction *spAction = menuWP->addAction(tr("&Superposition E<0"));
-//     quitAction->setShortcut(tr("Ctrl+Q"));
-//     quitAction->setShortcut(QKeySequence(tr("Ctrl+Q")));
-     connect(wpAction, SIGNAL(triggered()), this, SLOT(defWP()));
-     connect(spAction, SIGNAL(triggered()), this, SLOT(defSP()));
-    butWP->setMenu(menuWP);
-    vl->addWidget(butWP);
-
-            gbWP->setLayout(vl);
-            
-        }
-    gbWP->show(); 
-    gbWP->raise();//activateWindow();
-    gbWP->setFocus();
-}
-*/
-/*static const char* image_xpm[]=
-{
-"8 8 4 1", 
-"  c #000000",
-". c #848200",
-"+ c #848284",
-"@ c #d6d3ce",
-"@@@@@@@@"
-"@ @@@@ @"
-"@ @@@@ @"
-"@ @@@@ @"
-"@ @@@@ @"
-"@ @@@  @"
-"@@   @ @"
-"@@@@@@@@"
-}
-*/
-/*void MainWindow::myU1()
-{
-model->slotU1();
-}
-void MainWindow::myU2()
-{
-model->slotU2();
-}*/
 
 void MainWindow::updateMouseMovedTo(QPointF f)
 {
@@ -630,20 +356,14 @@ void MainWindow::windowTopRight()
         case 0: 
             window_Ux_Psix();
             gbPview->show();
- //           if(gbPview->isVisible()) gbPview->hide();
- //           else gbPview->show();
             break;
         case 1:  
             window_psi_x();
             gbviewPsix->show();
- //           if(gbviewPsix->isVisible()) gbviewPsix->hide();
- //           else gbviewPsix->show();
             break;
         case 2:  
             window_psi_xt();
             gbviewPsixT->show();
- //           if(gbviewPsixT->isVisible()) gbviewPsixT->hide();
- //           else gbviewPsixT->show();
             break;
         default:
             break;
@@ -654,12 +374,6 @@ void MainWindow::windowTopRight()
 }
 void MainWindow::windowDownRight()
 {
-/*    QLayoutItem *child;
-    if ((child = rightDownLayout->takeAt(0)) != 0) 
-    {
-        child->widget()->hide();
-        delete child;
-    }*/
     int iDownRight=downRightWin->QComboBox::currentIndex();
     switch(iDownRight)
     {
@@ -680,13 +394,6 @@ void MainWindow::windowDownRight()
 void MainWindow::windowDownLeft()
 {
 
-/*    QLayoutItem *child;
-    if ((child = leftDownLayout->takeAt(0)) != 0) 
-    {
-        child->widget()->hide();
-        delete child;
-    }
-    */
     int iDownLeft=downLeftWin->QComboBox::currentIndex();
     switch(iDownLeft)
     {
@@ -706,38 +413,6 @@ void MainWindow::windowDownLeft()
     }
 }
 
-/*void MainWindow::windowTopLeft()
-{
-    int NN=this->splitterL->count();
-    int iTopLeft=topLeftWin->QComboBox::currentIndex();
-    {    
-        switch(iTopLeft)
-        {
-        case 0: 
-            window_Enz();
-            gbEnzview->show();
-            break;
-        case  1:  
-            window_TE();
-            gbTEview->show();
-            break;
-        case 2:
-            window_phi_k();
-            gbviewM->show();
-            break;
-        case 3:  
-            window_phi_kt();
-            gbviewMT->show();
-//            if(gbviewMT->isVisible()) gbviewMT->hide();
-//            else gbviewMT->show();
-            break;
-        default:
-            break;
-        }
-     NN=this->splitterL->count();
-    }
-    }
-*/
     void MainWindow::window_TE()
 {
     if(!gbTEview)
@@ -842,9 +517,10 @@ void MainWindow::initControlDockWindow()
     splitterR = new MySplitter(Qt::Vertical);
     splitterL = new MySplitter(Qt::Vertical);
     splitterLR = new MySplitter(Qt::Horizontal);
-//    QPushButton *bMenu = new QPushButton("Dependencies");
     window_Ux_Psix();
     gbPview->show();
+    this->window_psi_x();
+    gbviewPsix->show();
 
     QVBoxLayout * vl0 = new QVBoxLayout;
     splitterLR->addWidget(splitterL);
@@ -2191,48 +1867,59 @@ gbPview(0),gbviewPsix(0),gbviewPsixT(0)
 
 bool MainWindow::save()
 {
-    if (this->curFile.isEmpty())
+    if (curFile.isEmpty())
     {
-        return this->saveAs();
+        return saveAs();
     }
-    QString nV=this->curFile+"V";
-    QFile fV(nV);
-    //    QFile f(this->curFile);
-    if(fV.exists()){
-        int n=QMessageBox::warning(0,
-            tr("Warning"),
-            "File with this name has already existed,"
-            "\n Do you want to rewrite it?",
-            "Yes",
-            "No",
-            QString::null,
-            0,
-            1
-            );
-        if(n){
-            return this->saveAs(); //выбираем новое имя
-        }
-    }
-    //Saving the file!
-    fV.open(QIODevice::WriteOnly|QIODevice::Truncate);
 
-    QTextStream o(&fV);
-    o << "Percolation model:\n";
-    o << "Rows Cols Seed Conduct Temp Vg sigmaU Ex\n";
-    /*        QString s1;
-    s1.sprintf("%i %i %i %lg %lg %lg %lg% lg\n",int(this->rows),int(this->cols),int(this->seed),
-    double(model->conductivity), double(this->T), double(this->U),
-    double(this->sigmaU),double(this->Ex));
-    o << s1;
-    */
-    fV.close();
-    //    statusBar()->showMessage(tr("Saved '%1'").arg(fV), 2009);
-    return TRUE;
+    QFile f(curFile);
+
+    if (! f.open(QFile::WriteOnly | QFile::Text))
+        return false;
+    {
+        QXmlStreamWriter writer;
+        writer.setDevice(&f);
+        writer.writeStartDocument();
+        model->writeToXml(&writer);
+        writer.writeEndDocument();
+    }
+    f.close();
+    statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
 }
 
+bool MainWindow::openFile()
+{
+    QString fileName;
+    fileName = QFileDialog::getOpenFileName(this, "Choose a data file","", "*.xml");
+    if (!fileName.isEmpty())
+    {
+        //--------------------------------------
+        QFile f(fileName);//curFile);
 
+        if (!f.open(QFile::ReadOnly | QFile::Text))
+            return false;
 
+        QXmlStreamReader reader;
+        reader.setDevice(&f);
+ //       reader.readNext();
+        while (!reader.atEnd())
+        {
+        reader.readNext();
+        if (reader.name() == "model")
+        {
+            model->readFromXml(&reader);
+        }
+//        if (reader.name() == "wavepacketview")
+//        {
+//            wavePacketXView->readFromXML(reader);
+//        }
+        }
 
+        f.close();
+        statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
+        return true;
+    }
+}
 
 void MainWindow::createStatusBar()
 {
