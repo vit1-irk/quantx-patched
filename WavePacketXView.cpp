@@ -31,7 +31,7 @@ whatToDraw(2)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
-    setMinimumSize(260, 220);
+    setMinimumSize(260, 100);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(reDraw()));

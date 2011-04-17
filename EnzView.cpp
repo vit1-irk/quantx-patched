@@ -21,7 +21,7 @@ class ZDraggable : public QGraphicsItem
     QPen penHover;
     QPen pen;
 public:
-//    double widthLineE;
+    //    double widthLineE;
     ZDraggable(EnzView *v,QGraphicsItem *parent = 0);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
     void setPen(QPen _pen) { penForPainter = pen = _pen; }
@@ -32,9 +32,9 @@ public:
         {
             prepareGeometryChange();
             p2 = QPointF(0,height);
-//            p2 = QPointF(width,0);
+            //            p2 = QPointF(width,0);
             this->setPos(x1,y1);
-//            this->setPos(x1,y1);
+            //            this->setPos(x1,y1);
             update();//repaint();
         }
     }
@@ -56,25 +56,25 @@ public:
     }
     QRectF boundingRect() const
     {
-    QRectF vp = view->sceneRect();
-    //double widthLine= 0.005*vp.height();
+        QRectF vp = view->sceneRect();
+        //double widthLine= 0.005*vp.height();
         QPoint v1(0,0);
         QPoint v2(3,0);
-//        QPoint v2(0,3);
+        //        QPoint v2(0,3);
         QPointF fv1 = view->mapToScene(v1);
         QPointF fv2 = view->mapToScene(v2);
         //double widthLine1 = fabs(fv2.x() - fv1.x());
-//        double widthLine1 = fabs(fv2.y() - fv1.y());
-    
+        //        double widthLine1 = fabs(fv2.y() - fv1.y());
+
         QPoint va(0,0);
         QPoint vb(5,0);
-//        QPoint vb(0,5);
+        //        QPoint vb(0,5);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
         double ay = fabs(sa.y() - sb.y());
-//        double ax = fabs(sa.x() - sb.x());
+        //        double ax = fabs(sa.x() - sb.x());
         double ax= fabs(sa.x() - sb.x());
-//      double ay = fabs(sa.y() - sb.y());
+        //      double ay = fabs(sa.y() - sb.y());
         QRect vpr = view->viewport()->rect();
         QPointF vpr1 = view->mapToScene(vpr.topLeft());
         QPointF vpr2 = view->mapToScene(vpr.bottomRight());
@@ -86,15 +86,15 @@ public:
     {
         QPoint va(0,0);
         QPoint vb(1,0);
-//        QPoint vb(0,1);
+        //        QPoint vb(0,1);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
         double ax = fabs(sa.x() - sb.x());
-//        double ay = fabs(sa.y() - sb.y());
-//        view->widthLineE=0;
+        //        double ay = fabs(sa.y() - sb.y());
+        //        view->widthLineE=0;
         penForPainter.setWidthF(view->widthLine);
-//        penForPainter.setWidthF(ax);
-//        penForPainter.setWidthF(ay);
+        //        penForPainter.setWidthF(ax);
+        //        penForPainter.setWidthF(ay);
         painter->setPen(penForPainter);
         //qreal x2 = penForPainter.widthF();
         painter->drawLine(QLineF(QPointF(),p2));
@@ -110,9 +110,9 @@ public:
             QAction *what = m.exec(event->screenPos());
             if (what == scaleE)
             {
-//                view->scaleE();
+                //                view->scaleE();
             }
-               update();// repaint();
+            update();// repaint();
         }
     }
 
@@ -185,7 +185,7 @@ Enzmin(-21.), Enzmax(0.1), dialogZ(0)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(260, 220);
+    setMinimumSize(260, 100);
     setScalesFromModel();
     initDialogScaleY();
 //    connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
@@ -278,31 +278,8 @@ void EnzView::setViewportMapping()
         scene()->update(scene()->sceneRect());
     }
     update();
-//-------------
-/*    zParameters tp = model->getzParam();
-    double zmin=tp.zmin;
-    double zmax=tp.zmax;
-    QRectF vp = QRectF(QPointF(zmin,this->Enzmin),QPointF(zmax,this->Enzmax));
-
-    QRectF sr = scene()->sceneRect();
-//    if (vp != sr)
-    {
-        scene()->setSceneRect(vp);
-
-        QRectF b = vp; //scene()->sceneRect();
-        QRectF a = QRectF(this->viewport()->rect());
-        qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height();
-        qreal dx = - m11 * a.x();
-        qreal dy = - m22 * (a.y() + a.height());
-        QMatrix m(m11,0,0,m22,dx,dy);
-        this->setMatrix(m);
-        scene()->update(scene()->sceneRect());
-        sr = scene()->sceneRect();
-     }
-    update();
-*/
 } 
+
 void EnzView::resizeEvent(QResizeEvent*) 
 {
     setViewportMapping();
@@ -326,13 +303,13 @@ void EnzView::scaleView(qreal scaleFactor)
 
     scale(scaleFactor, scaleFactor);
 }
+
 void EnzView::clearAll()
 {
-    
-        for ( QMap<int,EnzCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    for ( QMap<int,EnzCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int m = i.key();
-            removeCurve(m);
+        removeCurve(m);
     }
 }
 
@@ -382,14 +359,6 @@ static void updateCurves(curveSet& cs, const QVector<double>& Ebound, double z)
     }
 }
 
-static void myrepaint(const curveSet& cs)
-{ 
-    for(int i=0; i<cs.size(); i++)
-    {
-//        setCurve(i,cs[i]);
-    }
-}
-
 void EnzView::slot_En_of_z()
 {
     QRectF vp = scene()->sceneRect();
@@ -399,7 +368,7 @@ void EnzView::slot_En_of_z()
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
-//-------
+    //-------
     static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
@@ -432,8 +401,8 @@ void EnzView::slot_En_of_z()
         lineh->setPen(p);
         linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
         lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-//        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
-//        linev->setLine(0.,1.2*Enzmin,0.,-.3*Enzmin);
+        //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
+        //        linev->setLine(0.,1.2*Enzmin,0.,-.3*Enzmin);
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
@@ -443,57 +412,57 @@ void EnzView::slot_En_of_z()
         lineh->setPen(p);
         linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
         lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-//        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
-//        linev->setLine(0.,1.1*Enzmin,0.,-0.1*Enzmin);
+        //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
+        //        linev->setLine(0.,1.1*Enzmin,0.,-0.1*Enzmin);
     }
     int n=0; 
     double z0=zmin;
     if(zmin<0) z0=0.;//1e-7;
     int npoints=1+(zmax-z0)/hz;
-        curveSet cs;
-        int nmxold=-1;
-        double Eold=model->get_E0();
-        for (int i=0; i < npoints; i++)
+    curveSet cs;
+    int nmxold=-1;
+    double Eold=model->get_E0();
+    for (int i=0; i < npoints; i++)
+    {
+        //         for (double z=zmin; z>=tp.zmin&&z<=tp.zmax; z+=hz)
+        //        { 
+        double zz=z0 + hz*i;
+        tp.z=zz;
+        model->setzParam(tp);
+        QVector<double> Ebound = model->getEn();
+        int nmx=Ebound.size()-1;//this->nmaxLevel;
+        int nmn=0;//this->nminLevel;
+        if(nmxold==-1) 
         {
-            //         for (double z=zmin; z>=tp.zmin&&z<=tp.zmax; z+=hz)
-            //        { 
-            double zz=z0 + hz*i;
-            tp.z=zz;
-            model->setzParam(tp);
-            QVector<double> Ebound = model->getEn();
-            int nmx=Ebound.size()-1;//this->nmaxLevel;
-            int nmn=0;//this->nminLevel;
-            if(nmxold==-1) 
-            {
-                nmxold=nmx;
-            }
-            for(int m=0; m<=nmx; m++)
-            {
-                Ebound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);    
-            }
-            double zi = vp.width()*(-zmin)/(zmax-zmin)+zz*vp.width()/(zmax-zmin);
-            updateCurves(cs, Ebound, zi);
-            for(int j=0; j<cs.size(); j++)
-            {
+            nmxold=nmx;
+        }
+        for(int m=0; m<=nmx; m++)
+        {
+            Ebound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);    
+        }
+        double zi = vp.width()*(-zmin)/(zmax-zmin)+zz*vp.width()/(zmax-zmin);
+        updateCurves(cs, Ebound, zi);
+        for(int j=0; j<cs.size(); j++)
+        {
             p.setColor(colorForIds[j % size_colorForIds]);
 
             setCurve(j,cs[j],p);
-            }
-            //        setCurve(i,cs[i],colorForIds[i % size_colorForIds]);
-            nmxold=nmx;
-            tp=model->getzParam();
-            if(hz!=tp.hz||zmax!=tp.zmax||zmin!=tp.zmin)
-            {
-               hz=tp.hz;
-               zmax=tp.zmax;
-               zmin=tp.zmin;
-               zt=tp.z;
-            }
-            if (getBreakStatus(0)) 
-            {
-                return;
-            }
         }
+        //        setCurve(i,cs[i],colorForIds[i % size_colorForIds]);
+        nmxold=nmx;
+        tp=model->getzParam();
+        if(hz!=tp.hz||zmax!=tp.zmax||zmin!=tp.zmin)
+        {
+            hz=tp.hz;
+            zmax=tp.zmax;
+            zmin=tp.zmin;
+            zt=tp.z;
+        }
+        if (getBreakStatus(0)) 
+        {
+            return;
+        }
+    }
     update();
 }
 
@@ -686,6 +655,7 @@ void EnzView::updateScaleEnz()
 
 void EnzWidget::readFromXml(QXmlStreamReader *r)
 {
+    Q_ASSERT(this);
     Q_ASSERT(r->isStartElement() && r->name() == "EnzView");
     double enzmin = 0, enzmax = 0;
     while (!r->atEnd())

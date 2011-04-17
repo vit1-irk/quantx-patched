@@ -1911,24 +1911,24 @@ bool MainWindow::openFile()
         if (!f.open(QFile::ReadOnly | QFile::Text))
             return false;
 
-        QXmlStreamReader reader;
-        reader.setDevice(&f);
-        //       reader.readNext();
+        QXmlStreamReader reader(&f);
         while (!reader.atEnd())
         {
             reader.readNext();
+            if (! reader.isStartElement()) continue;
             if (reader.name() == "model")
             {
                 model->readFromXml(&reader);
             }
             else if (reader.name() == "EnzView")
             {
+                window_Enz();
                 enzWidget->readFromXml(&reader);
             }
-
         }
         f.close();
-        statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
+        update();
+        statusBar()->showMessage(tr("Saved %1").arg(curFile), 20000);
         return true;
     }
 }

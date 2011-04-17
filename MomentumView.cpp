@@ -29,7 +29,7 @@ MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(260, 220);
+    setMinimumSize(260, 100);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Phi_n_of_k()));
     connect(model,SIGNAL(signalScalePhinChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalLevelNumberChanged()),this,SLOT(resizePicture()));

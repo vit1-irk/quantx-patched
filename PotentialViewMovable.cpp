@@ -411,7 +411,7 @@ psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(300, 200);
+    setMinimumSize(300, 100);
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
 //    connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotPsiofE()));

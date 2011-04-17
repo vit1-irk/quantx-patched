@@ -33,7 +33,7 @@ psiMax(1.), psiMin(-1.), dialogScalePsin(0), whatToDraw(0)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(260, 220);
+    setMinimumSize(260, 100);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Psi_n_of_x()));
     connect(model,SIGNAL(signalScalePsinChanged()),this,SLOT(resizePicture()));

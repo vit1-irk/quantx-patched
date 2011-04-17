@@ -160,7 +160,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
     }
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setMinimumSize(160, 220);
+    setMinimumSize(160, 100);
     connect(this,SIGNAL(signalScaleTChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalScaleZChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slot_whole_T_of_z()));
