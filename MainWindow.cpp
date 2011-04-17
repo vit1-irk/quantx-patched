@@ -245,7 +245,7 @@ bool MainWindow::saveAs()
 {
     QString fn = QFileDialog::getSaveFileName( this, 
         tr("Choose a file name"), ".",
-        tr("*.dat*"));
+        tr("*.xml"));
     if ( !fn.isEmpty() ) {
         curFile = fn;
         return this->save();
@@ -505,12 +505,12 @@ void MainWindow::window_phi_k()
 
 void MainWindow::window_Enz()
 {
-    if(!gbEnzview)
+    if(!enzWidget)
     {
-        gbEnzview = new EnzWidget(model);
+        enzWidget = new EnzWidget(model);
     }
-    splitterL->addWidget(gbEnzview);
-    gbEnzview->show();
+    splitterL->addWidget(enzWidget);
+    enzWidget->show();
 }
 void MainWindow::initControlDockWindow()
 {
@@ -1839,7 +1839,7 @@ tableView(0),gbScales(0),gbIntervals(0),
 dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-gbTEview(0),gbTZview(0),gbEnzview(0),
+gbTEview(0),gbTZview(0),enzWidget(0),
 gbviewMT(0),gbviewM(0), 
 gbPview(0),gbviewPsix(0),gbviewPsixT(0)
 {
@@ -1876,22 +1876,34 @@ bool MainWindow::save()
 
     if (! f.open(QFile::WriteOnly | QFile::Text))
         return false;
+    else
     {
         QXmlStreamWriter writer(&f);
         writer.setAutoFormatting(true);
         writer.writeStartDocument();
-        model->writeToXml(&writer);
+        if (model)
+        {
+            model->writeToXml(&writer);
+        }
+        if (enzWidget)
+        {
+            enzWidget->writeToXml(&writer);
+        }
         writer.writeEndDocument();
+
+        f.close();
+        statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
+        return true;
     }
-    f.close();
-    statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
 }
 
 bool MainWindow::openFile()
 {
     QString fileName;
     fileName = QFileDialog::getOpenFileName(this, "Choose a data file","", "*.xml");
-    if (!fileName.isEmpty())
+    if (fileName.isEmpty())
+        return false;
+    else
     {
         //--------------------------------------
         QFile f(fileName);//curFile);
@@ -1901,20 +1913,20 @@ bool MainWindow::openFile()
 
         QXmlStreamReader reader;
         reader.setDevice(&f);
- //       reader.readNext();
+        //       reader.readNext();
         while (!reader.atEnd())
         {
-        reader.readNext();
-        if (reader.name() == "model")
-        {
-            model->readFromXml(&reader);
-        }
-//        if (reader.name() == "wavepacketview")
-//        {
-//            wavePacketXView->readFromXML(reader);
-//        }
-        }
+            reader.readNext();
+            if (reader.name() == "model")
+            {
+                model->readFromXml(&reader);
+            }
+            else if (reader.name() == "EnzView")
+            {
+                enzWidget->readFromXml(&reader);
+            }
 
+        }
         f.close();
         statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
         return true;

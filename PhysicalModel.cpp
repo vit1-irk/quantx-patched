@@ -1263,7 +1263,7 @@ void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
 
 void  PhysicalModel::setEpWP(const EpWP& u)
 {
-  bool changed = false;
+ bool changed = false;
  int n = u.numberOfModes;
  if(n!=this->wpN)
  {
@@ -1282,7 +1282,11 @@ void  PhysicalModel::setEpWP(const EpWP& u)
  this->wpE_lo = v;
  changed = true;
  }
- this->type_of_WP=1;
+ if(type_of_WP!=1)
+ {
+      changed = true;
+      type_of_WP=1;
+ }
     if (changed)
     {
     need_build_WP = true;
@@ -1310,7 +1314,11 @@ void  PhysicalModel::setEmWP(const EmWP& u)
     this->hnWP = n;
  changed = true;
  }
-    this->type_of_WP=2;
+ if(type_of_WP!=2)
+ {
+      changed = true;
+      type_of_WP=2;
+ }
     if (changed)
     {
     need_build_WP = true;
@@ -1410,7 +1418,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
 
 PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
-  N(0), E0(0), psi(0), x(0), 
+  N(1), N1(1),N2(1),E0(0), psi(0), x(0), 
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(-1),zmin(0.),zmax(1.),hz(0.005),
@@ -1451,17 +1459,10 @@ PhysicalModel::PhysicalModel(const PhysicalModel& o)
 void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
                                const QVector<double>& _d,
                                const QVector<double>& _m)
-//                               const double& _Ub)
 {
     bool changed = false;
 
     int _N = _Ui.size() - 2;
-
-/*    if(_Ub!=Ub)
-    {
-        Ub=_Ub;
-        changed=true;
-    }*/
     if (_N != Ui.size() - 2)
     {
         changed = true;
@@ -1489,6 +1490,56 @@ void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
     if (changed)
     {
         markUchanged();
+    }
+}
+void PhysicalModel::set_U1_d1_m1(const QVector<double>& _U1,
+                               const QVector<double>& _d1,
+                               const QVector<double>& _m1)
+{
+    int _N = _U1.size() - 2;
+    if (_N != U1.size() - 2)
+    {
+        this->set_N1(_N);
+    }
+    for (int n = 0; n <= _N+1; ++n)
+    {
+        if (U1[n] != _U1[n])
+        {
+            U1[n] = _U1[n];
+        }
+        if (m1[n] != _m1[n])
+        {
+            m1[n] = _m1[n];
+        }
+        if( d1[n] != _d1[n])
+        {
+            d1[n] = _d1[n];
+        }
+    }
+}
+void PhysicalModel::set_U2_d2_m2(const QVector<double>& _U2,
+                               const QVector<double>& _d2,
+                               const QVector<double>& _m2)
+{
+    int _N = _U2.size() - 2;
+    if (_N != U2.size() - 2)
+    {
+        this->set_N2(_N);
+    }
+    for (int n = 0; n <= _N+1; ++n)
+    {
+        if (U2[n] != _U2[n])
+        {
+            U2[n] = _U2[n];
+        }
+        if (m2[n] != _m2[n])
+        {
+            m2[n] = _m2[n];
+        }
+        if( d2[n] != _d2[n])
+        {
+            d2[n] = _d2[n];
+        }
     }
 }
 
@@ -1855,56 +1906,38 @@ void PhysicalModel::set_Uxz(double z)
             UU = U1[n] + z*(U2[n]-U1[ n]);
             dd = d1[n] + z*(d2[n]-d1[n]);
             mm = m1[n] + z*(m2[n]-m1[n]);
-//            U[n] = U1[n] + z*(U2[n]-U1[n]);
             Ui[n] = U1[n] + z*(U2[n]-U1[n]);
             d[n] = d1[n] + z*(d2[n]-d1[n]);
             m[n] = m1[n] + z*(m2[n]-m1[n]);
         }
-//            this->Ubias = this->Ub1 + z*(this->Ub2 - this->Ub1);
             this->markUchanged();
-/*            need_build_U = true; 
-    need_build_En = true;
-//    need_build_WP = true; addded!!!!
-    emit(signalPotentialChanged());
-    emit(signalEboundChanged());
-*/
     }
 }
 void PhysicalModel::slotU1()
 {
-     const int N = getN();
+    const int N = getN();
+    set_N1(N); 
+/*    N1=N;
     U1.resize(1+N+1);
     d1.resize(1+N+1);
-    m1.resize(1+N+1);
+    m1.resize(1+N+1);*/
     for(int n=0; n<=N+1; n++)
     {
-        double UU = get_Ui(n);
-        double dd = get_d(n);
-        double mm = get_m(n);
-//        U1[n] = get_U(n);
-      U1[n] = get_Ui(n);
+        U1[n] = get_Ui(n);
         d1[n] = get_d(n);
         m1[n] = get_m(n);
     }
-//  Ub1 = get_Ub();
 }
 void PhysicalModel::slotU2()
 {
     const int N = getN();
-    U2.resize(1+N+1);
-    d2.resize(1+N+1);
-    m2.resize(1+N+1);
+    set_N2(N); 
     for(int n=0; n<=N+1; n++)
     {
-        double UU = get_Ui(n);
-        double dd = get_d(n);
-        double mm = get_m(n);
       U2[n] = get_Ui(n);
-//        U2[n] = get_U(n);
         d2[n] = get_d(n);
         m2[n] = get_m(n);
     }
-//  Ub2=get_Ub();
 }
 void PhysicalModel::set_WPmE()
 {
@@ -2207,26 +2240,38 @@ public:
     void write();
     void readTime();
     void writeTime();
+    void readLevelNumber();
+    void writeLevelNumber();
+    void readZdef();
+    void writeZdef();
     void readE0();
     void writeE0();
+    void readTypeWP();
+    void writeTypeWP();
+    void readScalesUx();
+    void writeScalesUx();
+    void readScalesPsi();
+    void writeScalesPsi();
+    void readScalesWPX();
+    void writeScalesWPX();
+    void readWPm();
+    void writeWPm();
+    void readWPp();
+    void writeWPp();
+    void readScalesWPK();
+    void writeScalesWPK();
+    void readScalesPhi();
+    void writeScalesPhi();
+    void readUbias();
+    void writeUbias();
     void readUdm();
     void writeUdm();
+    void readUdm1();
+    void writeUdm1();
+    void readUdm2();
+    void writeUdm2();
     void readStep(double *u,double *d, double *m);
 };
-
-void skipUnknownElement(QXmlStreamReader *r)
-{
-    Q_ASSERT(r->isStartElement());
-
-    while (!r->atEnd())
-    {
-        r->readNext();
-        if (r->isEndElement())
-            break;
-        if (r->isStartElement())
-            skipUnknownElement(r);
-    }
-}
 
 void ModelXML::read()
 {
@@ -2242,13 +2287,65 @@ void ModelXML::read()
         {
             readE0();
         }
+        else if (r->name() == "TypeWP")
+        {
+            readTypeWP();
+        }
+        else if (r->name() == "Ubias")
+        {
+            readUbias();
+        }
         else if (r->name() == "udm")
         {
             readUdm();
         }
+        else if (r->name() == "udm1")
+        {
+            readUdm1();
+        }
+        else if (r->name() == "udm2")
+        {
+            readUdm2();
+        }
         else if (r->name() == "time")
         {
             readTime();
+        }
+        else if (r->name() == "LevelNumber")
+        {
+            readLevelNumber();
+        }
+        else if (r->name() == "Zdef")
+        {
+            readZdef();
+        }
+        else if (r->name() == "ScalesUx")
+        {
+            readScalesUx();
+        }
+        else if (r->name() == "ScalesPsi")
+        {
+            readScalesPsi();
+        }
+        else if (r->name() == "ScalesWPX")
+        {
+            readScalesWPX();
+        }
+        else if (r->name() == "WPm")
+        {
+            readWPm();
+        }
+        else if (r->name() == "WPp")
+        {
+            readWPp();
+        }
+        else if (r->name() == "ScalesWPK")
+        {
+            readScalesWPK();
+        }
+        else if (r->name() == "ScalesPhi")
+        {
+            readScalesPhi();
         }
         else
         {
@@ -2262,8 +2359,21 @@ void ModelXML::write()
 {
     w->writeStartElement("model");
     writeE0();
+    writeTypeWP();
+    writeUbias();
     writeUdm();
+    writeUdm1();
+    writeUdm2();
     writeTime();
+    writeLevelNumber();
+    writeZdef();
+    writeScalesUx();
+    writeScalesPsi();
+    writeScalesWPX();
+    writeWPm();
+    writeWPp();
+    writeScalesWPK();
+    writeScalesPhi();
     w->writeEndElement();
 }
 
@@ -2274,11 +2384,37 @@ void ModelXML::readE0()
     QString s = r->readElementText();
     model->set_E0(s.toDouble());
 }
+void ModelXML::readTypeWP()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "TypeWP");
+
+    QString s = r->readElementText();
+    model->set_type_of_WP(s.toInt());
+}
+void ModelXML::readUbias()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "Ubias");
+
+    QString s = r->readElementText();
+    model->setUbias(s.toDouble());
+}
 void ModelXML::writeE0()
 {
     QString s;
     s.sprintf("%lg",model->get_E0());
     w->writeTextElement("E0",s);
+}
+void ModelXML::writeTypeWP()
+{
+    QString s;
+    s.sprintf("%i",model->get_type_of_WP());
+    w->writeTextElement("TypeWP",s);
+}
+void ModelXML::writeUbias()
+{
+    QString s;
+    s.sprintf("%lg",model->getUbias());
+    w->writeTextElement("Ubias",s);
 }
 
 void ModelXML::readUdm()
@@ -2307,6 +2443,58 @@ void ModelXML::readUdm()
     }
     model->set_Ui_d_m(u,d,m);
 }
+void ModelXML::readUdm1()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "udm1");
+
+    QVector<double> u,d,m;
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "step")
+        {
+            double du,dd,dm;
+            readStep(&du,&dd,&dm);
+            u.push_back(du);
+            d.push_back(dd);
+            m.push_back(dm);
+        }
+        else
+            skipUnknownElement(r);
+    }
+    model->set_U1_d1_m1(u,d,m);
+}
+void ModelXML::readUdm2()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "udm2");
+
+    QVector<double> u,d,m;
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "step")
+        {
+            double du,dd,dm;
+            readStep(&du,&dd,&dm);
+            u.push_back(du);
+            d.push_back(dd);
+            m.push_back(dm);
+        }
+        else
+            skipUnknownElement(r);
+    }
+    model->set_U2_d2_m2(u,d,m);
+}
 void ModelXML::readStep(double *u, double *d, double *m)
 {
     Q_ASSERT(r->isStartElement() && r->name() == "step");
@@ -2329,9 +2517,36 @@ void ModelXML::writeUdm()
     }
     w->writeEndElement();
 }
+void ModelXML::writeUdm1()
+{
+    w->writeStartElement("udm1");
+    for (int n = 0; n < model->getN1() + 2; ++n)
+    {
+        QString step;
+        double u=model->get_U1(n);
+        double d=model->get_d1(n);
+        double m=model->get_m1(n);
+        step.sprintf("%lg %lg %lg",u,d,m);
+        w->writeTextElement("step",step);
+    }
+    w->writeEndElement();
+}
+void ModelXML::writeUdm2()
+{
+    w->writeStartElement("udm2");
+    for (int n = 0; n < model->getN2() + 2; ++n)
+    {
+        QString step;
+        double u=model->get_U2(n);
+        double d=model->get_d2(n);
+        double m=model->get_m2(n);
+        step.sprintf("%lg %lg %lg",u,d,m);
+        w->writeTextElement("step",step);
+    }
+    w->writeEndElement();
+}
 void ModelXML::writeTime()
 {
-//    w->writeStartElement("time");
     QString s;
     TimeParameters tp=model->getTimeParam(); 
     double t=tp.time;
@@ -2339,10 +2554,115 @@ void ModelXML::writeTime()
     double tmin=tp.tmin;
     double tmax=tp.tmax;
     s.sprintf("%lg %lg %lg %lg",t,ht,tmin,tmax);
-//    w->writeTextElement(s);
     w->writeTextElement("time",s);
-    w->writeEndElement();
 }
+void ModelXML::writeZdef()
+{
+    QString s;
+    zParameters tp = model->getzParam();
+    double z=tp.z;
+    double hz=tp.hz;
+    double zmin=tp.zmin;
+    double zmax=tp.zmax;
+    s.sprintf("%lg %lg %lg %lg",z,hz,zmin,zmax);
+    w->writeTextElement("Zdef",s);
+}
+void ModelXML::writeLevelNumber()
+{
+    QString s;
+    LevelNumberParameters tp = model->getLevelNumberParameters();
+    int hn=tp.hn;
+    int nmin=tp.nmin;
+    int nmax=tp.nmax;
+    s.sprintf("%i %i %i",hn,nmin,nmax);
+    w->writeTextElement("LevelNumber",s);
+}
+void ModelXML::writeWPm()
+{
+    QString s;
+    EmWP tp = model->getEmWP();
+    int hn=tp.hn;
+    int nmin=tp.nmin;
+    int nmax=tp.nmax;
+    s.sprintf("%i %i %i",hn,nmin,nmax);
+    w->writeTextElement("WPm",s);
+}
+void ModelXML::writeWPp()
+{
+    QString s;
+    EpWP tp = model->getEpWP();
+    int nn=tp.numberOfModes;
+    double Emin=tp.E_low;
+    double Emax=tp.E_high;
+    s.sprintf("%i %lg %lg",nn,Emin,Emax);
+    w->writeTextElement("WPp",s);
+}
+void ModelXML::writeScalesUx()
+{
+    QString s;
+    ScalesUParameters tp = model->getScalesUParam();
+
+    double hx=tp.Hx;
+    double xmin=tp.Xmin;
+    double xmax=tp.Xmax;
+    double Umin=tp.Umin;
+    double Umax=tp.Umax;
+    s.sprintf("%lg %lg %lg %lg %lg",hx,xmin,xmax,Umin,Umax);
+    w->writeTextElement("ScalesUx",s);
+}
+void ModelXML::writeScalesPsi()
+{
+    QString s;
+    ScalePsinParameters tp = model->getScalePsinParam();
+
+    double hx=tp.Hx;
+    double xmin=tp.Xmin;
+    double xmax=tp.Xmax;
+    double Psimin=tp.Psinmin;
+    double Psimax=tp.Psinmax;
+    s.sprintf("%lg %lg %lg %lg %lg",hx,xmin,xmax,Psimin,Psimax);
+    w->writeTextElement("ScalesPsi",s);
+}
+void ModelXML::writeScalesWPX()
+{
+    QString s;
+    ScaleWPXParameters tp = model->getScaleWPXParam();
+
+    double hx=tp.Hx;
+    double xmin=tp.Xmin;
+    double xmax=tp.Xmax;
+    double Psimin=tp.WPXmin;
+    double Psimax=tp.WPXmax;
+    s.sprintf("%lg %lg %lg %lg %lg",hx,xmin,xmax,Psimin,Psimax);
+    w->writeTextElement("ScalesWPX",s);
+}
+void ModelXML::writeScalesWPK()
+{
+    QString s;
+    ScaleWPKParameters tp = model->getScaleWPKParam();
+
+    double hk=tp.Hk;
+    double kmin=tp.Kmin;
+    double kmax=tp.Kmax;
+    double Psimin=tp.WPKmin;
+    double Psimax=tp.WPKmax;
+    s.sprintf("%lg %lg %lg %lg %lg",hk,kmin,kmax,Psimin,Psimax);
+    w->writeTextElement("ScalesWPK",s);
+}
+void ModelXML::writeScalesPhi()
+{
+    QString s;
+    ScalePhinParameters tp = model->getScalePhinParam();
+
+    double hk=tp.Hk;
+    double kmin=tp.Kmin;
+    double kmax=tp.Kmax;
+    double Phimin=tp.Phinmin;
+    double Phimax=tp.Phinmax;
+    s.sprintf("%lg %lg %lg %lg %lg",hk,kmin,kmax,Phimin,Phimax);
+    w->writeTextElement("ScalesPhi",s);
+}
+
 void ModelXML::readTime()
 {
     Q_ASSERT(r->isStartElement() && r->name() == "time");
@@ -2360,32 +2680,128 @@ void ModelXML::readTime()
     tp.tmax=tmax;
     model->setTimeParam(tp); 
 }
-/*void ModelXML::readUdm()
+void ModelXML::readLevelNumber()
 {
-    Q_ASSERT(r->isStartElement() && r->name() == "udm");
-
-    QVector<double> u,d,m;
-
-    while (!r->atEnd())
-    {
-        r->readNext();
-        if (r->isEndElement())
-            break;
-
-        if (r->name() == "step")
-        {
-            double du,dd,dm;
-            readStep(&du,&dd,&dm);
-            u.push_back(du);
-            d.push_back(dd);
-            m.push_back(dm);
-        }
-        else
-            skipUnknownElement(r);
-    }
-    model->set_Ui_d_m(u,d,m);
+    Q_ASSERT(r->isStartElement() && r->name() == "LevelNumber");
+    int hn,nmin,nmax;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%i %i %i",&hn,&nmin,&nmax);
+    LevelNumberParameters tp;
+    tp.hn=hn;
+    tp.nmin=nmin;
+    tp.nmax=nmax;
+    model->setLevelNumberParameters(tp);
 }
-*/
+void ModelXML::readWPm()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "WPm");
+    int hn,nmin,nmax;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%i %i %i",&hn,&nmin,&nmax);
+    EmWP tp;
+    tp.hn=hn;
+    tp.nmin=nmin;
+    tp.nmax=nmax;
+    model->setEmWP(tp);
+}
+
+void ModelXML::readWPp()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "WPp");
+    int nn;
+    double Emin, Emax;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%i %lg %lg",&nn,&Emin,&Emax);
+    EpWP wp;
+    wp.numberOfModes = nn;
+    wp.E_low = Emin;
+    wp.E_high = Emax;
+    model->setEpWP(wp);
+}
+
+void ModelXML::readZdef()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "Zdef");
+    double z,hz,zmin,zmax;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&z,&hz,&zmin,&zmax);
+    zParameters tp;
+    tp.z=z;
+    tp.hz=hz;
+    tp.zmin=zmin;
+    tp.zmax=zmax;
+    model->setzParam(tp); 
+}
+void ModelXML::readScalesUx()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "ScalesUx");
+    double hx,xmin,xmax,Umin,Umax;
+    ScalesUParameters tp;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Umin,&Umax);
+    tp.Hx=hx;
+    tp.Xmin=xmin;
+    tp.Xmax=xmax;
+    tp.Umax=Umax;
+    tp.Umin=Umin;
+    model->setScalesUParam(tp); 
+}
+void ModelXML::readScalesPsi()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "ScalesPsi");
+    double hx,xmin,xmax,Psimin,Psimax;
+    ScalePsinParameters tp;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
+    tp.Hx=hx;
+    tp.Xmin=xmin;
+    tp.Xmax=xmax;
+    tp.Psinmax=Psimax;
+    tp.Psinmin=Psimin;
+    model->setScalePsinParam(tp); 
+}
+void ModelXML::readScalesWPX()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "ScalesWPX");
+    double hx,xmin,xmax,Psimin,Psimax;
+    ScaleWPXParameters tp;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
+    tp.Hx=hx;
+    tp.Xmin=xmin;
+    tp.Xmax=xmax;
+    tp.WPXmax=Psimax;
+    tp.WPXmin=Psimin;
+    model->setScaleWPXParam(tp); 
+}
+void ModelXML::readScalesWPK()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "ScalesWPK");
+    double hk,kmin,kmax,Psimin,Psimax;
+    ScaleWPKParameters tp;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Psimin,&Psimax);
+    tp.Hk=hk;
+    tp.Kmin=kmin;
+    tp.Kmax=kmax;
+    tp.WPKmax=Psimax;
+    tp.WPKmin=Psimin;
+    model->setScaleWPKParam(tp); 
+}
+void ModelXML::readScalesPhi()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "ScalesPhi");
+    double hk,kmin,kmax,Phimin,Phimax;
+    ScalePhinParameters tp;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Phimin,&Phimax);
+    tp.Hk=hk;
+    tp.Kmin=kmin;
+    tp.Kmax=kmax;
+    tp.Phinmax=Phimax;
+    tp.Phinmin=Phimin;
+    model->setScalePhinParam(tp); 
+}
 
 void PhysicalModel::readFromXml(QXmlStreamReader *r)
 {
@@ -2405,31 +2821,4 @@ void PhysicalModel::writeToXml(QXmlStreamWriter *w)
     writer.write();
 }
 
-#if 0
-// надо задавать
-// потенциал и его свойства:
-Ui[i], d[i], m[i], Ubias(0),typeOfU(FINITE),
-// initial and final potentials:
-U1[i], d1[i], m1[i], Ubias1(0),
-// волновой пакет и его тип
-nminWP(0), nmaxWP(10), hnWP(1), 
-wpE_lo(5.),wpE_hi(15.), wpN(30), type_of_WP(2)
-// инициализация
-N(0), E0(0), psi(0), x(0), kwave(0),
-RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
-psi_real(0), Phi_real(0),
-psi_imag(0), Phi_imag(0),need_build_WP(true),
-//не надо записывать
-//интервалы и масштабы для сравнения
-time(0),tmin(0),tmax(100),ht(0.01),
-zz(-1),zmin(0.),zmax(1.),hz(0.005),
-Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), 
-Psinmin(-1.), Psinmax(1.),
-WPXmin(-0.1), WPXmax(1.),
-WPKmin(-0.1), WPKmax(5.),
-Phinmin(-0.2), Phinmax(10.),
-Hk(0.025), Kmax(5.), Kmin(-5),
-LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),
-Nperiod(1)
-#endif
 

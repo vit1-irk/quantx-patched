@@ -176,7 +176,6 @@ private:
     QGroupBox *gbNumrange;
     QToolBox * toolBox;
     PotentialViewMovable *potentialViewMovable;
-    EnzView *enzView;
     WavePacketXView *wavePacketXView;
     WavePacketKView *wavePacketKView;
     WaveFunctionView *waveFunctionView;
@@ -216,7 +215,7 @@ private:
     PotentialMovableWidget *gbPview;
     MomentumViewWidget *gbviewM;
     WaveFunctionWidget *gbviewPsix;
-    EnzWidget *gbEnzview;
+    EnzWidget *enzWidget;
     TransmissionWidget *gbTEview;
     TofzViewWidget *gbTZview;
     QGroupBox *grrb;
@@ -228,18 +227,9 @@ private:
     QPushButton *bRunD;
     
     QPushButton *bRunPsiXT;
-//    QPushButton *bRunEnz;
 
     int countW;
     int numOfCurveR,numOfCurveT,numOfCurveNE, numOfCurve, numOfCurveUx, numOfCurveEn;
-    Plotter *plotterUx1;
-    Plotter *plotterAddUx;
-    Plotter *plotterUx;
-    Plotter *plotNE;
-    Plotter *plotterT;
-    Plotter *plotterEnz;
-    Plotter *plotterPsi2x;
-    Plotter *plotterPhi;
     const QString captionX;
     QVector<int> index_for_sorted_En() const;
     std::vector<double> plotdataUx, plotdataR, plotdataT, plotdataPsi2, plotdataPhi, dataNE, plotdataEnz;

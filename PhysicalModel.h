@@ -236,7 +236,9 @@ private:
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
     double E0;
+    int N1;	 // actual number of inner intervals of U1
     QVector<double> U1; //!< Inital potential values for z-animations
+    int N2;	 // actual number of inner intervals of U2
     QVector<double> U2; //!< Final potential values for z-animations
     QVector<double> d1; //!< Initial potential step widths for z-animations
     QVector<double> d2; //!< Final potential step widths for z-animations
@@ -265,20 +267,17 @@ private:
     void markWPchanged();
 
 public:
-//    void slotU1();
-//    void slotU2();
     void set_Uxz(double z);
     void set_Uxz_forTz(double z);
     void getTatE(); 
     bool flagBondaryCondition;
-//    double getTatE(double E);
-  double get_U(int n);//comment
-//    double get_Ub() const { return Ub; }
+    double get_U(int n);//comment
     double getUbias() const { return Ubias; }
     double get_E0() const { return E0; }
     double get_Time() const { return this->time; }
 //---------WavePacket---------------- 
-    void set_type_of_WP(int iwp);
+//    void set_type_of_WP(int iwp) { type_of_WP=iwp; }
+ 
     int get_type_of_WP() const { return this->type_of_WP;};
    //En<0
     int get_nminWP() const { return nminWP; };
@@ -296,24 +295,28 @@ public:
     void set_NofWP(int n);
 
 //potential:
-//    void set_Ub(double _Ub);
     void setUbias(double _Ubias);
 //    QVector<double> get_U() const { return U; }//added
     QVector<double> get_Ui() const { return Ui; }
     double get_Ui(int n) const { return Ui.at(n); }
-//    double get_U(int n) const { return U.at(n); }//added
+    double get_U1(int n) const { return U1.at(n); }
+    double get_U2(int n) const { return U2.at(n); }
     void   set_Ui(int n, double v);
     QVector<double> get_d() const { return d; }
     double get_d(int n) const { return d.at(n); }
+    double get_d1(int n) const { return d1.at(n); }
+    double get_d2(int n) const { return d2.at(n); }
     void   set_Energy(double v);
     void   set_Time(double v);
      void   set_d(int n, double v);
     void   set_d(int n1, double v1,int n2, double v2);
     double get_m(int n) const { return m.at(n); }
+    double get_m1(int n) const { return m1.at(n); }
+    double get_m2(int n) const { return m2.at(n); }
     void   set_m(int n, double v);
     void set_Ui_d_m(const QVector<double>& Ui, const QVector<double>& d,const QVector<double>& m);
-//    void set_E_lo_E_hi_wpN(double E_lo,double E_hi, int wpN);
-//    void set_nminWP_nmaxWP_hnWP(int nminWP, int nmaxWP, int hnWP);
+    void set_U1_d1_m1(const QVector<double>& U1, const QVector<double>& d1,const QVector<double>& m1);
+    void set_U2_d2_m2(const QVector<double>& U2, const QVector<double>& d2,const QVector<double>& m2);
     QVector<double> getEn();
     double getEn(int n);
     double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;  
@@ -322,13 +325,6 @@ public:
     double WPXmin,WPXmax;  
     QPair<double,double> getUminUmax();
     QPair<double,double> getXminXmax();
- /*   int get_LevelNmin() const { return this->LevelNmin; };
-    int get_LevelNmax() const { return this->LevelNmax; };
-    int get_LevelHn() const { return LevelHn; };
-    void set_LevelNmin(int n1);
-    void set_LevelNmax(int n2);
-    void set_LevelHn(int hn);
-*/
     void split_d(int n,double fraction);
     void remove_d(int n);
 
@@ -362,11 +358,7 @@ private:
     int Nperiod;
     //! Potential including bias
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
-//    QVector<double> U_d;
-
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
-    //    Vector<double> psi_phases_old, psi_phases_base;
-    //    Vector<double> psi_phases;/* Psi phases in channels */
     QVector<double> Ebound;
     QVector<double> EbandUp;
     QVector<double> EbandDown;
@@ -376,8 +368,6 @@ private:
     double	  zz,zmin,zmax,hz;
 //    int	  timeswitch;
     double	 totalRT;  /* sum of totalR and totalT */
-    //    double   psi_phase_total_old,psi_phase_total_base;
-    //    double	 psi_phasehth;	 /* Psi phase in h-th channel */
     double	 Phi_real;   /* real of total Psi */
     double	 Phi_imag;   /* real of total Psi */
 
@@ -385,6 +375,8 @@ public:
 //    double width, height, scalex, scaley; 
 //    int iwidth, iheight, scalex, scaley; 
     int getN() const { return N; }
+    int getN1() const { return N1; }
+    int getN2() const { return N2; }
 
     void set_N(int N)
     {
@@ -407,9 +399,24 @@ public:
         this->psi_real = 0;
         this->Phi_imag = 0;
         this->Phi_real = 0;
-
     }
+    void set_N1(int N)
+    {
+        this->N1 = N;
 
+        d1.resize(1+N+1);
+        m1.resize(1+N+1);
+        U1.resize(1+N+1);
+    }
+    void set_N2(int N)
+    {
+        this->N2 = N;
+
+        d2.resize(1+N+1);
+        m2.resize(1+N+1);
+        U2.resize(1+N+1);
+    }
+    void set_type_of_WP(int iwp) { type_of_WP=iwp; }
     void set_E0(double e) { E0 = e; }	  /* [u_energy] incident wave energy */
     //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
 
@@ -462,5 +469,19 @@ inline double squaremod(complex& c)
 }
 
 const double M_PI = 3.1415926535897932384626433832795;
+
+inline void skipUnknownElement(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement());
+
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (r->isStartElement())
+            skipUnknownElement(r);
+    }
+}
 
 #endif

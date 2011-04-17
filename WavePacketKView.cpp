@@ -18,6 +18,8 @@ WavePacketKView::WavePacketKView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),
 dialogScaleWPK(0)
 {
+    widthLine = 3;;
+
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -62,6 +64,23 @@ void WavePacketKView::resizePicture()
 
 void WavePacketKView::setViewportMapping()
 {
+    QRectF a = QRectF(this->viewport()->rect());
+    double rxmin=0;
+    double rxmax=a.width();//npoints-1;
+    double rpsiMin=0;
+    double rpsiMax=a.height();//a.height();
+    QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
+    scene()->setSceneRect(b);
+        qreal m11 = a.width() / b.width();
+        qreal m22 = - a.height() / b.height(); 
+        qreal dx = - m11 * a.x();
+        qreal dy = - m22 * (a.y() + a.height());
+        QMatrix m(m11,0,0,m22,dx,dy);
+        this->setMatrix(m);
+        scene()->update(scene()->sceneRect());
+     QRectF   sr = scene()->sceneRect();
+    update();
+/*
     QRectF vp = QRectF(QPointF(this->kmin,this->phiMin),QPointF(this->kmax,this->phiMax));
 
     QRectF sr = scene()->sceneRect();
@@ -80,11 +99,12 @@ void WavePacketKView::setViewportMapping()
         scene()->update(scene()->sceneRect());
         sr = scene()->sceneRect();
     }
-    update();
+    update();*/
 } 
 void WavePacketKView::resizeEvent(QResizeEvent*) 
 {
-    setViewportMapping();
+    this->resizePicture();
+//    setViewportMapping();
 }
 
 void WavePacketKView::mouseMoveEvent(QMouseEvent *e)
@@ -125,14 +145,14 @@ void WavePacketKView::keyPressEvent(QKeyEvent *event)
 
 void WavePacketKView::slot_WavePacket_of_t()
 {
-/*    static const QColor colorForIds[6] = {
-        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
-    };
-    const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+    QRectF vp = scene()->sceneRect();
+    QRect a = QRect(this->viewport()->rect());
+    QPen p;
+    p.setWidthF(widthLine);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
 
-    QVector<double> Ebound = model->getEn();
-    int number_of_levels = Ebound.size();
-    */
     QVector<double> Ebound = model->getEn();
     int number_of_levels = Ebound.size();
     if(number_of_levels==0) return;    
@@ -147,17 +167,26 @@ void WavePacketKView::slot_WavePacket_of_t()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        linev->setLine(0., phiMin, 0., phiMax);
-        lineh->setLine(kmin,0.,kmax,0.);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
+/*        linev->setLine(0., phiMin, 0., phiMax);
+        lineh->setLine(kmin,0.,kmax,0.);*/
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
     else
     {
-        linev->setLine(0., phiMin, 0., phiMax);
-        lineh->setLine(kmin,0.,kmax,0.);
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
+//        linev->setLine(0., phiMin, 0., phiMax);
+//        lineh->setLine(kmin,0.,kmax,0.);
     }
     int npoints;//=501;
+    p.setColor(Qt::darkCyan);
     QVector<double> waveFunction;
     QPolygonF psi;
     npoints=1+(kmax-kmin)/this->dk;
@@ -167,11 +196,15 @@ void WavePacketKView::slot_WavePacket_of_t()
             waveFunction = model->getPsiOfKT(kmin, kmax, npoints);
             for (int i=0; i < npoints; i++)
             {
-                double kk = kmin + dk*i;
-                double y = waveFunction[i];
-                psi[i]  = QPointF(kk, y);
+//                double kk = kmin + dk*i;
+//                double y = waveFunction[i];
+                double x = (i*vp.width())/(npoints-1);
+                double y =vp.height()*(waveFunction[i]-phiMin)/(phiMax-phiMin);
+                psi[i]  = QPointF(x, y);
+//                psi[i]  = QPointF(kk, y);
             }
-            setCurve(0,psi,QPen(Qt::darkCyan));
+//            setCurve(0,psi,QPen(Qt::darkCyan));
+        setCurve(0, psi, p);
             //dima qApp->processEvents(QEventLoop::AllEvents);
     }
 }
@@ -204,7 +237,7 @@ void WavePacketKView::removeCurve(int id)
 //    repaint();
 }
 
-void MomentumDistributionCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
+void MomentumDistributionCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     painter->setPen( pen() );
     painter->setRenderHint(QPainter::Antialiasing);

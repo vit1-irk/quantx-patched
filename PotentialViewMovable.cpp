@@ -892,7 +892,7 @@ void PotentialViewMovable::slotPsiofE()
 EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
-     setCursor(Qt::SizeHorCursor);
+    setCursor(Qt::SizeHorCursor);
     penHover.setStyle(Qt::DotLine);
     penHover.setWidthF(v->widthLineE);
     penHover.setColor(Qt::green);
@@ -934,7 +934,8 @@ QVariant EnergyDraggableLine::itemChange(GraphicsItemChange change, const QVaria
 HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
-    penHover.setStyle(Qt::DashLine);
+    penHover.setStyle(Qt::DotLine);
+//    penHover.setStyle(Qt::DashLine);
     penHover.setWidthF(view->widthLineH);
     penHover.setColor(Qt::blue);
 
@@ -989,7 +990,8 @@ VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
 {
 //    QRectF vp = view->sceneRect();
     setCursor(Qt::SizeHorCursor);
-    penHover.setStyle(Qt::DashLine);
+    penHover.setStyle(Qt::DotLine);
+//    penHover.setStyle(Qt::DashLine);
     penHover.setWidthF(view->widthLineV);
     penHover.setColor(Qt::blue);
 

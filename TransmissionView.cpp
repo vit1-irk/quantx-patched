@@ -91,11 +91,11 @@ public:
 //        QPoint vb(0,1);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
-        double ax = fabs(sa.x() - sb.x());
+        //double ax = fabs(sa.x() - sb.x());
 
-        qreal ax1 = view->mapFromGlobal(QPoint(1,1)).x();
-        qreal ax2 = view->mapFromScene(QPoint(1,1)).x();
-        qreal ax3 = view->width();
+        //qreal ax1 = view->mapFromGlobal(QPoint(1,1)).x();
+        //qreal ax2 = view->mapFromScene(QPoint(1,1)).x();
+        //qreal ax3 = view->width();
         penForPainter.setWidthF(view->widthLine);
         painter->setPen(penForPainter);
         QPainter::RenderHints saved_hints = painter->renderHints();

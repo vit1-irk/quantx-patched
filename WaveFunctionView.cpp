@@ -387,7 +387,7 @@ void WaveFunctionView::removeCurve(int id)
 //    repaint();
 }
 
-void CoordinateDistribution::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
+void CoordinateDistribution::paint(QPainter * painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     painter->setPen( pen() );
     painter->setRenderHint(QPainter::Antialiasing);

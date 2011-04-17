@@ -275,8 +275,10 @@ void WavePacketXView::slot_WavePacket_of_t()
             setViewportMapping();
             //            vp = scene()->sceneRect();
             QRect a = QRect(this->viewport()->rect());
+            p.setColor(Qt::black);
             linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
             lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+            p.setColor(Qt::darkCyan);
             p.setWidthF(widthLineWP);
             vp_old=vp;
         }
@@ -317,7 +319,7 @@ void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
     }
     curves[id]->setPen(pen);
 //    double width=pen.widthF();
-    int width=pen.width();
+//    int width=pen.width();
     update();
 }
 
@@ -469,29 +471,6 @@ void WavePacketXView::slotSetTime()
     dialogTime->setFocus();
 }
 
-/*void WavePacketXView::showDialogDefWP()
-{   
-    if(!gbDefWP)
-    {
-    gbDefWP = new QGroupBox("Wave packet definition:");
-    QVBoxLayout *vl = new QVBoxLayout();
-
-    QHBoxLayout *vh = new QHBoxLayout();
-    QPushButton *bWPEm = new QPushButton("En<0 ");	
-    connect(bWPEm,SIGNAL(clicked()),this, SLOT(slotSetWPEm()));
-    vh->addWidget(bWPEm);
-
-    QPushButton *bWPEp = new QPushButton("Ej>0 ");	
-    connect(bWPEp,SIGNAL(clicked()),this, SLOT(slotSetWPEp()));
-    vh->addWidget(bWPEp);
-    vl->addLayout(vh);
-    gbDefWP->setLayout(vl);
-    }
-    gbDefWP->show(); 
-    gbDefWP->raise();
-    gbDefWP->setFocus();
-}
-*/
 void WavePacketXView::setWhatToDraw(int w)
 {   
     if (whatToDraw != w) 
@@ -572,150 +551,3 @@ void WavePacketXWidget::slotRunWP()
     connect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
 }
 
-/*class ModelXML
-{
-    WavePacketXView *view;//PhysicalModel *model;
-    QXmlStreamReader *r;
-    QXmlStreamWriter *w;
-public:
-    ModelXML(WavePacketXView *_m,QXmlStreamReader *_r,QXmlStreamWriter *_w)
-        : view(_m), r(_r), w(_w) {}
-    void read();
-    void write();
-    void readTime();
-    void writeTime();
-    void readScale();
-    void writeScale();
-    void readStep(double *u,double *d, double *m);
-};
-
-void skipUnknownElement(QXmlStreamReader *r)
-{
-    Q_ASSERT(r->isStartElement());
-
-    while (!r->atEnd())
-    {
-        r->readNext();
-
-        if (r->isEndElement())
-            break;
-
-        if (r->isStartElement())
-            skipUnknownElement(r);
-    }
-}
-
-void ModelXML::read()
-{
-    Q_ASSERT(r->isStartElement() && r->name() == "viewWPX");
-    while (!r->atEnd())
-    {
-        r->readNext();
-        if (r->isEndElement())
-            break;
-
-        if (r->name() == "Time")
-            readTime();
-        else if (r->name() == "ScaleWPX")
-            readScaleWPX();
-        else
-            skipUnknownElement(r);
-    }
-}
-
-void ModelXML::write()
-{
-    w->writeStartElement("viewWPX");
-    writeTime();
-    writeScaleWPX();
-    w->writeEndElement();
-}
-
-void ModelXML::readTime()
-{
-    Q_ASSERT(r->isStartElement() && r->name() == "Time");
-    TimeParameters tp=model->getTimeParam(); 
-    this->time=tp.time;
-    this->htime=tp.ht;
-    this->tmin=tp.tmin;
-    this->tmax=tp.tmax;
-
-    QString s = r->readElementText();
-    model->set_E0(s.toDouble());//?
-}
-void ModelXML::writeTime()
-{
-    QString s;
-    s.sprintf("%lg",model->get_E0());//?
-    w->writeTextElement("Time",s);
-}
-
-void ModelXML::readScaleWPX()
-{
-    Q_ASSERT(r->isStartElement() && r->name() == "udm");
-
-    QVector<double> u,d,m;
-
-    while (!r->atEnd())
-    {
-        r->readNext();
-        if (r->isEndElement())
-            break;
-
-        if (r->name() == "step")
-        {
-            double du,dd,dm;
-            readStep(&du,&dd,&dm);
-            u.push_back(du);
-            d.push_back(dd);
-            m.push_back(dm);
-        }
-        else
-            skipUnknownElement(r);
-    }
-    model->set_Ui_d_m(u,d,m);
-}
-void ModelXML::readStep(double *u, double *d, double *m)
-{
-    Q_ASSERT(r->isStartElement() && r->name() == "step");
-
-    QString s = r->readElementText();
-    *u = *d = 0; *m = 1;
-//    if (sizeof(QChar)==sizeof(char))
-    {
-        sscanf(s.toAscii(),"%lg %lg %lg",u,d,m);
-//        sscanf(s.toLatin1s.latin.latin1(),"%lg %lg %lg",u,d,m);
-//        sscanf(reinterpret_cast<const char*>(s.data()),"%lg %lg %lg",u,d,m);
-    }
-//    else
-//    {
-//        Q_ASSERT(0);
-//    }
-}
-void ModelXML::writeUdm()
-{
-    w->writeStartElement("udm");
-    for (int n = 0; n < model->getN() + 2; ++n)
-    {
-        QString step;
-        double u=model->get_Ui(n);
-        double d=model->get_d(n);
-        double m=model->get_m(n);
-        step.sprintf("%lg %lg %lg",u,d,m);
-        w->writeTextElement("step",step);
-    }
-    w->writeEndElement();
-}
-
-void PhysicalModel::readFromXml(QXmlStreamReader *r)
-{
-    Q_ASSERT(r->isStartElement() && r->name() == "model");
-    ModelXML reader(this, r, NULL);
-    reader.read();
-}
-void PhysicalModel::writeToXml(QXmlStreamWriter *w)
-{
-    ModelXML writer(this, NULL, w);
-    writer.write();
-}
-*/

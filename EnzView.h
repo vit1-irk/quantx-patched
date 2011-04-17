@@ -10,6 +10,8 @@
 #include <QGraphicsPolygonItem>
 #include <QPolygonF>
 #include <QMap>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include "myparam.h"
 #include "BreakStatus.h"
 #include "Zview.h"
@@ -63,7 +65,10 @@ protected:
 
 public:
     void showDialogZ();
+    QPair<double,double> getEnzMinMax();
+    void setEnzMinMax(const QPair<double,double> &s);
 
+//    getScalesEnz();
 private:
     void initDialogScaleY();
     QLineEdit *leEnzmin;
@@ -92,9 +97,11 @@ class EnzWidget : public QGroupBox
     Q_OBJECT
 public:
     EnzWidget(PhysicalModel *model, QWidget * parent = 0);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
+public slots:
+    void slotRunEnz();
 private:
     EnzView *enzView;
     QToolButton *bRunEnz;
-public slots:
-void slotRunEnz();
 };

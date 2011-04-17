@@ -204,7 +204,15 @@ EnzView::~EnzView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+QPair<double,double> EnzView::getEnzMinMax()
+{
+    return QPair<double,double>(Enzmin,Enzmax);
+}
+void EnzView::setEnzMinMax(const QPair<double,double> &s)
+{
+    Enzmin = s.first;
+    Enzmax = s.second;
+}
 void EnzView::slotZline()
 {
     zParameters tp = model->getzParam();
@@ -673,4 +681,49 @@ void EnzView::updateScaleEnz()
         Enzmax=EnzmaxNew;
 //        emit(signalScaleEnzChanged());
     }
+}
+
+
+void EnzWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "EnzView");
+    double enzmin = 0, enzmax = 0;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "enzmin")
+        {
+            QString s = r->readElementText();
+            enzmin = s.toDouble();
+        }
+        else if (r->name() == "enzmax")
+        {
+            QString s = r->readElementText();
+            enzmax = s.toDouble();
+        }
+        else
+            skipUnknownElement(r);
+    }
+    QPair<double,double> t;
+    t.first=enzmin;
+    t.second=enzmax;
+    enzView->setEnzMinMax(t);
+}
+
+void EnzWidget::writeToXml(QXmlStreamWriter *w)
+{
+    w->writeStartElement("EnzView");
+    {
+        QPair<double,double> t = enzView->getEnzMinMax();
+        QString s;
+        s.sprintf("%lg",t.first);
+        w->writeTextElement("enzmin",s);
+        s.sprintf("%lg",t.second);
+        w->writeTextElement("enzmax",s);
+    }
+    w->writeEndElement();
 }
