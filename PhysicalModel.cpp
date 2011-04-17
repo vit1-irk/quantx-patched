@@ -40,10 +40,10 @@ public:
         {
         emid = (emax + emin)/2;
         nlevels = model->findNumberOfLevels(emid);
-        if(abs(emax-emin)<1e-8) 
+        if(abs(emax-emin)<1e-8)
         {
          for(int i=1; i<=nemax-nemin; i++)
-         { 
+         {
             E.push_back(emid);
          }
             return;
@@ -70,9 +70,9 @@ QPair<double,double> PhysicalModel::getUminUmax()
     if(this->typeOfU==0)
     {
         for (int i = 0; i < Nmax+1; ++i)
-        {   
+        {
             q = this->U[i];
-            if (q > Umax) Umax = q; 
+            if (q > Umax) Umax = q;
             if (q < Umin) Umin = q;
         }
         if(this->U[0] > this->U[Nmax+1]) Umax=this->U[Nmax+1];
@@ -81,9 +81,9 @@ QPair<double,double> PhysicalModel::getUminUmax()
     else
     {
         for (int i = 0; i < Nmax+1; ++i)
-        {   
+        {
             q = this->U[i];
-            if (q > Umax) Umax = q; 
+            if (q > Umax) Umax = q;
             if (q < Umin) Umin = q;
         }
     }
@@ -105,7 +105,7 @@ QPair<double,double> PhysicalModel::getXminXmax()
     if(this->typeOfU==0)
     {
         for (int i = 1; i < Nmax+1; ++i)
-        {   
+        {
             x += this->d[i];
         }
         Xmax=1.5*x;
@@ -114,7 +114,7 @@ QPair<double,double> PhysicalModel::getXminXmax()
     else
     {
         for (int i = 1; i < Nmax+1; ++i)
-        {   
+        {
             x = this->d[i];
         }
         Xmax=this->Nperiod*x;
@@ -124,7 +124,7 @@ QPair<double,double> PhysicalModel::getXminXmax()
 }
 
 void PhysicalModel::findBoundStates()
-{   
+{
     double dE=1e-5;
     double Eold=this->E0;
     double E, emax;
@@ -141,7 +141,7 @@ void PhysicalModel::findBoundStates()
     int jj;
     double ee;
         for (int i = 0; i < Ebound.size(); ++i)
-        {   
+        {
             double e=Ebound[i];
             ee=e;
             jj=i;
@@ -154,7 +154,7 @@ void PhysicalModel::findBoundStates()
         EbandUp=Ebound;
         double emin=Umin;
         for (int i = 0; i < Ebound.size(); ++i)
-        {   
+        {
             if(i==0) emin=Umin;
             else emin=Ebound[i-1];
             emax=Ebound[i];
@@ -199,7 +199,7 @@ void PhysicalModel::build_k() /* input:m,E0,U --- result:k*/
 /*-----------------------------------------------
   This function calculates reflection/transmission coefficients
 
-  totalR = r#(i)*r(i) 
+  totalR = r#(i)*r(i)
 
   totalT = t#*t k(N+1)/k(0)*m(0)/m(N+1) было
 
@@ -222,7 +222,7 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
     double k0,kr;
     RR=rr;
     TT=tt;
-    if(this->E0 <= this->U[0]) 
+    if(this->E0 <= this->U[0])
     {
         RR=1;
         TT=0;
@@ -239,10 +239,10 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
         {
             kr=real(this->k[this->N+1]);
             TT=tt*k0/kr*aa;
-            RR=rr;  
+            RR=rr;
         }
-    }  
-    
+    }
+
     totalRT = RR + TT;
 }
 
@@ -251,17 +251,17 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
 //-----------------------------------------------
   Makes U(x) = Ui(x) + Uc*x
 //-------------------------------------------------
-void PhysicalModel::build_U() 
-// input:Ub,Ui --- result:U 
+void PhysicalModel::build_U()
+// input:Ub,Ui --- result:U
 {
     if (! need_build_U)
         return;
     U[0] = Ui[0] + this->Ub;
-    
-    double width=0; 
+
+    double width=0;
     int nn=d.size();
-    for (int n=0; n < d.size(); n++) //!!!n=1 
-//    for (int n=0; n <= this->N; n++) //!!!n=1 
+    for (int n=0; n < d.size(); n++) //!!!n=1
+//    for (int n=0; n <= this->N; n++) //!!!n=1
         width += this->d[n];
 
     double pos=0;
@@ -303,7 +303,7 @@ QRectF PhysicalModel::getGoodViewportAtU() const
     double x,y;
     double ymin = 1e300, ymax = -1e300;
     x=0;
-    //    build_U(); 
+    //    build_U();
     double Xmax, Xmin, Umax, Umin;
     for (int n=0; n <= getN(); n++) ///n=1!!!!!!!
     {
@@ -311,7 +311,7 @@ QRectF PhysicalModel::getGoodViewportAtU() const
         if (n == getN()) Xmax = x;
 //        y = get_U(n);
       y = get_Ui(n);
-        if (y > ymax) ymax = y; 
+        if (y > ymax) ymax = y;
         if (y < ymin) ymin = y;
     }
 //    if (get_U(getN()+1) > ymax)
@@ -320,7 +320,7 @@ QRectF PhysicalModel::getGoodViewportAtU() const
       ymax = get_Ui(getN()+1);
 
     Xmax=1.3*Xmax;
-    Xmin=-0.3*Xmax;  
+    Xmin=-0.3*Xmax;
     Umax=1.1*ymax;
     Umin=1.1*ymin;
     if(Umax==0) Umax=0.5*abs(Umin);
@@ -333,9 +333,9 @@ inline double module(complex& a){ return fabs(real(a))+fabs(imag(a)); }
 /*-----------------------------------------------
 This function calculates the coefficients a & b.
 -------------------------------------------------*/
- void PhysicalModel::build_ab() 
+ void PhysicalModel::build_ab()
 /* u:r,k,d,m r:a,b */
-{    
+{
 //    typeOfU=0;
     if(typeOfU==0)
     {
@@ -351,7 +351,7 @@ This function calculates the coefficients a & b.
             double aa=real(b[N+1]);
         }
     }
-/*    if(typeOfU==0) 
+/*    if(typeOfU==0)
     {
         a[0]=0. ;
         b[0]=1.;
@@ -411,8 +411,8 @@ This function calculates the coefficients a & b.
         this->funEn=real(dis);
     }
 }
-/*void PhysicalModel::build_ab() 
-/// u:r,k,d,m r:a,b 
+/*void PhysicalModel::build_ab()
+/// u:r,k,d,m r:a,b
 {
 
     a[0]=0. ;
@@ -444,15 +444,15 @@ void PhysicalModel::matching()
 //        complex KMb= (complex(1.,0)-K12)*up;
         complex KPb= (1.+K12)*dn;
         complex KMb=  (1.-K12)*up;
-        complex aa=a[i]*KPa+b[i]*KMa;        
-        complex bb=a[i]*KMb+b[i]*KPb;  
+        complex aa=a[i]*KPa+b[i]*KMa;
+        complex bb=a[i]*KMb+b[i]*KPb;
         a[i+1]=aa;
         b[i+1]=bb;
 
     }
 }
 void PhysicalModel::Smatrix()
-{ 
+{
     complex p11,p12,p22,p21;
     for(int i=0; i<=N; i++)
     {
@@ -494,7 +494,7 @@ void PhysicalModel::Smatrix()
     }
     */
 a[0]=0;
-b[0]=p12/p22; 
+b[0]=p12/p22;
 a[N+1]=1.;
 b[N+1]=1./p22;
     complex  aa1=b[0];
@@ -518,7 +518,7 @@ b[N+1]=1./p22;
     }
     complex  aa=b[0];
     complex bb=b[N+1];
-    
+
 }
 void PhysicalModel::norm()
 {
@@ -579,7 +579,7 @@ Calculates Psi(x) at x.
 //    first determine n  so that x belongs to d(n)
 //    double xt=x;
 /*    int n;
-    
+
     if ((this->E0 < 0 && this->E0 - this->U[0] < 0)||typeOfU>0)  norm();
     for (n = 0; n <= N; n++)
     {
@@ -639,7 +639,7 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
     -------------------*/
 //    xt=-d[0];
 //    int NN=300;
-//    hx=LL/NN;    
+//    hx=LL/NN;
 /*    for (n = 0; n <= N; n++)
     {
         if(xt>xN)
@@ -710,10 +710,10 @@ int PhysicalModel::zeroPsi()
     else i0=0;
     for (int i = i0; i <= Nmax; ++i)
     {
-        nzero_i=0; 
+        nzero_i=0;
         if (this->E0 > this->U[i])
         {
-            double arg = real(k[i])*d[i]; 
+            double arg = real(k[i])*d[i];
             double  psi_j   = real(a[i]*exp(complex(0.,arg))+ b[i]*exp(complex(0.,-arg)));
             double cj = psi_j/real(a[i]+b[i]);
             double cs = cos(arg);
@@ -728,9 +728,9 @@ int PhysicalModel::zeroPsi()
             nzero_i=j;
             nzero=nzero+nzero_i;
         }
-        else 
+        else
         {
-            double arg = imag(k[i])*d[i]; 
+            double arg = imag(k[i])*d[i];
             double psi2=real(a[i]+b[i]);
             double psi1=real(a[i]*exp(-arg)+b[i]*exp(arg));
             if (psi1>0 && psi2<0 || psi1<0 && psi2>0)
@@ -743,14 +743,14 @@ int PhysicalModel::zeroPsi()
     return nzero;
 }
 int PhysicalModel::findNumberOfLevels(double E)
-{       
+{
     QPair<double,double> umin_umax = getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
-    if(Umin>=0&&Umax>=0) return 0; 
+    if(Umin>=0&&Umax>=0) return 0;
     int Nmax, nzero;
     Nmax = getN ();
-    this->set_E0(E); 
+    this->set_E0(E);
     this->build_k();
     this->build_ab();
     nzero=zeroPsi(); //number of zeros of wave function inside (0, x_Nmax) at E near zero
@@ -758,7 +758,7 @@ int PhysicalModel::findNumberOfLevels(double E)
     {
         double psi1=real(a[Nmax+1]+b[Nmax+1]);
         double psi2=real(b[Nmax+1]);
-        if(psi1>0&&psi2<0||psi1<0&&psi2>0) 
+        if(psi1>0&&psi2<0||psi1<0&&psi2>0)
         return nzero+1;
         else
         return nzero;
@@ -779,8 +779,8 @@ double PhysicalModel::findOneLevel(double emin, double emax)
         this->build_ab();
         double y1=this->funEn;
         double E1=emin;
-        if(y>0&&y1>0||y<0&&y1<0) 
-        { 
+        if(y>0&&y1>0||y<0&&y1<0)
+        {
          this->set_E0(emax);
          this->build_k();
          this->build_ab();
@@ -793,7 +793,7 @@ double PhysicalModel::findOneLevel(double emin, double emax)
          this->build_k();
          this->build_ab();
          double y=this->funEn;
-        if(y>0&&y1>0||y<0&&y1<0) 
+        if(y>0&&y1>0||y<0&&y1<0)
         { E1=this->E0;
           y1=y;
          }
@@ -811,9 +811,9 @@ void PhysicalModel::setUbias(double u)
         this->Ubias=u;
         Ui[0] = Ui[0] + this->Ubias;
 
-        double width=0; 
+        double width=0;
         int nn=d.size();
-        for (int n=0; n < d.size(); n++) //!!!n=1 
+        for (int n=0; n < d.size(); n++) //!!!n=1
             width += this->d[n];
 
         double pos=0;
@@ -849,12 +849,12 @@ void PhysicalModel::setUparab(const Uparab& u)
     this->m[0] = 0.5;
     this->d[0] = 0;
     this->Ui[0] = 0;
-    double y_i,uu; 
+    double y_i,uu;
     for (int n = 1; n < nn; n++)
     {
         this->d[n] = dd;
         y_i=(2.*n/nn-1.);
-        uu=u0*(y_i*y_i-1); 
+        uu=u0*(y_i*y_i-1);
         this->Ui[n] = uu;
         this->m[n] = 0.5;
     }
@@ -945,7 +945,7 @@ void PhysicalModel::set_z(double v)
  zParameters u = getzParam();
  if(v!=u.z)
  {
-     u.z=v;      
+     u.z=v;
      setzParam(u);
  }
 /* if(v!=this->zz)
@@ -965,7 +965,7 @@ void  PhysicalModel::setzParam(const zParameters& u)
     double v=u.z;
     double E_old=this->E0;
     if(v!=this->zz)
-    {   
+    {
         this->zz=v;
         this->set_Uxz(v);
         emit(signalZChanged(v));
@@ -1398,8 +1398,8 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
 
     this->m[0] = 0.5;
     this->d[0] = 0;
-    this->Ui[0] = 0; 
-//    this->Ub = u.ubias; 
+    this->Ui[0] = 0;
+//    this->Ub = u.ubias;
     for (int n = 1; n <= u.numberOfWells; n++)
     {
         int i = 2*n-1;
@@ -1418,12 +1418,12 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
 
 PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
-  N(1), N1(1),N2(1),E0(0), psi(0), x(0), 
+  N(1), N1(1),N2(1),E0(0), psi(0), x(0),
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
- zz(-1),zmin(0.),zmax(1.),hz(0.005),
+ zz(-1),zmin(0.),zmax(1.),hz(0.01),
 // zold({0.2,0.1,0.8,0.05}),
-Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10), 
+Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10),
 Psimin(-1.), Psimax(4.),
 Psinmin(-1.), Psinmax(1.),
 WPXmin(-0.1), WPXmax(1.),
@@ -1431,7 +1431,7 @@ WPKmin(-0.1), WPKmax(5.),
 //HWPx(0.05), XWPmax(20.), XWPmin(-0.5),
 Phinmin(-0.2), Phinmax(10.),
 Hk(0.025), Kmax(5.), Kmin(-5),
- RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0), 
+ RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0),
  psi_real(0), Phi_real(0),Ubias(0),
  psi_imag(0), Phi_imag(0), typeOfU(FINITE),need_build_WP(true),
  LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),Nperiod(1),
@@ -1581,7 +1581,7 @@ void PhysicalModel::split_d(int n, double fraction)
     {
         double wl = d[n] * fraction;
         double wr = d[n] - wl;
-        N += 1;            
+        N += 1;
         d.insert(n,wl);        d[n+1] = wr;
         m.insert(n,m[n]);
         U.insert(n,U[n]);
@@ -1600,7 +1600,7 @@ void PhysicalModel::remove_d(int n)
 {
     if (0 < N && 0 < n && n <= N)
     {
-        N -= 1;            
+        N -= 1;
         d.remove(n);
         m.remove(n);
         U.remove(n);
@@ -1668,7 +1668,7 @@ QVector<double> PhysicalModel::getEn()
 {
     if (need_build_U)
     {
-        build_U(); 
+        build_U();
         need_build_U = false;
         need_build_En = true;
         need_build_WP = true;
@@ -1687,7 +1687,7 @@ double PhysicalModel::getEn(int n)
 {
     if (need_build_U)
     {
-        build_U(); 
+        build_U();
         need_build_U = false;
         need_build_En = true;
     }
@@ -1720,7 +1720,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
         build_RT();
         tt = this->TT;
     }
-    else   
+    else
     {
         num = findNumberOfLevels(E);
     }
@@ -1755,7 +1755,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
         build_ab();
         build_RT();
     }
-    else   
+    else
     {
         num = findNumberOfLevels(E0);
     }
@@ -1765,14 +1765,14 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
 }
 void PhysicalModel::getTatE()//(double E)
 {
-    double num; 
+    double num;
     if(this->E0>0)
         {
         build_k();
         build_ab();
         build_RT();
         }
-        else   
+        else
         {
             num = findNumberOfLevels(E0);
         }
@@ -1796,10 +1796,10 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
         build_RT();
          transmission[i] = this->TT;
         }
-        else   
+        else
         {
             if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(Emin+i*dE);
-            else y=0; 
+            else y=0;
             transmission[i] = y;
         }
     }
@@ -1847,20 +1847,20 @@ QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int 
         build_RT();
          transmission[i] = this->TT;
         }
-        else   
+        else
         {
             if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(this->E0);
-            else y=0; 
+            else y=0;
             transmission[i] = y;
         }
     }
     this->E0=Eold;
-    if(zold==-1) 
+    if(zold==-1)
     {
         zold=(Zmin+Zmax)*0.5;
         set_z(zold);
     }
-    else 
+    else
         set_Uxz_forTz(zold);
 //        build_k();
 //        build_ab();
@@ -1874,10 +1874,10 @@ QVector<double> PhysicalModel::getPhiOfk(double E, double kmin, double kmax, int
     set_E0(E);
     build_k();
     build_ab();
-    if(E<0) 
+    if(E<0)
     {
     b[U.size()-1]=0.;
-    } 
+    }
     QVector<double> waveFunction(npoints);
     double dk = (kmax-kmin)/(npoints-1);
    for (int i=0; i < npoints; i++)
@@ -1916,7 +1916,7 @@ void PhysicalModel::set_Uxz(double z)
 void PhysicalModel::slotU1()
 {
     const int N = getN();
-    set_N1(N); 
+    set_N1(N);
 /*    N1=N;
     U1.resize(1+N+1);
     d1.resize(1+N+1);
@@ -1931,7 +1931,7 @@ void PhysicalModel::slotU1()
 void PhysicalModel::slotU2()
 {
     const int N = getN();
-    set_N2(N); 
+    set_N2(N);
     for(int n=0; n<=N+1; n++)
     {
       U2[n] = get_Ui(n);
@@ -1942,7 +1942,7 @@ void PhysicalModel::slotU2()
 void PhysicalModel::set_WPmE()
 {
     QVector<double> Ebound = this->getEn();
-    if(Ebound.size()==0) return;   
+    if(Ebound.size()==0) return;
     int nn=Ebound.size();
     int nmax,nmin,hn;
     nmin=this->nminWP;
@@ -1960,12 +1960,12 @@ void PhysicalModel::set_WPmE()
     int j=0;
     for(int i=nmin;i<=nmax;i+=hn)
     {
-        EWofWP[j].E = Ebound[i]; 
+        EWofWP[j].E = Ebound[i];
         j++;
-    } 
+    }
     double Emin=EWofWP[0].E;
     double Emax=EWofWP[NwpEm-1].E;
-    if(Emin==Emax) 
+    if(Emin==Emax)
     {
         EWofWP[0].w =1.;
     }
@@ -2005,9 +2005,9 @@ void PhysicalModel::set_WPmE()
     }
     //-----------------------
 }
- 
+
 void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
-{ 
+{
     EWofWP.clear();
     if(wpN<=0) wpN=1;
     if(wpE_hi==wpE_lo||wpN==1)
@@ -2015,8 +2015,8 @@ void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
         EWofWP.resize(1);
         EWofWP[0].E=wpE_hi;
         EWofWP[0].w=1.;
-        return; 
-    } 
+        return;
+    }
     EWofWP.resize(wpN);
     if(wpE_hi<wpE_lo)
     {
@@ -2029,7 +2029,7 @@ void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
     for(int i=0;i<wpN;i++)
     {
         EWofWP[i].E = wpE_lo+i*de;
-    } 
+    }
     double W=0;
     double C=(wpE_hi-wpE_lo)/2;C*=C;C=6/C;
     double Ec=(wpE_hi+wpE_lo)/2;
@@ -2072,16 +2072,16 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
     const int N = this->getN();
     this->time=t;
 //    type_of_WP=this->get_type_of_WP();
-    if(this->need_build_WP) 
+    if(this->need_build_WP)
     {
-        if(type_of_WP==1) 
+        if(type_of_WP==1)
         {
             this->set_WPpE();
         }
-        else   
+        else
         {
             this->set_WPmE();
-            if(Ebound.size()==0) 
+            if(Ebound.size()==0)
             {
                 for (int i=0; i < npoints; i++)
                 {
@@ -2124,24 +2124,24 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
                     this->b[n]=bp(p,n);
                 }
                 //               if (model->E0 < model->get_U(N+1))
-                //                   model->b[N+1]=0.; 
+                //                   model->b[N+1]=0.;
                 this->build_Psi();
                 Psit += this->psi*EWofWP[p].w*expt[p];
 
             }
             switch(viewWF)
             {
-            case 2: 
+            case 2:
                 y=squaremod(Psit);
-                break; 
-            case 0: 
+                break;
+            case 0:
                 y=real(Psit);
                 break;
-            case 1: 
+            case 1:
                 y=imag(Psit);
                 break;
             default:
-                break; 
+                break;
             }
             if (fabs(y)<fmin)
             {
@@ -2166,12 +2166,12 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
     return waveFunction;
 }
 QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints)
-{   
+{
     double Eold;
     Eold=this->E0;
     const int N = this->getN();
     int M=EWofWP.size();
-    if(M==0) 
+    if(M==0)
     {
         this->set_WPmE();
         M=EWofWP.size();
@@ -2204,9 +2204,9 @@ QVector<double>  PhysicalModel::getPsiOfKT(double kmin, double kmax, int npoints
                     this->b[n]=bp(p,n);
                 }
                 //               if (model->E0 < model->get_U(N+1))
-                //                   model->b[N+1]=0.; 
+                //                   model->b[N+1]=0.;
 //                this->build_Psi();
-//                model->b[N+1] = 0.; 
+//                model->b[N+1] = 0.;
                 this->build_Phi();
                 Psit += this->phi*EWofWP[p].w*expt[p];
 
@@ -2548,7 +2548,7 @@ void ModelXML::writeUdm2()
 void ModelXML::writeTime()
 {
     QString s;
-    TimeParameters tp=model->getTimeParam(); 
+    TimeParameters tp=model->getTimeParam();
     double t=tp.time;
     double ht=tp.ht;
     double tmin=tp.tmin;
@@ -2678,7 +2678,7 @@ void ModelXML::readTime()
     tp.ht=ht;
     tp.tmin=tmin;
     tp.tmax=tmax;
-    model->setTimeParam(tp); 
+    model->setTimeParam(tp);
 }
 void ModelXML::readLevelNumber()
 {
@@ -2730,7 +2730,7 @@ void ModelXML::readZdef()
     tp.hz=hz;
     tp.zmin=zmin;
     tp.zmax=zmax;
-    model->setzParam(tp); 
+    model->setzParam(tp);
 }
 void ModelXML::readScalesUx()
 {
@@ -2744,7 +2744,7 @@ void ModelXML::readScalesUx()
     tp.Xmax=xmax;
     tp.Umax=Umax;
     tp.Umin=Umin;
-    model->setScalesUParam(tp); 
+    model->setScalesUParam(tp);
 }
 void ModelXML::readScalesPsi()
 {
@@ -2758,7 +2758,7 @@ void ModelXML::readScalesPsi()
     tp.Xmax=xmax;
     tp.Psinmax=Psimax;
     tp.Psinmin=Psimin;
-    model->setScalePsinParam(tp); 
+    model->setScalePsinParam(tp);
 }
 void ModelXML::readScalesWPX()
 {
@@ -2772,7 +2772,7 @@ void ModelXML::readScalesWPX()
     tp.Xmax=xmax;
     tp.WPXmax=Psimax;
     tp.WPXmin=Psimin;
-    model->setScaleWPXParam(tp); 
+    model->setScaleWPXParam(tp);
 }
 void ModelXML::readScalesWPK()
 {
@@ -2786,7 +2786,7 @@ void ModelXML::readScalesWPK()
     tp.Kmax=kmax;
     tp.WPKmax=Psimax;
     tp.WPKmin=Psimin;
-    model->setScaleWPKParam(tp); 
+    model->setScaleWPKParam(tp);
 }
 void ModelXML::readScalesPhi()
 {
@@ -2800,7 +2800,7 @@ void ModelXML::readScalesPhi()
     tp.Kmax=kmax;
     tp.Phinmax=Phimax;
     tp.Phinmin=Phimin;
-    model->setScalePhinParam(tp); 
+    model->setScalePhinParam(tp);
 }
 
 void PhysicalModel::readFromXml(QXmlStreamReader *r)

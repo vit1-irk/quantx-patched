@@ -283,6 +283,8 @@ void EnzView::setViewportMapping()
 void EnzView::resizeEvent(QResizeEvent*)
 {
     setViewportMapping();
+    redrawCurves();
+    slotZline();
 }
 
 void EnzView::mouseMoveEvent(QMouseEvent *e)
@@ -341,23 +343,11 @@ void EnzView::keyPressEvent(QKeyEvent *event)
     }
     QGraphicsView::keyPressEvent(event);
 }
-typedef  QPolygonF mycurve;
-typedef  QVector<mycurve> curveSet;
-//typedef  std::vector<double> mycurve;
-//typedef  QVector<mycurve> curveSet;
-
-static void updateCurves(curveSet& cs, const QVector<double>& Ebound, double z)
-{
-    for (int i=0; i < Ebound.size(); i++)
-    {
-        if (i >= cs.size())
-        {
-            mycurve a;
-            cs.push_back(a);
-        }
-        cs[i].push_back(QPointF(z, Ebound[i]));
-    }
-}
+static const QColor colorForIds[12] = {
+    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+    Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
+};
+const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
 
 void EnzView::slot_En_of_z()
 {
@@ -369,11 +359,6 @@ void EnzView::slot_En_of_z()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     //-------
-    static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
-        Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
-    };
-    const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     zParameters tp = model->getzParam();
     double zt=tp.z;
     double hz=tp.hz;
@@ -397,29 +382,21 @@ void EnzView::slot_En_of_z()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-        //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
-        //        linev->setLine(0.,1.2*Enzmin,0.,-.3*Enzmin);
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-        //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
-        //        linev->setLine(0.,1.1*Enzmin,0.,-0.1*Enzmin);
-    }
+    linev->setPen(p);
+    lineh->setPen(p);
+    linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
+    lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
+    //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
+    //        linev->setLine(0.,1.2*Enzmin,0.,-.3*Enzmin);
     int n=0;
     double z0=zmin;
     if(zmin<0) z0=0.;//1e-7;
     int npoints=1+(zmax-z0)/hz;
-    curveSet cs;
+    QVector<QPolygonF> adjCurves;
+    QVector<QPolygonF> physCurves;
     int nmxold=-1;
     double Eold=model->get_E0();
     for (int i=0; i < npoints; i++)
@@ -436,17 +413,29 @@ void EnzView::slot_En_of_z()
         {
             nmxold=nmx;
         }
+        QVector<double> adjEbound = Ebound;
         for(int m=0; m<=nmx; m++)
         {
-            Ebound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);
+            adjEbound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);
         }
         double zi = vp.width()*(-zmin)/(zmax-zmin)+zz*vp.width()/(zmax-zmin);
-        updateCurves(cs, Ebound, zi);
-        for(int j=0; j<cs.size(); j++)
+        {
+            for (int i=0; i < Ebound.size(); i++)
+            {
+                if (i >= adjCurves.size())
+                {
+                    adjCurves.push_back( QPolygonF() );
+                    physCurves.push_back( QPolygonF() );
+                }
+                adjCurves[i].push_back(QPointF(zi, adjEbound[i]));
+                physCurves[i].push_back(QPointF(zz, Ebound[i]));
+            }
+        }
+        for(int j=0; j<adjCurves.size(); j++)
         {
             p.setColor(colorForIds[j % size_colorForIds]);
 
-            setCurve(j,cs[j],p);
+            setCurve(j,physCurves[j],adjCurves[j],p);
         }
         //        setCurve(i,cs[i],colorForIds[i % size_colorForIds]);
         nmxold=nmx;
@@ -466,12 +455,53 @@ void EnzView::slot_En_of_z()
     update();
 }
 
-void EnzView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
+void EnzView::redrawCurves()
+{
+    QPen p;
+    p.setWidthF(widthLine);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
+
+    QRectF vp = scene()->sceneRect();
+
+    if(!linev)
+    {
+        lineh = new QGraphicsLineItem();
+        linev = new QGraphicsLineItem();
+        scene()->addItem(lineh);
+        scene()->addItem(linev);
+    }
+    linev->setPen(p);
+    lineh->setPen(p);
+    linev->setLine(vp.width()*(-zmin)/(zmax-zmin), 0, vp.width()*(-zmin)/(zmax-zmin),vp.height() );
+    lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
+
+    for ( QMap<int,EnzCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    {
+        int id = i.key();
+        QPolygonF ipg = curves[id]->polygon();
+        QPolygonF ppg = pcurves[id];
+        for (int k = 0; k < ipg.size(); ++k)
+        {
+            qreal newx = vp.width()*(-zmin)/(zmax-zmin) + ppg[k].x()*vp.width()/(zmax-zmin);
+            qreal newy = vp.height()*(ppg[k].y()-Enzmin)/(Enzmax-Enzmin);
+            ipg[k] = QPointF(newx,newy);
+        }
+        p.setColor(colorForIds[id % size_colorForIds]);
+        setCurve(id,ppg,ipg,p);
+    }
+    update();
+}
+
+
+void EnzView::setCurve(int id,const QPolygonF & pcurve, const QPolygonF & curve, const QPen& pen)
 {
 
     if (curves[id])
     {
         curves[id]->setPolygon(curve);
+        pcurves[id] = pcurve;
     }
     else
     {

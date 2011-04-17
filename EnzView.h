@@ -39,8 +39,9 @@ public:
     EnzView(PhysicalModel *m, QWidget *parent = 0);
     virtual ~EnzView();
 
-    void setCurve(int id,const QPolygonF&, const QPen& = QPen());
+    void setCurve(int id,const QPolygonF& pcurve,const QPolygonF& curve, const QPen& = QPen());
     void removeCurve(int id);
+    void redrawCurves();
 public:
     void showDialogScaleY();
      
@@ -90,6 +91,7 @@ private:
     Zview *dialogZ;
 
     QMap<int,EnzCurve*> curves;
+    QMap<int,QPolygonF> pcurves;
 
 };
 class EnzWidget : public QGroupBox
