@@ -52,7 +52,7 @@ public:
     double ZDraggable::getZFromLine()
     {
         QPointF p = pos();
-        return p.x(); 
+        return p.x();
     }
     QRectF boundingRect() const
     {
@@ -132,8 +132,8 @@ ZDraggable::ZDraggable(EnzView *v,QGraphicsItem *parent)
 //    pen.setWidthF(view->widthLineE);
 
     setCursor(Qt::SizeHorCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setZValue(999);
     setAcceptHoverEvents ( true );
 }
@@ -142,7 +142,7 @@ QVariant ZDraggable::itemChange(GraphicsItemChange change, const QVariant & valu
 {
     switch (change)
     {
-    case ItemPositionChange: 
+    case ItemPositionChange:
         if (isSelected())
         {
             QPointF newpos = value.toPointF();
@@ -220,7 +220,7 @@ void EnzView::slotZline()
     if(z>tp.zmax) z=tp.zmax;
     if(z<tp.zmin) z=tp.zmin;
     QRectF vp = scene()->sceneRect();
-    if (!lineZ) 
+    if (!lineZ)
     {
         lineZ = new ZDraggable(this);
 //        lineZ = new ZTDraggable(this);
@@ -228,7 +228,7 @@ void EnzView::slotZline()
 //        lineZ->setLine(z,Enzmin,Enzmax-Enzmin);
         scene()->addItem(lineZ);
     }
-    else     
+    else
         lineZ->setLine(vp.width()*(z-zmin)/(zmax-zmin), 0., vp.height());
 //        lineZ->setLine(z,Enzmin,Enzmax-Enzmin);
 }
@@ -278,9 +278,9 @@ void EnzView::setViewportMapping()
         scene()->update(scene()->sceneRect());
     }
     update();
-} 
+}
 
-void EnzView::resizeEvent(QResizeEvent*) 
+void EnzView::resizeEvent(QResizeEvent*)
 {
     setViewportMapping();
 }
@@ -379,18 +379,18 @@ void EnzView::slot_En_of_z()
     double hz=tp.hz;
     double zmin=tp.zmin;
     double zmax=tp.zmax;
-    if(zmin>zmax) 
+    if(zmin>zmax)
     {
         zmax=1;
         zmin=0.;
     }
     double zz=zt+hz;
-    if(zz>=zmax) 
-    { 
+    if(zz>=zmax)
+    {
         zt=zmin;
     }
-    if(zz<zmin) 
-    { 
+    if(zz<zmin)
+    {
         zt=zmax;
     }
     if(!linev)
@@ -415,7 +415,7 @@ void EnzView::slot_En_of_z()
         //        lineh->setLine(-0.1*zmax, 0., 1.1*zmax, 0);
         //        linev->setLine(0.,1.1*Enzmin,0.,-0.1*Enzmin);
     }
-    int n=0; 
+    int n=0;
     double z0=zmin;
     if(zmin<0) z0=0.;//1e-7;
     int npoints=1+(zmax-z0)/hz;
@@ -425,20 +425,20 @@ void EnzView::slot_En_of_z()
     for (int i=0; i < npoints; i++)
     {
         //         for (double z=zmin; z>=tp.zmin&&z<=tp.zmax; z+=hz)
-        //        { 
+        //        {
         double zz=z0 + hz*i;
         tp.z=zz;
         model->setzParam(tp);
         QVector<double> Ebound = model->getEn();
         int nmx=Ebound.size()-1;//this->nmaxLevel;
         int nmn=0;//this->nminLevel;
-        if(nmxold==-1) 
+        if(nmxold==-1)
         {
             nmxold=nmx;
         }
         for(int m=0; m<=nmx; m++)
         {
-            Ebound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);    
+            Ebound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);
         }
         double zi = vp.width()*(-zmin)/(zmax-zmin)+zz*vp.width()/(zmax-zmin);
         updateCurves(cs, Ebound, zi);
@@ -458,7 +458,7 @@ void EnzView::slot_En_of_z()
             zmin=tp.zmin;
             zt=tp.z;
         }
-        if (getBreakStatus(0)) 
+        if (getBreakStatus(0))
         {
             return;
         }
@@ -499,12 +499,12 @@ void EnzCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * option
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPolyline(polygon().data(),polygon().size());
 }
-/*        QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
+/*        QPushButton *bInit = new QPushButton(tr("U_1(x,z=0) = U(x)"));
 //        connect(bInit, SIGNAL(clicked()), this, SLOT(slot1()));
         connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
         hl->addWidget(bInit);
 
-        QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
+        QPushButton *bFin = new QPushButton(tr("U_2(x,z=1) = U(x)"));
         connect(bFin, SIGNAL(clicked()),model, SLOT(slotU2()));
         hl->addWidget(bFin);
 */
@@ -528,13 +528,13 @@ void EnzView::contextMenuEvent(QContextMenuEvent *event)
         }
 }
 void EnzView::showDialogZ()
-{   
-    if (!dialogZ) 
+{
+    if (!dialogZ)
     {
         dialogZ = new Zview(this);
         dialogZ->setModel(model);
     }
-    dialogZ->show(); 
+    dialogZ->show();
     dialogZ->activateWindow();
     dialogZ->setFocus();
 }
@@ -553,13 +553,13 @@ EnzWidget::EnzWidget(PhysicalModel *model, QWidget *parent)
     bRunEnz = new QToolButton(this);
     bRunEnz->setIcon(QIcon("images/player_play.png"));
     bRunEnz->adjustSize();
-    hl->addWidget(bRunEnz);		
+    hl->addWidget(bRunEnz);
 
     QLabel *ltext= new QLabel(this);
     ltext->setText(tr("z="));
-    hl->addWidget(ltext);		
+    hl->addWidget(ltext);
     QLabel *lz= new QLabel(this);
-    hl->addWidget(lz);		
+    hl->addWidget(lz);
     connect(model, SIGNAL(signalZChanged(double)), lz, SLOT(setNum(double)));
 
     QToolButton *buttonClose = new QToolButton(this);
@@ -592,11 +592,11 @@ void EnzWidget::slotRunEnz()
 }
 
 void EnzView::initDialogScaleY()
-{   
+{
     gbScaleXY = new QGroupBox(this);
     gbScaleXY->setWindowTitle(tr("Scales for En(z)"));
     gbScaleXY->setWindowFlags(Qt::Window);
-    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
+    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
 
     QVBoxLayout *vl = new QVBoxLayout;
     {
@@ -626,8 +626,8 @@ void EnzView::initDialogScaleY()
 }
 
 void EnzView::showDialogScaleY()
-{   
-    gbScaleXY->show(); 
+{
+    gbScaleXY->show();
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }

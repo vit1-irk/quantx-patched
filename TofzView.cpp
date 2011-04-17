@@ -53,7 +53,7 @@ public:
     double ZTDraggable::getEnergyFromLine()
     {
         QPointF p = pos();
-        return p.x(); 
+        return p.x();
     }
     QRectF boundingRect() const
     {
@@ -66,7 +66,7 @@ public:
         QPointF fv2 = view->mapToScene(v2);
         //double widthLine1 = fabs(fv2.x() - fv1.x());
 //        double widthLine1 = fabs(fv2.y() - fv1.y());
-    
+
         QPoint va(0,0);
         QPoint vb(5,0);
 //        QPoint vb(0,5);
@@ -147,7 +147,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
 
     model = m;
     curve_number = 0;
-    
+
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -196,14 +196,14 @@ void TofzView::slotZline()
     if(z>tp.zmax) z=tp.zmax;
     if(z<tp.zmin) z=tp.zmin;
     QRectF vp = scene()->sceneRect();
-    if (!lineZ) 
+    if (!lineZ)
     {
         lineZ = new ZTDraggable(this);
         lineZ->setLine(vp.width()*(z-Zmin)/(Zmax-Zmin), 0., vp.height());
 //        lineZ->setLine(z,tMin,tMax-tMin);
         scene()->addItem(lineZ);
     }
-    else 
+    else
         lineZ->setLine(vp.width()*(z-Zmin)/(Zmax-Zmin), 0., vp.height());
 //        lineZ->setLine(z,tMin,tMax-tMin);
 
@@ -265,7 +265,7 @@ void TofzView::setViewportMapping()
         sr = scene()->sceneRect();
     }
     update();*/
-} 
+}
 void TofzView::resizeEvent(QResizeEvent *)
 {
     resizePicture();
@@ -284,13 +284,13 @@ void TofzView::scaleView(qreal scaleFactor)
     scale(scaleFactor, scaleFactor);
 }
 void TofzView::showDialogZ()
-{   
-    if (!dialogZ) 
+{
+    if (!dialogZ)
     {
         dialogZ = new Zview(this);
         dialogZ->setModel(model);
     }
-    dialogZ->show(); 
+    dialogZ->show();
     dialogZ->activateWindow();
     dialogZ->setFocus();
 }
@@ -472,11 +472,11 @@ void TofzCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * , QWi
 }
 
 void TofzView::initDialogScaleY()
-{   
+{
     gbScaleXY = new QGroupBox(this);
     gbScaleXY->setWindowTitle(tr("Scales for T(z)"));
     gbScaleXY->setWindowFlags(Qt::Window);
-    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
+    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
 
     QVBoxLayout *vl = new QVBoxLayout;
     {
@@ -505,8 +505,8 @@ void TofzView::initDialogScaleY()
 }
 
 void TofzView::showDialogScaleY()
-{   
-    gbScaleXY->show(); 
+{
+    gbScaleXY->show();
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
@@ -560,8 +560,8 @@ ZTDraggable::ZTDraggable(TofzView *v,QGraphicsItem *parent)
     pen.setWidth(v->widthLine);
 
     setCursor(Qt::SizeHorCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setZValue(999);
     setAcceptHoverEvents ( true );
 }
@@ -570,7 +570,7 @@ QVariant ZTDraggable::itemChange(GraphicsItemChange change, const QVariant & val
 {
     switch (change)
     {
-    case ItemPositionChange: 
+    case ItemPositionChange:
         if (isSelected())
         {
             QPointF newpos = value.toPointF();
@@ -613,7 +613,7 @@ TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
     QToolButton *reset = new QToolButton(this);
     reset->setIcon(QIcon("images/player_play.png"));
     reset->adjustSize();
-//    QPushButton *reset = new QPushButton(tr("&Resize"));	
+//    QPushButton *reset = new QPushButton(tr("&Resize"));
     connect(reset,SIGNAL(clicked()),tofzView,SLOT(resizePicture()));
 
     QLabel *lTtext= new QLabel(this);
@@ -627,7 +627,7 @@ TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
 
     QLabel *lE = new MyLabel("",this);
 
-    hl->addWidget(reset);		
+    hl->addWidget(reset);
     hl->addWidget(lEtext);
     hl->addWidget(lE);
     hl->addWidget(lTtext);
