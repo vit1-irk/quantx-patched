@@ -50,6 +50,7 @@ public slots:
     void slotSetWPEp();
     void slotSetTime();
     void updateWidth();
+    void reDraw();  
 signals:
     void infoMouseMovedTo(QPointF);
     void signalWidthChanged();    
@@ -70,12 +71,10 @@ private:
     void showDialogWidth();
     void setWidth();
     void clearAll();
-    void reDraw();
     QLineEdit *leW;
     QGroupBox  *gbWidth;
      WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
-//    double widthLineV;
     double widthLine;
     double widthLineWP;
     double psiMax, psiMin; 
@@ -84,7 +83,6 @@ private:
     double tmin,tmax, time, htime;
     QGraphicsLineItem *lineh,*linev;
     PhysicalModel *model;
-//    QGroupBox  *gbDefWP;
     TimeView *dialogTime;
     QMap<int,CoordinateDistributionCurve*> curves;
     QVector<double> waveFunction;

@@ -14,9 +14,8 @@
 #include "BreakStatus.h"
 
 WavePacketXView::WavePacketXView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), 
-dialogTime(0),// gbDefWP(0),
-lineh(0), linev(0),widthLineWP(3),
+: QGraphicsView(parent), model(m), dialogTime(0),
+lineh(0), linev(0),widthLineWP(3), gbWidth(0), leW(0),
 dialogWPEp(0),dialogWPEm(0),dialogScaleWPX(0),
 whatToDraw(2)
 {
@@ -167,7 +166,6 @@ void WavePacketXView::reDraw()
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
-//    if(linev)
     if(!linev)
     {
         lineh = new QGraphicsLineItem();
@@ -220,20 +218,13 @@ void WavePacketXView::slot_WavePacket_of_t()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-    }
+    linev->setPen(p);
+    lineh->setPen(p);
+    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
     int npoints;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
@@ -318,8 +309,6 @@ void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
         curves[id] = c;
     }
     curves[id]->setPen(pen);
-//    double width=pen.widthF();
-//    int width=pen.width();
     update();
 }
 
