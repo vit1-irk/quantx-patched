@@ -380,9 +380,13 @@ void WaveFunctionView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 
 void WaveFunctionView::removeCurve(int id)
 {
-    scene()->removeItem(curves[id]);
-    delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    QGraphicsItem *item = curves[id];
+    if (item) 
+    {
+        scene()->removeItem(item);
+        delete curves[id];
+        curves[id] = 0; //this is dangerous: curves.remove(id);
+    }
     update();
 //    repaint();
 }
