@@ -66,7 +66,7 @@ void MainWindow::initMenuBar()
 
      QAction *saveAsAction = fileMenu->addAction(tr("&Save As..."));
      saveAsAction->setShortcut(tr("Ctrl+S"));
-     connect(saveAsAction, SIGNAL(activated()), this, SLOT(saveAs()));
+     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
      fileMenu->addAction(saveAsAction);  
 
      aboutAction = new QAction(tr("&О программе"),this);
@@ -78,7 +78,7 @@ void MainWindow::initMenuBar()
      //     chooseFontAction = new QAction("Choose Font", this);
 //     fileMenu->addAction(chooseFontAction);  
 //     chooseFontAction->setShortcut(tr("Ctrl+F"));
-//     connect(chooseFontAction, SIGNAL(activated()), this, SLOT(chooseFont()));
+//     connect(chooseFontAction, SIGNAL(triggered()), this, SLOT(chooseFont()));
     
 
 //     QMenu *helpMenu = menuBar()->addMenu("&Help");
