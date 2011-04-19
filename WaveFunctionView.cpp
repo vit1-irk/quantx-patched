@@ -16,10 +16,11 @@
 #include "LevelNumber.h"
 
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m), dialogLevNum(0), lineh(0), linev(0),
+: QGraphicsView(parent), model(m), 
+dialogLevNum(0), lineh(0), linev(0),dialogScalePsin(0),gbWidth(0),leW(0),
 xmin(-1.), xmax(10.),dx(0.01), 
-nMax(4),nMin(0),hn(1),widthLine(3),
-psiMax(1.), psiMin(-1.), dialogScalePsin(0), whatToDraw(0)
+nMax(4),nMin(0),hn(1),widthLine(2),
+psiMax(1.), psiMin(-1.), whatToDraw(0)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -34,13 +35,14 @@ psiMax(1.), psiMin(-1.), dialogScalePsin(0), whatToDraw(0)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMinimumSize(260, 100);
+    initDialogWidth();
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Psi_n_of_x()));
     connect(model,SIGNAL(signalScalePsinChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalScalePsinChanged()),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalLevelNumberChanged()),this,SLOT(resizePicture()));
-    setScalesFromModel();
+//    setScalesFromModel();
     setViewportMapping();
     resizePicture();
 }
@@ -75,7 +77,7 @@ void WaveFunctionView::slotEnergyChanged()
     setCurve(ID_PSI_ENERGY, psi, p);
 }
 
-WaveFunctionView::~WaveFunctionView()
+/*WaveFunctionView::~WaveFunctionView()
 {
     disconnect(this, 0, 0, 0);
     if(!dialogScalePsin) delete dialogScalePsin;
@@ -88,23 +90,24 @@ WaveFunctionView::~WaveFunctionView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
+*/
 void WaveFunctionView::resizePicture()
 {       
     ScalePsinParameters tp = model->getScalePsinParam();
     if(this->dx!=tp.Hx||xmin!=tp.Xmin||xmax!=tp.Xmax||psiMax!=tp.Psinmax||psiMin!=tp.Psinmin)
     {
-
         dx=tp.Hx;
         xmin=tp.Xmin;
         xmax=tp.Xmax;
         psiMax=tp.Psinmax;
         psiMin=tp.Psinmin;
-        if(dialogScalePsin) dialogScalePsin->modelChanged();
+
+/*        if(dialogScalePsin) dialogScalePsin->modelChanged();
         else
         {
             dialogScalePsin = new ScalePsin(this);
             dialogScalePsin->setModel(model);
-        }
+        }*/
     }
     setViewportMapping();
     slot_Psi_n_of_x();
@@ -231,11 +234,11 @@ void WaveFunctionView::keyPressEvent(QKeyEvent *event)
 }
 void WaveFunctionView::clearAll()
 {
-    
-        for ( QMap<int,CoordinateDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
+
+    for ( QMap<int,CoordinateDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int m = i.key();
-            removeCurve(m);
+        removeCurve(m);
     }
 }
 
@@ -261,12 +264,12 @@ void WaveFunctionView::scrollView(int hx, int hy)
     tt.Psinmin = psiMin;
     tt.Psinmax = psiMax;
     model->setScalePsinParam(tt);
-    if(dialogScalePsin) dialogScalePsin->modelChanged();
+/*    if(dialogScalePsin) dialogScalePsin->modelChanged();
     else
     {
         dialogScalePsin = new ScalePsin(this);
         dialogScalePsin->setModel(model);
-    }
+    }*/
 }
 
 void WaveFunctionView::slot_Psi_n_of_x()
@@ -278,8 +281,6 @@ void WaveFunctionView::slot_Psi_n_of_x()
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
-//        static const QColor colorForIds[6] = {
-//        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
     static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
@@ -308,37 +309,22 @@ void WaveFunctionView::slot_Psi_n_of_x()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-//        linev->setLine(0., psiMin, 0., psiMax);
-//        lineh->setLine(xmin,0.,xmax,0.);
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-//        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-//        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-//        linev->setLine(0., psiMin, 0., psiMax);
-//        lineh->setLine(xmin,0.,xmax,0.);
-    }
+    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+    linev->setPen(p);
+    lineh->setPen(p);
+    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
     int npoints;//=501;
     QVector<double> waveFunction;
-//    QPolygon psi;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
     p.setWidthF(widthLine);
-//    p.setWidth(3);
     for (int n = this->nMin; n <= this->nMax; n+= this->hn)
     {
         if(n>number_of_levels-1) break;    

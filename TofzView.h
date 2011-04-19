@@ -36,7 +36,7 @@ class TofzView : public QGraphicsView
 public:
 
     TofzView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~TofzView();
+//    virtual ~TofzView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     TofzCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);

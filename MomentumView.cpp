@@ -36,7 +36,7 @@ MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
     resizePicture();
 }
 
-MomentumView::~MomentumView()
+/*MomentumView::~MomentumView()
 {
     disconnect(this, 0, 0, 0);
     if (!dialogScalePhin) delete dialogScalePhin;
@@ -48,7 +48,7 @@ MomentumView::~MomentumView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+*/
 void MomentumView::resizePicture()
 {
     ScalePhinParameters tp = model->getScalePhinParam();

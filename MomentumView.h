@@ -33,7 +33,7 @@ class MomentumView : public QGraphicsView
 public:
 
     MomentumView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~MomentumView();
+//    virtual ~MomentumView();
 
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
 private:

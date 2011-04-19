@@ -36,7 +36,7 @@ class WavePacketXView : public QGraphicsView
 public:
 
     WavePacketXView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~WavePacketXView();
+//    virtual ~WavePacketXView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     CoordinateDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);

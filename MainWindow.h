@@ -214,7 +214,7 @@ private:
     WavePacketKWidget *gbviewMT;
     PotentialMovableWidget *gbPview;
     MomentumViewWidget *gbviewM;
-    WaveFunctionWidget *gbviewPsix;
+    WaveFunctionWidget *waveFunctionWidget;
     EnzWidget *enzWidget;
     TransmissionWidget *gbTEview;
     TofzViewWidget *gbTZview;

@@ -359,7 +359,7 @@ void MainWindow::windowTopRight()
             break;
         case 1:  
             window_psi_x();
-            gbviewPsix->show();
+            waveFunctionWidget->show();
             break;
         case 2:  
             window_psi_xt();
@@ -379,7 +379,7 @@ void MainWindow::windowDownRight()
     {
     case 0: 
         window_psi_x();
-        gbviewPsix->show();
+        waveFunctionWidget->show();
         break;
     case 1:  
         window_psi_xt();
@@ -477,13 +477,23 @@ void MainWindow::window_psi_xt()
 }
 void MainWindow::window_psi_x()
 {
-    if(!gbviewPsix)
+    if(!waveFunctionWidget)
     {
-    gbviewPsix = new WaveFunctionWidget(model);//QGroupBox("Wave Function");
+    waveFunctionWidget = new WaveFunctionWidget(model);//QGroupBox("Wave Function");
     }
-    splitterR->addWidget(gbviewPsix);
-    gbviewPsix->show();
+    splitterR->addWidget(waveFunctionWidget);
+    waveFunctionWidget->show();
 }
+void MainWindow::window_Enz()
+{
+    if(!enzWidget)
+    {
+        enzWidget = new EnzWidget(model);
+    }
+    splitterL->addWidget(enzWidget);
+    enzWidget->show();
+}
+
 void MainWindow::window_phi_kt()
 {
     if(!gbviewMT)
@@ -503,15 +513,6 @@ void MainWindow::window_phi_k()
     gbviewM->show();
 }
 
-void MainWindow::window_Enz()
-{
-    if(!enzWidget)
-    {
-        enzWidget = new EnzWidget(model);
-    }
-    splitterL->addWidget(enzWidget);
-    enzWidget->show();
-}
 void MainWindow::initControlDockWindow()
 {
     splitterR = new MySplitter(Qt::Vertical);
@@ -519,8 +520,8 @@ void MainWindow::initControlDockWindow()
     splitterLR = new MySplitter(Qt::Horizontal);
     window_Ux_Psix();
     gbPview->show();
-    this->window_psi_x();
-    gbviewPsix->show();
+//    this->window_psi_x();
+//    waveFunctionWidget->show();
 
     QVBoxLayout * vl0 = new QVBoxLayout;
     splitterLR->addWidget(splitterL);
@@ -1841,7 +1842,7 @@ gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
 gbTEview(0),gbTZview(0),enzWidget(0),
 gbviewMT(0),gbviewM(0), 
-gbPview(0),gbviewPsix(0),gbviewPsixT(0)
+gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
 {
     this->model = new PhysicalModel();
     UAsMW u2 = { 1, 0.1, 1, -10, 0 };

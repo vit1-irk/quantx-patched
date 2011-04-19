@@ -39,7 +39,7 @@ class PotentialViewMovable : public QGraphicsView
 public:
 
     PotentialViewMovable(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~PotentialViewMovable();
+//    virtual ~PotentialViewMovable();
   
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MyGraphicsPolylineItem *getCurve(int id) const { return curves[id]; }
@@ -52,13 +52,10 @@ public slots:
 
     void slotEboundChanged();
     void slotEnergyChanged();
-    void slotPsiofE(); 
     void slotUChanged();
     void setViewportMapping();
     void resizePicture();
     void setScalesFromModel();
-//    void scaleE();
-//    void energyAutoChanged();
 
 signals:
     void infoMouseMovedTo(QPointF);
@@ -81,20 +78,14 @@ private:
     double widthLineE;
     double widthLine;
     double Umin,Umax, xmin, xmax, dx, psiMax, psiMin; 
-//    MyParamD Emin,Emax,hE;
 
     PhysicalModel *model;
-//    QGroupBox *gbScaleE;
-//    QGroupBox  *gbScaleXY;
-//    QRadioButton *rad1,*rad2,*rad3;
-
 
     QVector<HorDraggableLine*> linesU;
     QVector<VerDraggableLine*> linesV;
 
     QVector<EnergyLevels*> linesEn;
     EnergyDraggableLine* lineEnergy;
-//    double Edraggable;
     QMap<int,MyGraphicsPolylineItem*> curves;
 
     friend class HorDraggableLine;

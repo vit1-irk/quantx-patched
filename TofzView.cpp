@@ -140,6 +140,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
     lineh = NULL;
     linev = NULL;
     lineZ = NULL;
+    gbScaleXY = NULL;
     dialogZ = NULL;
     leTmin = NULL;
     leTmax = NULL;
@@ -167,7 +168,7 @@ TofzView::TofzView(PhysicalModel *m, QWidget *parent)
     connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
     resizePicture();
 }
-TofzView::~TofzView()
+/*TofzView::~TofzView()
 {
     disconnect(this, 0, 0, 0);
     for (QMap<int,TofzCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
@@ -180,7 +181,7 @@ TofzView::~TofzView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+*/
 void TofzView::setScalesFromModel()
 {
     zParameters tp = model->getzParam();
@@ -217,12 +218,12 @@ void TofzView::resizePicture()
         Zmin=tp.zmin;
         Zmax=tp.zmax;
         hZ=tp.hz;
-        if(this->dialogZ) dialogZ->modelChanged();
+/*        if(this->dialogZ) dialogZ->modelChanged();
         else
         {
             dialogZ=new Zview(this);
             dialogZ->setModel(model);
-        }
+        }*/
     }
     setViewportMapping();
     slot_whole_T_of_z();
@@ -323,12 +324,12 @@ void TofzView::scrollView(int dx, int dy)
     tz.zmax=Zmax;
     tz.hz=hZ;
     model->setzParam(tz);
-    if(this->dialogZ) dialogZ->modelChanged();
+/*    if(this->dialogZ) dialogZ->modelChanged();
     else
     {
         dialogZ=new Zview(this);
         dialogZ->setModel(model);
-    }
+    }*/
 }
 void TofzView::keyPressEvent(QKeyEvent *event)
 {

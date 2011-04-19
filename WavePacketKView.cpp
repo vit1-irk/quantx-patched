@@ -37,7 +37,7 @@ dialogScaleWPK(0)
     connect(model,SIGNAL(signalTimeChanged(double)),this,SLOT(slot_WavePacket_of_t()));
     resizePicture();
 }
-WavePacketKView::~WavePacketKView()
+/*WavePacketKView::~WavePacketKView()
 {
     disconnect(this, 0, 0, 0);
     if (!dialogScaleWPK) delete dialogScaleWPK;
@@ -49,7 +49,7 @@ WavePacketKView::~WavePacketKView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+*/
 void WavePacketKView::resizePicture()
 {
     ScaleWPKParameters tp = model->getScaleWPKParam();

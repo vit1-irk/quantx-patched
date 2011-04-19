@@ -33,7 +33,7 @@ class WavePacketKView : public QGraphicsView
 public:
 
     WavePacketKView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~WavePacketKView();
+//    virtual ~WavePacketKView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MomentumDistributionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);

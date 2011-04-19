@@ -1422,13 +1422,11 @@ PhysicalModel::PhysicalModel(QObject *parent)
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(-1),zmin(0.),zmax(1.),hz(0.01),
-// zold({0.2,0.1,0.8,0.05}),
 Hx(0.01), Xmax(15.), Xmin(-1), Umin(-15),Umax(10),
 Psimin(-1.), Psimax(4.),
 Psinmin(-1.), Psinmax(1.),
 WPXmin(-0.1), WPXmax(1.),
 WPKmin(-0.1), WPKmax(5.),
-//HWPx(0.05), XWPmax(20.), XWPmin(-0.5),
 Phinmin(-0.2), Phinmax(10.),
 Hk(0.025), Kmax(5.), Kmin(-5),
  RR(0), TT(0), totalRT(0), Psi2(0), Phi2(0),
@@ -1447,14 +1445,6 @@ zold.zmax=1.;
 zold.hz=0.025;
 }
 
-#if 0
-PhysicalModel::PhysicalModel(const PhysicalModel& o)
-{
-    N = o.N;
-    d = o.d;
-    ...
-}
-#endif
 
 void PhysicalModel::set_Ui_d_m(const QVector<double>& _Ui,
                                const QVector<double>& _d,
@@ -1726,28 +1716,32 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     }
     QVector<double> waveFunction(npoints);
     double dx = (xmax-xmin)/(npoints-1);
- //   double fmin=1e-6;
- //   double fmax=1e2;
+    //   double fmin=1e-6;
+    //   double fmax=1e2;
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
         build_Psi();
         y = psi_real;
+        if (y > 1e6)
+        {
+            y = y;
+        }
         if(viewWF==1) y = psi_imag;
         else if(viewWF>1) y = Psi2;
-/*        if (fabs(y)<fmin)
+        /*        if (fabs(y)<fmin)
         {
-         y=0.;
+        y=0.;
         }
         if (fabs(y)>fmax)
         {
-            if(y>fmax) y = fmax;
-            else y=-fmax;
+        if(y>fmax) y = fmax;
+        else y=-fmax;
         }
         */
         waveFunction[i] = y;
     }
-//---------------
+    //---------------
     this->E0=Eold;
     if(E0>0)
     {
@@ -1759,8 +1753,8 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     {
         num = findNumberOfLevels(E0);
     }
-        if(E0>0) emit(signalTransmissionChanged(TT));
-        else  emit(signalTransmissionChanged(num));
+    if(E0>0) emit(signalTransmissionChanged(TT));
+    else  emit(signalTransmissionChanged(num));
     return waveFunction;
 }
 void PhysicalModel::getTatE()//(double E)

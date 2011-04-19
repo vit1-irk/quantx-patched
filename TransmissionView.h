@@ -35,7 +35,7 @@ class TransmissionView : public QGraphicsView
 public:
 
     TransmissionView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~TransmissionView();
+//    virtual ~TransmissionView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     TransmissionCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);

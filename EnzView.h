@@ -37,7 +37,7 @@ class EnzView : public QGraphicsView
 public:
 
     EnzView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~EnzView();
+//    virtual ~EnzView();
 
     void setCurve(int id,const QPolygonF& pcurve,const QPolygonF& curve, const QPen& = QPen());
     void removeCurve(int id);

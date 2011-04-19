@@ -161,7 +161,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
     resizePicture();
 }
-TransmissionView::~TransmissionView()
+/*TransmissionView::~TransmissionView()
 {
     disconnect(this, 0, 0, 0);
     for (QMap<int,TransmissionCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
@@ -174,7 +174,7 @@ TransmissionView::~TransmissionView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+*/
 void TransmissionView::setScalesFromModel()
 {
     if(Emax<=0.) Emax=20;

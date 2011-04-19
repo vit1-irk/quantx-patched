@@ -37,7 +37,7 @@ whatToDraw(2)
 //    connect(model,SIGNAL(signalScaleWPXChanged()),this,SLOT(resizePicture()));
 
 }
-WavePacketXView::~WavePacketXView()
+/*WavePacketXView::~WavePacketXView()
 {
     disconnect(this, 0, 0, 0);
 //    if (gbDefWP) delete gbDefWP;
@@ -53,7 +53,7 @@ WavePacketXView::~WavePacketXView()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-
+*/
 void WavePacketXView::resizePicture()
 {
     ScaleWPXParameters tp = model->getScaleWPXParam();
@@ -170,16 +170,9 @@ void WavePacketXView::reDraw()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
-        p.setColor(Qt::darkCyan);
         linev->setPen(p);
         lineh->setPen(p);
         linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
@@ -188,6 +181,7 @@ void WavePacketXView::reDraw()
         QPolygonF psi;
         npoints=1+(xmax-xmin)/this->dx;
         psi.resize(npoints);
+        p.setColor(Qt::darkCyan);
         waveFunction.resize(npoints);
         for (int i=0; i < npoints; i++)
         {
@@ -196,7 +190,6 @@ void WavePacketXView::reDraw()
             psi[i]  = QPointF(x, y);
         }
         setCurve(0, psi, p);
-    }
 }
 
 void WavePacketXView::slot_WavePacket_of_t()
@@ -247,8 +240,6 @@ void WavePacketXView::slot_WavePacket_of_t()
         this->time=tt;
     }
     p.setColor(Qt::darkCyan);
-    p.setWidthF(widthLineWP);
-
     for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
     {
         ScaleWPXParameters sc = model->getScaleWPXParam();
@@ -265,20 +256,22 @@ void WavePacketXView::slot_WavePacket_of_t()
             waveFunction.resize(npoints);
             setViewportMapping();
             //            vp = scene()->sceneRect();
-            QRect a = QRect(this->viewport()->rect());
-            p.setColor(Qt::black);
+  //          QRect a = QRect(this->viewport()->rect());
+//            p.setColor(Qt::black);
+//            linev->setPen(p);
+//            lineh->setPen(p);
             linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
             lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-            p.setColor(Qt::darkCyan);
-            p.setWidthF(widthLineWP);
+//            p.setColor(Qt::darkCyan);
+//            p.setWidthF(widthLineWP);
             vp_old=vp;
         }
-        TimeParameters tt=model->getTimeParam(); 
+/*        TimeParameters tt=model->getTimeParam(); 
         if(t!=tt.time||htime!=tt.ht)
         {
             this->time=tt.time;
             htime=tt.ht;
-        }
+        }*/
         waveFunction = model->getPsiOfXT(t, xmin, xmax, npoints, whatToDraw);
         for (int i=0; i < npoints; i++)
         {
@@ -287,7 +280,13 @@ void WavePacketXView::slot_WavePacket_of_t()
             psi[i]  = QPointF(x, y);
         }
         setCurve(0, psi, p);
-        tp=model->getTimeParam();
+        tp=model->getTimeParam();//ашкн
+//        TimeParameters tt=model->getTimeParam(); 
+        if(t!=tp.time||htime!=tp.ht)
+        {
+            this->time=tp.time;
+            htime=tp.ht;
+        }
         if (getBreakStatus(0)) 
         {
             return;

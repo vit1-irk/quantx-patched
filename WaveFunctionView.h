@@ -35,7 +35,7 @@ class WaveFunctionView : public QGraphicsView
 public:
 
     WaveFunctionView(PhysicalModel *m, QWidget *parent = 0);
-    virtual ~WaveFunctionView();
+//    virtual ~WaveFunctionView();
 
 //    void setCurve(int id,const QPolygon&, const QPen& = QPen());
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
@@ -77,11 +77,6 @@ private:
     ScalePsin  *dialogScalePsin;
     LevelNumber *dialogLevNum;
     void setScalesFromModel();
-    QRectF a_old;
-    double widthLineV;
-    double widthLineH;
-    double widthLineE;
-    double widthLineEn;
     double widthLine;
     double psiMax, psiMin,xmin,xmax,dx; 
     int   nMax, nMin, hn;  
