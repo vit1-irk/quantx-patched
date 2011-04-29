@@ -59,7 +59,7 @@ public:
     QRectF boundingRect() const
     {
     QRectF vp = view->sceneRect();
-    //double widthLine= 0.005*vp.height();
+    //double lineWidth= 0.005*vp.height();
         QPoint v1(0,0);
         QPoint v2(3,0);
 //        QPoint v2(0,3);
@@ -96,7 +96,7 @@ public:
         //qreal ax1 = view->mapFromGlobal(QPoint(1,1)).x();
         //qreal ax2 = view->mapFromScene(QPoint(1,1)).x();
         //qreal ax3 = view->width();
-        penForPainter.setWidthF(view->widthLine);
+        penForPainter.setWidthF(view->lineWidth);
         painter->setPen(penForPainter);
         QPainter::RenderHints saved_hints = painter->renderHints();
         painter->setRenderHint(QPainter::Antialiasing, false);
@@ -119,7 +119,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m)
 {
     Erase = true; // this must initially be true
-    widthLine = 3;//10;
+    lineWidth = 3;//10;
     tMax = 1.1;
     tMin = -0.1;
     Emin = -0.5;
@@ -157,8 +157,10 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
 
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
     connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
-    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_whole_T_of_E()));
+    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
+//    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_whole_T_of_E()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
+    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
 }
 /*TransmissionView::~TransmissionView()
@@ -186,12 +188,15 @@ void TransmissionView::slotEline()
     if (!lineE) 
     {
         lineE = new EnergyDraggable(this);
-        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
+        //        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
         scene()->addItem(lineE);
     }
-    else 
-        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
-//        lineE->setLine(E,tMin,tMax-tMin);
+    //    else
+    QPen p;
+    p.setStyle(Qt::DashLine);
+    p.setColor(Qt::green);
+    lineE->setPen(p);
+    lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
 }
 void TransmissionView::resizePicture()
 {
@@ -324,10 +329,16 @@ void TransmissionView::keyPressEvent(QKeyEvent *event)
 
 void TransmissionView::slot_whole_T_of_E()
 {
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
-    p.setWidthF(widthLine);
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -465,9 +476,13 @@ void TransmissionView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 
 void TransmissionView::removeCurve(int id)
 {
+    QGraphicsItem *item = curves[id];
+    if (item) 
+    {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    curves[id] = 0; 
+    }//this is dangerous: curves.remove(id);
     update();
 //    repaint();
 }
@@ -698,13 +713,14 @@ EnergyDraggable::EnergyDraggable(TransmissionView *v,QGraphicsItem *parent)
     //TODO: how do I control the width of this draggable line?
     setCursor(Qt::SizeVerCursor);
     penHover.setStyle(Qt::DashLine);
-    penHover.setWidth(v->widthLine);
+    penHover.setWidth(v->lineWidth);
 //    penHover.setStyle(Qt::DotLine);
-    penHover.setColor(Qt::blue);
+    penHover.setColor(Qt::green);
 //    pen.setStyle(Qt::DashLine);
     pen.setStyle(Qt::DotLine);
-    pen.setColor(Qt::blue);
-    pen.setWidth(v->widthLine);
+    pen.setColor(Qt::green);
+    penForPainter.setColor(Qt::green);
+    pen.setWidth(v->lineWidth);
 
     setCursor(Qt::SizeHorCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);		

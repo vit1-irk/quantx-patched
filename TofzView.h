@@ -67,7 +67,7 @@ private:
     void initDialogScaleY();
     double tMax, tMin; 
     double Zmin,Zmax,hZ;
-    double widthLine; 
+    double lineWidth; 
     QGraphicsLineItem *lineh,*linev;
     ZTDraggable *lineZ;
 

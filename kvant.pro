@@ -8,6 +8,7 @@ TRANSLATIONS += kvant_en.ts
 TRANSLATIONS += kvant_fr.ts
 
 # Input
+HEADERS += ProgramSetting.h
 HEADERS += LevelModel.h
 HEADERS += LineEditDelegate.h
 HEADERS += MainWindow.h
@@ -40,6 +41,7 @@ HEADERS += ScaleWPK.h
 HEADERS += ScaleWPX.h
 HEADERS += LevelNumber.h
 
+SOURCES += ProgramSetting.cpp
 SOURCES += ScaleWPK.cpp
 SOURCES += ScaleWPX.cpp
 SOURCES += ScalePhin.cpp

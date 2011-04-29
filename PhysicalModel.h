@@ -85,6 +85,14 @@ struct TimeParameters
             || ht  != o.ht; 
     }
 };
+struct SettingParameters
+{
+    int lineWidth;
+    bool operator != (const SettingParameters& o) 
+    { 
+        return lineWidth != o.lineWidth;
+    }
+};
 
 struct ScalesUParameters
 {
@@ -200,7 +208,8 @@ public:
     zParameters getzParam() const;
     TimeParameters getTimeParam() const;
     void  setTimeParam(const TimeParameters&);
-//    void  setzParam(zParameters&);
+    void setSettingParameters(const SettingParameters &);
+    SettingParameters getSettingParameters() const;
     void  setzParam(const zParameters&);
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
@@ -215,14 +224,16 @@ signals:
     void signalPotentialChanged();
     void signalEnergyChanged(double);
     void signalTransmissionChanged(double);
+    void signalLevelNumberChanged(int);
     void signalEboundChanged();
     void signalScalesUChanged();
     void signalScalePsinChanged();
     void signalScalePhinChanged();
-    void signalLevelNumberChanged();
+    void signalLevelParametersChanged();
     void signalTimeChanged(double);
     void signalZChanged(double);
     void signalScaleZChanged();
+    void signalWidthChanged();
     void signalWavePacketChanged();
 public slots:
     void slotU1();
@@ -236,6 +247,7 @@ private:
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
     double E0;
+    int width_of_Line;
     int N1;	 // actual number of inner intervals of U1
     QVector<double> U1; //!< Inital potential values for z-animations
     int N2;	 // actual number of inner intervals of U2
@@ -247,8 +259,8 @@ private:
 //    double Ub1,Ub2; 
     double Ubias; 
     int numberOfLevels, LevelNmin, LevelNmax, LevelHn; // min, max and step for the level numbers of wavefunctions at E<0
-    zParameters zold;
- 
+//    zParameters zold;
+    int levelNumber;    
     // wavepacket:
     int type_of_WP;
     int wpN;
@@ -258,7 +270,7 @@ private:
     Matrix<complex> ap;
     Matrix<complex> bp;
     int nminWP, nmaxWP, hnWP; // min, max and step for the level numbers of the wavepacket at E<0
-
+    
     bool need_build_U;
     bool need_build_En;
     bool need_build_WP;
@@ -293,6 +305,8 @@ public:
     void set_EminWP(double v);
     void set_EmaxWP(double v);
     void set_NofWP(int n);
+    void set_LevelNumber(int n);
+    int get_LevelNumber() const {return this->levelNumber; };
 
 //potential:
     void setUbias(double _Ubias);
@@ -303,6 +317,7 @@ public:
     double get_U2(int n) const { return U2.at(n); }
     void   set_Ui(int n, double v);
     QVector<double> get_d() const { return d; }
+    QVector<double> get_m() const { return m; }
     double get_d(int n) const { return d.at(n); }
     double get_d1(int n) const { return d1.at(n); }
     double get_d2(int n) const { return d2.at(n); }
@@ -423,7 +438,7 @@ public:
     QRectF getGoodViewportAtU() const;
     int findNumberOfLevels(double E);
 
-      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF);
+      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
       QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints); 

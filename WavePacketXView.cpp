@@ -15,13 +15,13 @@
 
 WavePacketXView::WavePacketXView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogTime(0),
-lineh(0), linev(0),widthLineWP(3), gbWidth(0), leW(0),
+lineh(0), linev(0),lineWidth(2), 
 dialogWPEp(0),dialogWPEm(0),dialogScaleWPX(0),
 whatToDraw(2)
 {
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
-    initDialogWidth();
+//    initDialogWidth();
     if (1)
     {
         setViewportUpdateMode(BoundingRectViewportUpdate);///
@@ -34,6 +34,7 @@ whatToDraw(2)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(reDraw()));
+//    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
 //    connect(model,SIGNAL(signalScaleWPXChanged()),this,SLOT(resizePicture()));
 
 }
@@ -160,9 +161,14 @@ void WavePacketXView::clearAll()
 }
 void WavePacketXView::reDraw()
 { 
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QPen p;
-    p.setWidthF(widthLineWP);
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -194,11 +200,15 @@ void WavePacketXView::reDraw()
 
 void WavePacketXView::slot_WavePacket_of_t()
 {
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QRect a = QRect(this->viewport()->rect());
     QPen p;
-    p.setWidthF(widthLineWP);
+    SettingParameters ts;
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -244,8 +254,11 @@ void WavePacketXView::slot_WavePacket_of_t()
     {
         ScaleWPXParameters sc = model->getScaleWPXParam();
         vp = scene()->sceneRect();
-        if(vp!=vp_old||dx!=sc.Hx||xmin!=sc.Xmin||xmax!=sc.Xmax||psiMax!=sc.WPXmax||psiMin!=sc.WPXmin)
+        ts=model->getSettingParameters();
+        if(vp!=vp_old||dx!=sc.Hx||xmin!=sc.Xmin||xmax!=sc.Xmax||psiMax!=sc.WPXmax||psiMin!=sc.WPXmin||lineWidth!=ts.lineWidth)
         {
+            lineWidth=ts.lineWidth;
+            p.setWidthF(lineWidth);
             dx=sc.Hx;
             xmin=sc.Xmin;
             xmax=sc.Xmax;
@@ -313,9 +326,13 @@ void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 
 void WavePacketXView::removeCurve(int id)
 {
+    QGraphicsItem *item = curves[id];
+    if (item) 
+    {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    curves[id] = 0; 
+    }//this is dangerous: curves.remove(id);
     update();
 }
 
@@ -326,6 +343,7 @@ void CoordinateDistributionCurve::paint(QPainter * painter, const QStyleOptionGr
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPolyline(polygon().data(),polygon().size());
 }
+/*
 void WavePacketXView::initDialogWidth()
 {   
     gbWidth = new QGroupBox(this);
@@ -341,7 +359,7 @@ void WavePacketXView::initDialogWidth()
         h->addWidget(this->leW = new QLineEdit(this));
         this->leW->setToolTip("width: 1-10");
         QString x;
-        x.sprintf("%lg",this->widthLineWP);
+        x.sprintf("%lg",this->lineWidth);
         this->leW->setText(x);
         connect(this->leW,SIGNAL(editingFinished()),this,SLOT(updateWidth()));
         vl->addWidget(line);
@@ -357,16 +375,16 @@ void WavePacketXView::showDialogWidth()
 void WavePacketXView::setWidth()
 {
     QString buf;
-    buf.sprintf("%lg",this->widthLineWP);
+    buf.sprintf("%lg",this->lineWidth);
     this->leW->setText(buf);
 }
 void WavePacketXView::updateWidth()
 {
     double a = this->leW->text().toDouble();
     bool changed = false;
-    if (widthLineWP != a)
+    if (lineWidth != a)
     {
-        widthLineWP=a;
+        lineWidth=a;
         changed = true;
     }
     if(changed)
@@ -374,6 +392,7 @@ void WavePacketXView::updateWidth()
         emit(signalWidthChanged());
     }
 }
+*/
 //---------------
 void WavePacketXView::showDialogScaleY()
 {   
@@ -395,7 +414,7 @@ void WavePacketXView::contextMenuEvent(QContextMenuEvent *event)
         QAction *wpdefEp = m.addAction(m.tr("Wave packet definition:E_j>0"));
         QAction *time = m.addAction(m.tr("Time parameters"));
         QAction *scalePsi = m.addAction(m.tr("Scales"));
-        QAction *width = m.addAction(m.tr("width of line"));
+//        QAction *width = m.addAction(m.tr("width of line"));
         QAction *what = m.exec(event->globalPos());
         if (what == wpdefEm)
         {
@@ -417,11 +436,11 @@ void WavePacketXView::contextMenuEvent(QContextMenuEvent *event)
             this->showDialogScaleY();
             update();
         }
-        if (what == width)
+/*        if (what == width)
         {
             this->showDialogWidth();
             update();
-        }
+        }*/
         event->accept();
 }
 void  WavePacketXView::slotSetWPEm()

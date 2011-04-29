@@ -71,15 +71,16 @@ protected:
 public:
     void showDialogScaleY();
     ScalesUx *dialogScalesU;
+    PhysicalModel *model;
 
 private:
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    double widthLine;
+    double lineWidth;
     double Umin,Umax, xmin, xmax, dx, psiMax, psiMin; 
 
-    PhysicalModel *model;
+//    PhysicalModel *model;
 
     QVector<HorDraggableLine*> linesU;
     QVector<VerDraggableLine*> linesV;
@@ -107,8 +108,15 @@ class PotentialMovableWidget : public QGroupBox
     Q_OBJECT
 public:
     PotentialMovableWidget(PhysicalModel *model, QWidget * parent = 0);
-private:
-    QButtonGroup *bgR;
     PotentialViewMovable *potentialViewMovable;
+public slots:
+    void updateEnergy();
+    void updateLevelNumber();
+    void printEnergy();
+    void printLevelNumber();
+private:
+    QLineEdit *lE;
+    QLineEdit *lN;
+    QButtonGroup *bgR;
 };
 

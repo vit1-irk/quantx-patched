@@ -1,4 +1,5 @@
 #include <QString>
+#include <QLineEdit>
 #include "LineEditDelegate.h"
 
 
@@ -28,6 +29,7 @@ void LineEditDelegate::setEditorData(QWidget *editor,
     QString str;
     str.sprintf("%lg",value);
     lineEdit->setText(str);
+    lineEdit->setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 void LineEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,

@@ -61,7 +61,7 @@ public:
     void showDialogScaleY();
 
 private:
-    double  widthLine; 
+    double  lineWidth; 
     double phiMax, phiMin; 
     double kmin,kmax,dk;
     QGraphicsLineItem *lineh,*linev;

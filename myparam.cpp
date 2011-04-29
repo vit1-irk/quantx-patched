@@ -26,6 +26,7 @@ MyParamD::setDisplay(const QString& label, const QString& labelTip, QLayout *lay
     updateDisplay();
     layout ->addWidget(parent);
 }
+
     /*
 void
 MyParamD::setDisplay(const QString& label, QLayout *parent)

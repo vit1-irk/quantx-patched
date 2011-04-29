@@ -57,7 +57,7 @@ public:
     QRectF boundingRect() const
     {
         QRectF vp = view->sceneRect();
-        //double widthLine= 0.005*vp.height();
+        //double lineWidth= 0.005*vp.height();
         QPoint v1(0,0);
         QPoint v2(3,0);
         //        QPoint v2(0,3);
@@ -92,7 +92,7 @@ public:
         double ax = fabs(sa.x() - sb.x());
         //        double ay = fabs(sa.y() - sb.y());
         //        view->widthLineE=0;
-        penForPainter.setWidthF(view->widthLine);
+        penForPainter.setWidthF(view->lineWidth);
         //        penForPainter.setWidthF(ax);
         //        penForPainter.setWidthF(ay);
         painter->setPen(penForPainter);
@@ -170,7 +170,7 @@ EnzView::EnzView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),lineZ(0),
 Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0)
 {
-    widthLine = 3;
+    lineWidth = 3;
     leEnzmin = NULL;
     leEnzmax = NULL;
     setScene(new QGraphicsScene(this));
@@ -188,7 +188,7 @@ Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0)
     setMinimumSize(260, 100);
     setScalesFromModel();
     initDialogScaleY();
-//    connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
+    connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
     connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
 }
 /*EnzView::~EnzView()
@@ -263,7 +263,7 @@ void EnzView::setViewportMapping()
     QRectF a = QRectF(this->viewport()->rect());
     double rZmin=0;
     double rZmax=a.width();//npoints-1;
-    double rTMin=0; 
+    double rTMin=0;
     double rTMax=a.height();//a.height();
     QRectF b = QRectF(QPointF(rZmin,rTMin),QPointF(rZmax,rTMax));
     scene()->setSceneRect(b);
@@ -350,10 +350,16 @@ const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
 
 void EnzView::slot_En_of_z()
 {
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
-    p.setWidthF(widthLine);
+    SettingParameters ts;
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -461,7 +467,12 @@ void EnzView::slot_En_of_z()
 void EnzView::redrawCurves()
 {
     QPen p;
-    p.setWidthF(widthLine);
+    SettingParameters ts;
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -524,9 +535,13 @@ void EnzView::setCurve(int id,const QPolygonF & pcurve, const QPolygonF & curve,
 
 void EnzView::removeCurve(int id)
 {
-    scene()->removeItem(curves[id]);
-    delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    QGraphicsItem *item = curves[id];
+    if (item)
+    {
+        scene()->removeItem(curves[id]);
+        delete curves[id];
+        curves[id] = 0;
+    }//this is dangerous: curves.remove(id);
     update();
 //    repaint();
 }
@@ -539,22 +554,22 @@ void EnzCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem * option
 }
 void EnzView::contextMenuEvent(QContextMenuEvent *event)
 {
-        QMenu m;
-        QFont font( "Serif", 10, QFont::DemiBold );
-        m.setFont(font);
-        QAction *scaleZ = m.addAction(tr("Z-scale"));
-        QAction *scaleY = m.addAction(tr("Y-scale"));
-        QAction *what = m.exec(event->globalPos());
-        if (what == scaleZ)
-        {
-            this->showDialogZ();
-            update();
-        }
-       if (what == scaleY)
-        {
-            this->showDialogScaleY();
-            update();
-        }
+    QMenu m;
+    QFont font( "Serif", 10, QFont::DemiBold );
+    m.setFont(font);
+    QAction *scaleZ = m.addAction(tr("Z-scale"));
+    QAction *scaleY = m.addAction(tr("Y-scale"));
+    QAction *what = m.exec(event->globalPos());
+    if (what == scaleZ)
+    {
+        this->showDialogZ();
+        update();
+    }
+    if (what == scaleY)
+    {
+        this->showDialogScaleY();
+        update();
+    }
 }
 void EnzView::showDialogZ()
 {

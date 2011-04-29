@@ -49,7 +49,7 @@ public slots:
     void slotSetWPEm();
     void slotSetWPEp();
     void slotSetTime();
-    void updateWidth();
+//    void updateWidth();
     void reDraw();  
 signals:
     void infoMouseMovedTo(QPointF);
@@ -67,16 +67,10 @@ public:
 //    void showDialogViewPsiX();
 //    void showDialogDefWP();
 private:
-    void initDialogWidth();
-    void showDialogWidth();
-    void setWidth();
     void clearAll();
-    QLineEdit *leW;
-    QGroupBox  *gbWidth;
      WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
-    double widthLine;
-    double widthLineWP;
+    int lineWidth;
     double psiMax, psiMin; 
     double xmin,xmax,dx;
     ScaleWPX *dialogScaleWPX;

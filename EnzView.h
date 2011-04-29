@@ -44,7 +44,7 @@ public:
     void redrawCurves();
 public:
     void showDialogScaleY();
-     
+
 public slots:
     void setViewportMapping();
     void resizePicture();
@@ -77,9 +77,9 @@ private:
     double Enzmin, Enzmax;
     void setScaleEnz();
     QGroupBox  *gbScaleXY;
-    double widthLine; 
+    double lineWidth;
 
-    double zmax, zmin, hz; 
+    double zmax, zmin, hz;
 //    double Umin, Umax;
     QGraphicsLineItem *lineh,*linev;
     void contextMenuEvent(QContextMenuEvent *event);

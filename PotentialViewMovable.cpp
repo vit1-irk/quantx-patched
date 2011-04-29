@@ -57,7 +57,7 @@ public:
     QRectF boundingRect() const
     {
     QRectF vp = view->sceneRect();
-/*    double widthLine= 0.005*vp.height();
+/*    double lineWidth= 0.005*vp.height();
         QPoint v1(0,0);
         QPoint v2(0,5);
         QPointF fv1 = view->mapToScene(v1);
@@ -80,7 +80,7 @@ public:
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
 /*        QPoint va(0,0);
-        QPoint vb(0,view->widthLine);
+        QPoint vb(0,view->lineWidth);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
         double ay = fabs(sa.y() - sb.y());
@@ -399,7 +399,7 @@ dialogScalesU(0),
 widthLineE(0.02),widthLineH(0.02),widthLineV(0.02),
 psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
 {
-    widthLine = 2;
+    lineWidth = 2;
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -418,7 +418,10 @@ psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
     connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
+    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
+//    model->set_Energy(0.1);
+//    model->getTatE();
 }
 #define ID_PSI_ENERGY (200)
 
@@ -488,8 +491,13 @@ void PotentialViewMovable::setViewportMapping()
         this->setMatrix(m);
         scene()->update(scene()->sceneRect());
         sr = scene()->sceneRect();
-    double ax=fabs(xmax-xmin)*widthLine/a.width();
-    double ay=fabs(Umax-Umin)*widthLine/a.height();
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+
+    double ax=fabs(xmax-xmin)*lineWidth/a.width();
+    double ay=fabs(Umax-Umin)*lineWidth/a.height();
     widthLineH= fabs(ay);
     widthLineV= fabs(ax);//0.05;//0.0025*vp.width();
     widthLineE= fabs(ay);
@@ -714,30 +722,22 @@ void PotentialViewMovable::slotEboundChanged()
 
 void PotentialViewMovable::slotEnergyChanged()
 {
-        QPen p;
-        p.setWidthF(this->widthLineE);
-        p.setJoinStyle(Qt::BevelJoin);
-        p.setCapStyle(Qt::RoundCap);
-//      p.setCapStyle(Qt::FlatCap);
-        p.setColor(Qt::darkRed);
     double scalePsi = (Umax-Umin)/(psiMax-psiMin);
-    double E=model->get_E0(); 
-/*    if (lineEnergy) 
-    {
-        double Eold=lineEnergy->getEnergyFromLine();
-        if(Eold!=E) model->set_E0(Eold);
-        E=Eold;
-    }
-*/    if (!lineEnergy) 
+    double E=model->get_E0();
+    //    model->set_Energy(E);
+    if (!lineEnergy) 
     {
         lineEnergy = new EnergyDraggableLine(this);
-        lineEnergy->setLine(xmin,E,xmax-xmin);
         scene()->addItem(lineEnergy);
     }
-    else     
-    {
-        lineEnergy->setLine(xmin,E,xmax-xmin);
-    }
+    QPen p;
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setWidthF(this->widthLineE);
+    p.setStyle(Qt::DashLine);
+    p.setColor(Qt::green);
+    lineEnergy->setPen(p);
+    lineEnergy->setLine(xmin,E,xmax-xmin);
     model->getTatE();
 }
 EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
@@ -994,10 +994,18 @@ public:
         setMinimumWidth(width());
     }
 };
-
 PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
+    setTitle(tr("Graphic definition of potential"));
+
+    QVBoxLayout *vl = new QVBoxLayout();
+    potentialViewMovable = new PotentialViewMovable(model,this);
+    vl->addWidget(potentialViewMovable);
+
+
+    QHBoxLayout *hl = new QHBoxLayout();
+    /*
 //-------------------
     QString psi=QChar(0x03C8);
     //               QString Psi=QChar(0x03A8);
@@ -1006,14 +1014,6 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
     QString mod_psiofx="|"+psiofx+"|"+to2;//+QChar(0x2082);
     //            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
 //-------------------
-    setTitle(tr("Graphic definition of potential, ")+psi+"(x,E)");
-
-    QVBoxLayout *vl = new QVBoxLayout();
-    potentialViewMovable = new PotentialViewMovable(model,this);
-    vl->addWidget(potentialViewMovable);
-
-
-    QHBoxLayout *hl = new QHBoxLayout();
     QRadioButton *rad1= new QRadioButton("Re "+psi);
     QRadioButton *rad2= new QRadioButton("Im "+psi);
     QRadioButton *rad3= new QRadioButton(mod_psiofx);
@@ -1027,24 +1027,47 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
     bgR->addButton(rad3,2);
     bgR->button(2)->setChecked(true);
     connect(bgR,SIGNAL(buttonClicked(int)),potentialViewMovable,SLOT(setWhatToDraw(int)));
+*/
+    QLabel *lNtext= new QLabel(this);
+    lNtext->setText(tr("n="));
+    lN = new QLineEdit(this);
+    QString x;
+    x.sprintf("%i",model->get_LevelNumber());
+    lN->setText(x);
+    lN->setMaximumWidth(50);
+//    lN->setEnabled(true);
+    lN->setAlignment(Qt::AlignLeft);
+    connect(lN,SIGNAL(editingFinished()),this,SLOT(updateLevelNumber()));
+    connect(model, SIGNAL(signalLevelNumberChanged(int)), this,SLOT(printLevelNumber()));
 
     QLabel *lEtext= new QLabel(this);
     lEtext->setText(tr("E="));
-    QLabel *lE = new MyLabel("",this);
-    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
+    lE = new QLineEdit(this);
+    x.sprintf("%lg",model->get_E0());
+    lE->setText(x);
+    lE->setMaximumWidth(150);
+//    lE->setEnabled(true);
+    lE->setAlignment(Qt::AlignLeft);
+    //    QLabel *lE = new MyLabel("",this);
+    connect(lE,SIGNAL(editingFinished()),this,SLOT(updateEnergy()));
+//    connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
+    connect(model, SIGNAL(signalEnergyChanged(double)), this,SLOT(printEnergy()));
+
 
     QLabel *lTtext= new QLabel(this);
-    lTtext->setText(tr("T="));
+    lTtext->setText(tr("T/N(E)="));
     QLabel *lT= new MyLabel("",this);
     lT->setTextFormat(Qt::AutoText);
     connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
+    hl->addWidget(lNtext);
+    hl->addWidget(lN);
     hl->addWidget(lEtext);
     hl->addWidget(lE);
     hl->addWidget(lTtext);
     hl->addWidget(lT);
 
     hl->addStretch();
-
+    
     QToolButton *buttonClose = new QToolButton(this);
     buttonClose->setIcon(QIcon("images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
@@ -1054,7 +1077,36 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
 //    QPushButton *buttonClose = new QPushButton(tr("Close"));
 //    hl->addWidget(buttonClose);
-
     vl->addLayout(hl);
     setLayout(vl);
+}
+void PotentialMovableWidget::updateLevelNumber()
+{
+    int levelNumber = this->lN->text().toDouble();
+    int N=this->potentialViewMovable->model->get_LevelNumber();
+    if ( levelNumber!= N)
+    {
+        this->potentialViewMovable->model->set_LevelNumber(levelNumber);
+    }
+}
+void PotentialMovableWidget::updateEnergy()
+{
+    double energy = this->lE->text().toDouble();
+    double EE=this->potentialViewMovable->model->get_E0();
+    if (energy != EE)
+    {
+        this->potentialViewMovable->model->set_Energy(energy);
+    }
+}
+void PotentialMovableWidget::printEnergy()
+{
+    QString buf;
+    buf.sprintf("%lg",this->potentialViewMovable->model->get_E0());
+    this->lE->setText(buf);
+}
+void PotentialMovableWidget::printLevelNumber()
+{
+    QString buf;
+    buf.sprintf("%i",this->potentialViewMovable->model->get_LevelNumber());
+    this->lN->setText(buf);
 }

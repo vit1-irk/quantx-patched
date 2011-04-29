@@ -19,7 +19,7 @@
 class DoubleValidator : public QRegExpValidator
 {
 public:
-    DoubleValidator(QWidget *parent) : QRegExpValidator(parent) 
+    DoubleValidator(QWidget *parent) : QRegExpValidator(parent)
     {
         const QRegExp x(QString("[+-]?\\d+\\.?\\d*([dDe][+-]?\\d+)?"));
         setRegExp(x);
@@ -30,7 +30,7 @@ public:
 class PosIntValidator : public QRegExpValidator
 {
 public:
-    PosIntValidator(QWidget *parent) : QRegExpValidator(parent) 
+    PosIntValidator(QWidget *parent) : QRegExpValidator(parent)
     {
         const QRegExp x(QString("\\d+"));
         setRegExp(x);
@@ -50,7 +50,7 @@ void MainWindow::initMenuBar()
      fileMenu->setFont(font);
      fileMenu->setTitle(tr("File"));
      menuBar()->addSeparator();
-//     fileMenu->setFont(QFont("Serif", 12, QFont::Bold )); 
+//     fileMenu->setFont(QFont("Serif", 12, QFont::Bold ));
 //     QMenu *fileMenu = new QMenu(tr("&File"), this);
 //     fileMenu->addAction(tr("&Quit"), this, SLOT(close()));
      QAction *quitAction = fileMenu->addAction(tr("Quit"));
@@ -61,25 +61,25 @@ void MainWindow::initMenuBar()
      QAction *openAction = fileMenu->addAction(tr("&Open..."));
      openAction->setShortcut(QKeySequence(tr("Ctrl+O")));
      connect(openAction, SIGNAL(triggered()), this, SLOT(openFile()));
-     fileMenu->addAction(openAction);  
+     fileMenu->addAction(openAction);
      //TODO: openFile(str)
 
      QAction *saveAsAction = fileMenu->addAction(tr("&Save As..."));
      saveAsAction->setShortcut(tr("Ctrl+S"));
      connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
-     fileMenu->addAction(saveAsAction);  
+     fileMenu->addAction(saveAsAction);
 
      aboutAction = new QAction(tr("&О программе"),this);
 //     aboutAction->setStatuslTip(tr("Сведения о программе"));
      connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
-     fileMenu->addAction(aboutAction);  
+     fileMenu->addAction(aboutAction);
      fileMenu->addSeparator();
 
      //     chooseFontAction = new QAction("Choose Font", this);
-//     fileMenu->addAction(chooseFontAction);  
+//     fileMenu->addAction(chooseFontAction);
 //     chooseFontAction->setShortcut(tr("Ctrl+F"));
 //     connect(chooseFontAction, SIGNAL(triggered()), this, SLOT(chooseFont()));
-    
+
 
 //     QMenu *helpMenu = menuBar()->addMenu("&Help");
 //     helpMenu->addAction(aboutAction);
@@ -155,7 +155,7 @@ void MainWindow::initMenuBar()
 
      QMenu *uMenu = menuBar()->addMenu(tr("Потенциалы"));
 //     QMenu *uMenu = menuBar()->addMenu(tr("U(x)"));
-     uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold )); 
+     uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
      QAction *uTable = new QAction(tr("Табличный"), uMenu);
      QAction *uLinear = new QAction(tr("Линейный"),uMenu);
      QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
@@ -185,7 +185,7 @@ void MainWindow::initMenuBar()
      connect(uMulti, SIGNAL(triggered()), this, SLOT(slotSetUmwb()));
 
      QToolBar *EnTool = new QToolBar;
-     addToolBar(EnTool); 
+     addToolBar(EnTool);
      QAction *EnAction = new QAction(tr("En"), EnTool);
      EnTool->addAction(EnAction);
      EnAction->setToolTip(tr("Таблица уровней энергии En"));
@@ -214,14 +214,21 @@ void MainWindow::initMenuBar()
      ubiasTool->addAction(ubiasAc);
      ubiasAc->setToolTip(tr("Структура в электрическом поле"));
      connect(ubiasAc, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
+
+     QToolBar *widthLineTool = new QToolBar;
+     addToolBar(widthLineTool);
+     QAction *widthLineAc = new QAction(tr("Setting"), widthLineTool);
+     widthLineTool->addAction(widthLineAc);
+     widthLineAc->setToolTip(tr("Толщина линий в пикселах"));
+     connect(widthLineAc, SIGNAL(triggered()), this, SLOT(slotSetting()));
 }
 void MainWindow::about()
 {
-//    QMessageBox *mb = new QMessageBox(this); 
-    QMessageBox::about(this, tr("О программе Кванте"), 
+//    QMessageBox *mb = new QMessageBox(this);
+    QMessageBox::about(this, tr("О программе Кванте"),
         tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
         "окно, которое при желании можно закрыть. Масштабы и дополнительные параметры,\n"
-        "такие как номера уровней, параметры волнового пакета, можно задать в\n" 
+        "такие как номера уровней, параметры волнового пакета, можно задать в\n"
         "контекстно-зависящем меню, которое открывается при нажатии на правую кнопку\n"
         "мышки в поле графика. Потенциал меняется мышкой в окне <<Потенциала>> или\n"
         "задается численно в меню <<U(x)>> или на панели инструментов кнопкой <<Un>>,\n"
@@ -243,7 +250,7 @@ void MainWindow::chooseFont()
 
 bool MainWindow::saveAs()
 {
-    QString fn = QFileDialog::getSaveFileName( this, 
+    QString fn = QFileDialog::getSaveFileName( this,
         tr("Choose a file name"), ".",
         tr("*.xml"));
     if ( !fn.isEmpty() ) {
@@ -255,11 +262,11 @@ bool MainWindow::saveAs()
 
 void MainWindow::slotSetEn()
 {
-    if (!tableViewEn) 
+    if (!tableViewEn)
     {
         tableViewEn = new QTableView(this);
         tableViewEn->setWindowFlags(Qt::Window);
-        tableViewEn->setFont(QFont("Serif", 12, QFont::Bold )); 
+        tableViewEn->setFont(QFont("Serif", 12, QFont::Bold ));
         tableViewEn->setWindowTitle("Energy Levels");
 
         tableViewEn->setCornerButtonEnabled(false);
@@ -267,6 +274,13 @@ void MainWindow::slotSetEn()
         tableViewEn->setWordWrap(false);
 
         tableViewEn->setItemDelegate(new LineEditDelegate(this));
+#if 0
+        tableViewEn->setSelectionMode(QAbstractItemView::SingleSelection);
+        tableViewEn->setSelectionBehavior(QAbstractItemView::SelectItems);
+        tableViewEn->setCursor(Qt::IBeamCursor);
+        tableViewEn->setEditTriggers(QAbstractItemView::AllEditTriggers);
+        tableViewEn->setItemDelegate(new LineEditDelegate(tableViewEn));
+#endif
 
         LevelModel *lm = new LevelModel(tableViewEn);
         lm->setLevels(model);
@@ -282,11 +296,11 @@ void MainWindow::slotSetEn()
 
 void MainWindow::slotSetUxt()
 {
-    if (!tableView) 
+    if (!tableView)
     {
         tableView = new QTableView(this);
         tableView->setWindowFlags(Qt::Window);
-        tableView->setFont(QFont("Serif", 12, QFont::Bold )); 
+        tableView->setFont(QFont("Serif", 12, QFont::Bold ));
         tableView->setWindowTitle("Step-wise potential");
 
         tableView->setItemDelegate(new LineEditDelegate(this));
@@ -310,7 +324,7 @@ void  MainWindow::slotSetUs()
         dialogUparab = new Uparabolic(this);
         dialogUparab->setModel(model);
     }
-    dialogUparab->show(); 
+    dialogUparab->show();
     dialogUparab->activateWindow();
     dialogUparab->setFocus();
 }
@@ -321,9 +335,20 @@ void  MainWindow::slotSetUlinear()
         dialogUlinear = new Ulinear(this);
         dialogUlinear->setModel(model);
     }
-    dialogUlinear->show(); 
+    dialogUlinear->show();
     dialogUlinear->activateWindow();
     dialogUlinear->setFocus();
+}
+void  MainWindow::slotSetting()
+{
+    if (!dialogSetting)
+    {
+        dialogSetting = new ProgramSetting(this);
+        dialogSetting->setModel(model);
+    }
+    dialogSetting->show();
+    dialogSetting->activateWindow();
+    dialogSetting->setFocus();
 }
 void  MainWindow::slotSetUmwb()
 {
@@ -332,7 +357,7 @@ void  MainWindow::slotSetUmwb()
         dialogUAsMW = new PotentialViewMultiWell(this);
         dialogUAsMW->setModel(model);
     }
-    dialogUAsMW->show(); 
+    dialogUAsMW->show();
     dialogUAsMW->activateWindow();
     dialogUAsMW->setFocus();
 }
@@ -350,18 +375,18 @@ void MainWindow::windowTopRight()
 {
     int NN=this->splitterR->count();
     int iTopRight=topRightWin->QComboBox::currentIndex();
-    {    
+    {
         switch(iTopRight)
         {
-        case 0: 
+        case 0:
             window_Ux_Psix();
             gbPview->show();
             break;
-        case 1:  
+        case 1:
             window_psi_x();
             waveFunctionWidget->show();
             break;
-        case 2:  
+        case 2:
             window_psi_xt();
             gbviewPsixT->show();
             break;
@@ -377,15 +402,15 @@ void MainWindow::windowDownRight()
     int iDownRight=downRightWin->QComboBox::currentIndex();
     switch(iDownRight)
     {
-    case 0: 
+    case 0:
         window_psi_x();
         waveFunctionWidget->show();
         break;
-    case 1:  
+    case 1:
         window_psi_xt();
         gbviewPsixT->show();
         break;
-    case 2: 
+    case 2:
         break;
     default:
         break;
@@ -397,12 +422,12 @@ void MainWindow::windowDownLeft()
     int iDownLeft=downLeftWin->QComboBox::currentIndex();
     switch(iDownLeft)
     {
-    case 0: 
+    case 0:
         window_phi_k();
         gbviewM->show();
 //        gbLeftDown->show();
         break;
-    case 1:  
+    case 1:
         window_phi_kt();
         gbviewMT->show();
         break;
@@ -448,7 +473,7 @@ void  MainWindow::slotSetTime()
         dialogTime = new TimeView(this);
         dialogTime->setModel(model);
     }
-    dialogTime->show(); 
+    dialogTime->show();
     dialogTime->activateWindow();
     dialogTime->setFocus();
 }
@@ -460,7 +485,7 @@ void  MainWindow::slotSetZ()
         dialogZ = new Zview(this);
         dialogZ->setModel(model);
     }
-    dialogZ->show(); 
+    dialogZ->show();
     dialogZ->activateWindow();
     dialogZ->setFocus();
 
@@ -594,7 +619,7 @@ void MainWindow::resizeEvent (QResizeEvent * event)
 void MainWindow::initStatusBar()
 {
     createStatusBar();
-    this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold )); 
+    this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold ));
     this->dispEnergy = new QLabel("Comments:",
             this->statusBar());
     this->statusBar()->addWidget(this->dispEnergy);
@@ -631,20 +656,20 @@ void MainWindow::initStatusBar()
     QPair<double,double> umin_umax = model->getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
-    if(this->Emin>0) this->Emin=Umin; 
+    if(this->Emin>0) this->Emin=Umin;
     if(this->Emax>0) this->Emax=Umax;
     switch(i)
     {
-    case 0: 
+    case 0:
         compute_En();
         break;
-    case 1: 
+    case 1:
         compute_NE();
         break;
-    case 2: 
+    case 2:
         compute_BE();
         break;
-    case 3: 
+    case 3:
         compute_Enz();
         break;
     default:
@@ -666,10 +691,10 @@ void MainWindow::initStatusBar()
     _dE=this->hE;
     if(_dE<0) _dE=-this->hE;
     if(_dE==0) _dE=(Umax-Umin)/100;
-    this->plotNE->clearAll(); 
+    this->plotNE->clearAll();
 //    numOfCurveNE=0;
     for(double x=Umin; x<=Umax; x+=_dE)
-    {    
+    {
         y=double(model->findNumberOfLevels(x));
 //        this->dataNE.push_back(x);
         this->dataNE.push_back(y);
@@ -687,29 +712,29 @@ void MainWindow::initStatusBar()
     if(this->Emin<0) this->Emin=0.01;
     if(this->Emax<0) this->Emax=20.;
     if(this->E0<0) this->E0=0.01;
-    
-    if(this->flgEraseT->isChecked()) 
+
+    if(this->flgEraseT->isChecked())
     {
         plotterT->clearAll();
         this->numOfCurveT=1;
     }
-    else 
+    else
     {
         this->numOfCurveT++;
     }
     int ii = this->T_type->QComboBox::currentIndex();
     switch(ii)
     {
-    case 0: 
+    case 0:
         compute_TE();
         break;
-    case 1: 
+    case 1:
         compute_Tz();
         break;
-    case 2: 
+    case 2:
         TEz();
         break;
-    case 3: 
+    case 3:
         TzE();
         break;
     default:
@@ -727,7 +752,7 @@ void MainWindow::compute_TE()
     std::vector<double> dataL;
     std::vector<double> dataSum;
     bool flgEr=flgEraseT->isChecked();
-    if(flgEr) 
+    if(flgEr)
     {
         this->numOfCurveT=1;
     }
@@ -785,17 +810,17 @@ void MainWindow::compute_TE()
                 rr1=g2/k;
                 rr1=rr1*rr1;
                 double fun=1.+rr1*sin(kL2)*sin(kL2)+g2/k*sin(2*kL2);
-//                rr1=4./(6+rr1+3*fun); 
+//                rr1=4./(6+rr1+3*fun);
 //                rr1=4.*(1.+rr1*sin(kL2)*sin(kL2)+g2/k*sin(2*kL2))/(9.+rr1*(1.+3.*sin(kL2)*sin(kL2))+3.*g2/k*sin(2.*kL2));//squre_module(r1);
 //                rr1=4./(9.+rr1*(1.+3.*sin(kL2)*sin(kL2))+3.*g2/k*sin(2.*kL2));//squre_module(r1);
                 rr1=squre_module(r1);
-//                rr1=4./(9+rr1*2.5); 
+//                rr1=4./(9+rr1*2.5);
                 tt=1-rr1;
                 sum=y+y2;
                 double gamma1=(g2/k)*sin(kL2)*(2*cos(kL2)+(g2/k)*sin(kL2))/(2.+(g2/k)*sin(kL2)*(2*cos(kL2)+(g2/k)*sin(kL2)));
                 double a12=(1+(g2/k)*sin(2*kL2)+((g2/k)*sin(kL2))*((g2/k)*sin(kL2)))/(1+(g1/k)*sin(2*kL1)+((g1/k)*sin(kL1))*((g1/k)*sin(kL1)));
                 double gamma2=(a12-1)/(1+a12);
-                gamma=(y-y2)/(y+y2); 
+                gamma=(y-y2)/(y+y2);
                 double x=2*(kL1+kL2)/3.14159;
         dataL.push_back(x);
         dataL.push_back(y);
@@ -822,7 +847,7 @@ void MainWindow::compute_TE()
 {
     std::vector<double> dataT;
     bool flgEr=flgEraseT->isChecked();
-    if(flgEr) 
+    if(flgEr)
     {
         this->numOfCurveT=1;
     }
@@ -868,11 +893,11 @@ void MainWindow::compute_TE()
 /*void MainWindow::compute_Tz()
 {
     std::vector<double> dataT;
-    if(this->flgEraseT->isChecked()) 
+    if(this->flgEraseT->isChecked())
     {
         this->numOfCurveT=0;
     }
-    else 
+    else
     {
         this->numOfCurveT++;
     }
@@ -921,7 +946,7 @@ void MainWindow::TEz()
     if(this->hE>0) this->E0=Emn;
     if(this->hE<0) this->E0=Emx;
     for(double z=z0;z>=this->zmin&&z<=this->zmax; z+=this->hz)
-    { 
+    {
         if (getBreakStatus(0)) return;
         model->set_Uxz(z);
         this->zz=z;
@@ -929,7 +954,7 @@ void MainWindow::TEz()
     }
 }
 void MainWindow::TzE()
-{       
+{
     double EE=this->E0;
     double zmn=this->zmin;
     double zmx=this->zmax;
@@ -938,7 +963,7 @@ void MainWindow::TzE()
     if(EE>this->Emax&&this->hE>0) EE=this->Emin;
     if(EE<this->Emin&&this->hE<0) EE=this->Emax;
     for(double E=EE;E>=this->Emin&&E<=this->Emax; E+=this->hE)
-    { 
+    {
         if (getBreakStatus(0)) return;
         this->E0=E;
         this->compute_Tz();
@@ -1012,7 +1037,7 @@ static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter
     dataUx.push_back(x);
     dataUx.push_back(model->get_U(N+1));
     if(xmax>x)
-    { 
+    {
     dataUx.push_back(xmax);
     dataUx.push_back(model->get_U(N+1));
     }
@@ -1021,9 +1046,9 @@ static void addUx(double xmin,double xmax,PhysicalModel *model, Plotter *plotter
 
 void MainWindow::compute_En()
 {
-    this->plotterPsi2x->clearAll(); 
+    this->plotterPsi2x->clearAll();
     plotterPsi2x->scaleFixed=false;
-    this->plotterUx->clearAll(); 
+    this->plotterUx->clearAll();
     numOfCurveUx=0;
     this->showU();
     this->numOfCurveUx=1;
@@ -1034,7 +1059,7 @@ void MainWindow::compute_En()
         this->E0 = En;
         compute();
         this->showEn(En);
-    } 
+    }
     compute_Psin();
 }
 typedef  std::vector<double> mycurve;
@@ -1055,14 +1080,14 @@ static void updateCurves(curveSet& cs, const QVector<double>& Ebound, double z)
 }
 
 static void myrepaint(Plotter *plotter, const curveSet& cs)
-{ 
+{
     for(int i=0; i<cs.size(); i++)
     {
         plotter->setCurveData(i,cs[i]);
     }
 }
 void MainWindow::compute_Uxz()
-{   
+{
     if(this->flgTypeU->isChecked())
         model->setPotentialType(PERIODIC);
     else
@@ -1071,15 +1096,15 @@ void MainWindow::compute_Uxz()
     if(this->U_type->QComboBox::currentIndex()==0) showU();
     else
     for(double z=this->zmin;z<=this->zmax; z+=this->hz)
-    { 
+    {
         model->set_Uxz(z);
         showU();
     }
-    
+
 }
 
 void MainWindow::compute_Enz()
-{   
+{
     wPlotEnz->show();
     wPlotEnz->raise();
     plotterEnz->scaleFixed=false;
@@ -1087,8 +1112,8 @@ void MainWindow::compute_Enz()
         curveSet cs;
         int nmxold=-1;
         for(double z=this->zmin;z<=this->zmax; z+=this->hz)
-        { 
-            if (getBreakStatus(0)) 
+        {
+            if (getBreakStatus(0))
                 return;
             model->set_Uxz(z);
             int nmx=this->nmaxLevel;
@@ -1096,7 +1121,7 @@ void MainWindow::compute_Enz()
             QVector<double> Ebound = model->getEn();
             if(nmx >= Ebound.size()) nmx = Ebound.size()-1;
             if(nmn<0) nmn=0;
-            if(nmxold==-1) 
+            if(nmxold==-1)
             {
                 nmxold=nmx;
                 plotterPsi2x->clearAll();
@@ -1109,17 +1134,17 @@ void MainWindow::compute_Enz()
 
             updateCurves(cs, Ebound, z);
             myrepaint(plotterEnz,cs);
-            compute_Psin(); 
+            compute_Psin();
             compute_Phi_n();
             nmxold=nmx;
         }
 }
 void MainWindow::compute_Psi_nz()
-{   
+{
         int nmxold=-1;
         for(double z=this->zmin;z<=this->zmax; z+=this->hz)
-        { 
-            if (getBreakStatus(0)) 
+        {
+            if (getBreakStatus(0))
                 return;
             model->set_Uxz(z);
             QVector<double> Ebound = model->getEn();
@@ -1127,7 +1152,7 @@ void MainWindow::compute_Psi_nz()
             int nmn=this->nminLevel;
             if(nmx>=Ebound.size()) nmx=Ebound.size()-1;
             if(nmn<0) nmn=0;
-            if(nmxold==-1) 
+            if(nmxold==-1)
             {
                 nmxold=nmx;
                 plotterPsi2x->clearAll();
@@ -1138,15 +1163,15 @@ void MainWindow::compute_Psi_nz()
                     this->plotterPsi2x->clearCurve(id);
             }
 
-            compute_Psin(); 
+            compute_Psin();
             nmxold=nmx;
         }
 }
 void MainWindow::compute_Psi_z()
-{   
+{
     for(double z=this->zmin;z<=this->zmax; z+=this->hz)
-    { 
-        if (getBreakStatus(0)) 
+    {
+        if (getBreakStatus(0))
             return;
         model->set_Uxz(z);
         compute_PsiXatE();
@@ -1154,31 +1179,31 @@ void MainWindow::compute_Psi_z()
 }
 
 void MainWindow::compute_Phi()
-{       
+{
 
     int ii=psip_var->QComboBox::currentIndex();
         switch(ii)
         {
-        case 0: 
+        case 0:
             this->compute_Phi_n();
-            break; 
-        case 1: 
+            break;
+        case 1:
             this->WavePacketPoft();
             break;
         default:
-            break; 
+            break;
         }
 }
 
 void MainWindow::compute_Phi_n()
-{   
+{
     wPlotPhi->show();
     wPlotPhi->raise();
     std::vector<double> data;
     double y;
     double kmin=-this->kmax;
     plotterPhi->scaleFixed=false;
-    if(this->flgErase->isChecked()) 
+    if(this->flgErase->isChecked())
     {
         this->numOfCurve=0;
     }
@@ -1208,7 +1233,7 @@ void MainWindow::compute_Phi_n()
         }
         this->plotterPhi->setCurveData(this->numOfCurve,data);
         this->numOfCurve++;
-    } 
+    }
 }
 void MainWindow::showU()
 {
@@ -1246,7 +1271,7 @@ void MainWindow::showU()
     }
     data.push_back(x);
     data.push_back(model->get_U(N+1));
-    if(this->xmax<x) this->xmax=x; 
+    if(this->xmax<x) this->xmax=x;
     else x =this->xmax;
     data.push_back(x);
     data.push_back(model->get_U(N+1));
@@ -1256,7 +1281,7 @@ void MainWindow::showU()
 void MainWindow::showEn(double E)
 {
         std::vector<double> data;
-        data.push_back(this->xmin); 
+        data.push_back(this->xmin);
         data.push_back(E);
         data.push_back(this->xmax);
         data.push_back(E);
@@ -1264,32 +1289,32 @@ void MainWindow::showEn(double E)
         this->numOfCurveUx++;
 }
 void MainWindow::compute_Psi()
-{       
+{
 
     int ii=psix_var->QComboBox::currentIndex();
     //model->build_U();
         switch(ii)
         {
-        case 0: 
+        case 0:
             this->compute_Psin();
-            break; 
-        case 1: 
+            break;
+        case 1:
             this->compute_PsixE();
             break;
-        case 2: 
+        case 2:
             this->compute_PsiXatE();
             break;
-        case 3: 
+        case 3:
             this->compute_Psi_z();
             break;
-        case 4: 
+        case 4:
             this->compute_Psi_nz();
             break;
-        case 5: 
+        case 5:
             this->WavePacketXoft();
             break;
         default:
-            break; 
+            break;
         }
 }
 void MainWindow::setScalesPsi()
@@ -1343,17 +1368,17 @@ void MainWindow::compute_Psin()
             model->build_Psi();
             switch(ii)
             {
-            case 0: 
+            case 0:
                 y=model->Psi2;
                 break;
-            case 1: 
+            case 1:
                 y=model->psi_real;
                 break;
-            case 2: 
+            case 2:
                 y=model->psi_imag;
                 break;
             default:
-                break; 
+                break;
             }
             data.push_back(x);
             data.push_back(y);
@@ -1363,11 +1388,11 @@ void MainWindow::compute_Psin()
     }
 }
 void MainWindow::compute_PsixE()
-{       
+{
     wPlotPsi2->show();
     wPlotPsi2->raise();
     double y;
-    if(this->flgErase->isChecked()) 
+    if(this->flgErase->isChecked())
     {
         plotterPsi2x->clearAll();
         this->numOfCurve=1;
@@ -1384,7 +1409,7 @@ void MainWindow::compute_PsixE()
     for(double E=this->E0; E>=this->Emin&&E<=this->Emax; E+=this->hE)
     {
         this->E0=E;
-        if(getBreakStatus(0)) 
+        if(getBreakStatus(0))
             return;
         compute();
         data.clear();
@@ -1394,17 +1419,17 @@ void MainWindow::compute_PsixE()
             model->build_Psi();
             switch(ii)
             {
-            case 0: 
+            case 0:
                 y=model->Psi2;
-                break; 
-            case 1: 
+                break;
+            case 1:
                 y=model->psi_real;
                 break;
-            case 2: 
+            case 2:
                 y=model->psi_imag;
                 break;
             default:
-                break; 
+                break;
             }
             data.push_back(x);
             data.push_back(y);
@@ -1420,7 +1445,7 @@ void MainWindow::compute_PsiXatE()
     wPlotPsi2->raise();
     std::vector<double> data;
     std::vector<double> dataUx;
-    if(this->flgErase->isChecked()) 
+    if(this->flgErase->isChecked())
     {
         plotterPsi2x->clearAll();
         this->numOfCurve=1;
@@ -1437,18 +1462,18 @@ void MainWindow::compute_PsiXatE()
         model->build_Psi();
         switch(ii)
         {
-        case 0: 
+        case 0:
             y=model->Psi2;
             break;
-        case 1: 
+        case 1:
             y=model->psi_real;
             break;
-        case 2: 
+        case 2:
             y=model->psi_imag;
             break;
         default:
-            break; 
-        } 
+            break;
+        }
         data.push_back(x);
         data.push_back(y);
     }
@@ -1477,7 +1502,7 @@ void MainWindow::compute_PhiofP()
     this->plotterPhi->setCurveData(this->numOfCurve,data);
 }
 
-void MainWindow::initPlotNofE() 
+void MainWindow::initPlotNofE()
 {
     winPlotNE = new QDialog(this);
     QVBoxLayout *vl=new QVBoxLayout(winPlotNE);
@@ -1485,26 +1510,26 @@ void MainWindow::initPlotNofE()
     this->plotNE = ((PlotterDialog*)wNE)->plotter();
     winPlotNE->setWindowTitle(tr("Number of levels on energy E"));
     vl->addWidget(wNE);
-    winPlotNE->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    winPlotNE->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton *butNE = new QPushButton(tr("RUN N(E)")); 
+    QPushButton *butNE = new QPushButton(tr("RUN N(E)"));
     connect(butNE, SIGNAL(clicked()), this, SLOT(compute_NE()));
     hl->addWidget(butNE);
     hl->addStretch();
     vl->addLayout(hl);
 }
-void MainWindow::initPlotT() 
+void MainWindow::initPlotT()
 {
     wPlotT = new QDialog(this);
     QVBoxLayout *vl = new QVBoxLayout(wPlotT);
     PlotterDialog *wT = new PlotterDialog(wPlotT);
-    wPlotT->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    wPlotT->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     this->plotterT = ((PlotterDialog*)wT)->plotter();
     wPlotT->setWindowTitle(tr("Transmission"));
     vl->addWidget(wT);
     {
         QHBoxLayout *hl = new QHBoxLayout();
-        bRunD = new QPushButton(tr("RUN D")); 
+        bRunD = new QPushButton(tr("RUN D"));
         connect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
         hl->addWidget(bRunD);
 
@@ -1518,13 +1543,13 @@ void MainWindow::initPlotT()
 
         hl->addStretch();
 
-        QPushButton * bsE = new QPushButton("&E scale");	
+        QPushButton * bsE = new QPushButton("&E scale");
         connect(bsE,SIGNAL(clicked()),this,SLOT(slotIntE()));
-        hl->addWidget(bsE);		
+        hl->addWidget(bsE);
 
-        QPushButton * bsz = new QPushButton("&z scale");	
+        QPushButton * bsz = new QPushButton("&z scale");
         connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-        hl->addWidget(bsz);	
+        hl->addWidget(bsz);
 
         flgEraseT= new QCheckBox("Erase",wPlotT);
         flgEraseT->setChecked(true);
@@ -1549,34 +1574,34 @@ void MainWindow::slotCompute_D()
     connect(bRunD, SIGNAL(clicked()), this, SLOT(slotCompute_D()));
 }
 
-void MainWindow::initPlotEnz() 
+void MainWindow::initPlotEnz()
 {
     wPlotEnz = new QDialog(this);
     QVBoxLayout *vl=new QVBoxLayout(wPlotEnz);
     PlotterDialog *wEnz = new PlotterDialog(wPlotEnz);
-    wPlotEnz->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    wPlotEnz->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     wPlotEnz->setWindowTitle(tr("Energy spectrum deformation on z"));
     this->plotterEnz=((PlotterDialog*)wEnz)->plotter();
     vl->addWidget(wEnz);
 
     QHBoxLayout *hl = new QHBoxLayout();
-    QPushButton *bRun = new QPushButton(tr("RUN En(z)")); 
+    QPushButton *bRun = new QPushButton(tr("RUN En(z)"));
     connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Enz()));
     hl->addWidget(bRun);
 
-    QPushButton * bsz = new QPushButton("&z scale");	
+    QPushButton * bsz = new QPushButton("&z scale");
     connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-    hl->addWidget(bsz);		
+    hl->addWidget(bsz);
     hl->addStretch();
 
     vl->addLayout(hl);
 
 }
 
-void MainWindow::initPlotPsix() 
+void MainWindow::initPlotPsix()
 {
     wPlotPsi2 = new QDialog(this);
-    wPlotPsi2->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    wPlotPsi2->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     wPlotPsi2->setWindowTitle(tr("Coordinate distribution"));
     QVBoxLayout *vl=new QVBoxLayout(wPlotPsi2);
 
@@ -1592,14 +1617,14 @@ void MainWindow::initPlotPsix()
     {
         QHBoxLayout *hl = new QHBoxLayout();
 
-        QPushButton * bsx = new QPushButton("&x scale");	
+        QPushButton * bsx = new QPushButton("&x scale");
         connect(bsx,SIGNAL(clicked()),this,SLOT(slotScaleX()));
-        hl->addWidget(bsx);		
+        hl->addWidget(bsx);
 
 
-        QPushButton * bsy = new QPushButton("&y scales");	
+        QPushButton * bsy = new QPushButton("&y scales");
         connect(bsy,SIGNAL(clicked()),this,SLOT(slotScalePsi()));
-        hl->addWidget(bsy);		
+        hl->addWidget(bsy);
         hl->addStretch();
 
         flgScale= new QCheckBox("Fixed y-scales",wPlotUx);
@@ -1615,7 +1640,7 @@ void MainWindow::initPlotPsix()
         vl->addLayout(hl);
     }
     {
-        { 
+        {
             //QString sum=QChar(0x03A3);
             QString sum=QChar(0x2211);
 
@@ -1627,7 +1652,7 @@ void MainWindow::initPlotPsix()
 //            QGroupBox *gb3 = new QGroupBox(tr("Wave function ")+psiofx);
 
             QHBoxLayout *hl = new QHBoxLayout;
-            bRunPsi = new QPushButton(tr("RUN")); 
+            bRunPsi = new QPushButton(tr("RUN"));
             connect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
             hl->addWidget(bRunPsi);
 
@@ -1650,21 +1675,21 @@ void MainWindow::initPlotPsix()
 
             hl->addStretch();
 
-        QPushButton * btn = new QPushButton("&n");	
+        QPushButton * btn = new QPushButton("&n");
         connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
-        hl->addWidget(btn);		
+        hl->addWidget(btn);
 
-        QPushButton * bsE = new QPushButton("&E");	
+        QPushButton * bsE = new QPushButton("&E");
         connect(bsE,SIGNAL(clicked()),this,SLOT(slotIntE()));
-        hl->addWidget(bsE);		
+        hl->addWidget(bsE);
 
-        QPushButton * bsz = new QPushButton("&z");	
+        QPushButton * bsz = new QPushButton("&z");
         connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
-        hl->addWidget(bsz);		
+        hl->addWidget(bsz);
 
-        QPushButton * btwp = new QPushButton("&t");	
+        QPushButton * btwp = new QPushButton("&t");
         connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
-        hl->addWidget(btwp);	
+        hl->addWidget(btwp);
             vl->addLayout(hl);
 
         }
@@ -1682,20 +1707,20 @@ void MainWindow::slotCompute_Psi()
     connect(bRunPsi, SIGNAL(clicked()), this, SLOT(slotCompute_Psi()));
 }
 
-void MainWindow::initPlotPhik() 
+void MainWindow::initPlotPhik()
 {
     wPlotPhi = new QDialog(this);
     QVBoxLayout *vl=new QVBoxLayout(wPlotPhi);
     PlotterDialog *wPhi = new PlotterDialog(wPlotPhi);
-    wPlotPhi->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    wPlotPhi->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     this->plotterPhi = ((PlotterDialog*)wPhi)->plotter();
     wPlotPhi->setWindowTitle(tr("Momentum distribution"));
     vl->addWidget(wPhi);
     {
         QHBoxLayout *hl = new QHBoxLayout();
-        QPushButton * bsk = new QPushButton("&k scale");	
+        QPushButton * bsk = new QPushButton("&k scale");
         connect(bsk,SIGNAL(clicked()),this,SLOT(slotScaleP()));
-        hl->addWidget(bsk);		
+        hl->addWidget(bsk);
 
         hl->addStretch();
 
@@ -1704,7 +1729,7 @@ void MainWindow::initPlotPhik()
         hl->addWidget(flgErase);
 
         hl->addStretch();
-        bRunPhi = new QPushButton("RUN |Phi(k)|^2"); 
+        bRunPhi = new QPushButton("RUN |Phi(k)|^2");
         connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
         hl->addWidget(bRunPhi);
 
@@ -1714,11 +1739,11 @@ void MainWindow::initPlotPhik()
         psip_var->setCurrentIndex(0);
         hl->addWidget(psip_var);
 
-        QPushButton * btn = new QPushButton("&n");	
+        QPushButton * btn = new QPushButton("&n");
         connect(btn,SIGNAL(clicked()),this,SLOT(slotIntN()));
-        hl->addWidget(btn);		
+        hl->addWidget(btn);
 
-        QPushButton * btwp = new QPushButton("&t");	
+        QPushButton * btwp = new QPushButton("&t");
         connect(btwp,SIGNAL(clicked()),this,SLOT(slotWPacket()));
         hl->addWidget(btwp);
 
@@ -1737,24 +1762,24 @@ void MainWindow::slotCompute_Phi()
     bRunPhi->setText("RUN |Phi(k)|^2");
     connect(bRunPhi, SIGNAL(clicked()), this, SLOT(slotCompute_Phi()));
 }
-void MainWindow::initPlotUx() 
+void MainWindow::initPlotUx()
 {
     wPlotUx = new QDialog(this);
     QVBoxLayout *vl = new QVBoxLayout(wPlotUx);
     PlotterDialog *wUx = new PlotterDialog(wPlotUx);
-    wPlotUx->setFont(QFont("Serif", 12, QFont::SemiCondensed )); 
+    wPlotUx->setFont(QFont("Serif", 12, QFont::SemiCondensed ));
     this->plotterUx = ((PlotterDialog*)wUx)->plotter();
     wPlotUx->setWindowTitle(tr("Stepwise U(x)"));
     vl->addWidget(wUx);
     {
         QHBoxLayout *hl = new QHBoxLayout();
-        QPushButton * bsx = new QPushButton("&x scale");	
+        QPushButton * bsx = new QPushButton("&x scale");
         connect(bsx,SIGNAL(clicked()),this,SLOT(slotScaleX()));
-        hl->addWidget(bsx);		
+        hl->addWidget(bsx);
 
-        QPushButton * bsy = new QPushButton("&y scales");	
+        QPushButton * bsy = new QPushButton("&y scales");
         connect(bsy,SIGNAL(clicked()),this,SLOT(slotScalePsi()));
-        hl->addWidget(bsy);		
+        hl->addWidget(bsy);
 
         flgScale= new QCheckBox("Fixed y-scales",wPlotUx);
         flgScale->setChecked(true);
@@ -1770,7 +1795,7 @@ void MainWindow::initPlotUx()
 
     {
         QHBoxLayout *hl = new QHBoxLayout;
-        butEn = new QPushButton(tr("RUN")); 
+        butEn = new QPushButton(tr("RUN"));
         connect(butEn, SIGNAL(clicked()), this, SLOT(slotBound_States()));
         hl->addWidget(butEn);
 
@@ -1784,7 +1809,7 @@ void MainWindow::initPlotUx()
 
         hl->addStretch();
 
-        QPushButton *bRun = new QPushButton(tr("Show U(x)")); 
+        QPushButton *bRun = new QPushButton(tr("Show U(x)"));
         connect(bRun, SIGNAL(clicked()), this, SLOT(compute_Uxz()));
         hl->addWidget(bRun);
 
@@ -1794,7 +1819,7 @@ void MainWindow::initPlotUx()
         U_type->setCurrentIndex(0);
         hl->addWidget(U_type);
 
-        QPushButton * bsz = new QPushButton("&z");	
+        QPushButton * bsz = new QPushButton("&z");
         connect(bsz,SIGNAL(clicked()),this,SLOT(slotScaleZ()));
         hl->addWidget(bsz);
         hl->addStretch();
@@ -1821,27 +1846,27 @@ static void setSomeInitialU(PhysicalModel *m)
     m->setUAsMW( u );
 }
 
-/*char model1[] = 
+/*char model1[] =
 "N=1\n"
 "U=0,-1,0\n"
 "xmin=-3\n"
 ;
 */
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags f)
-: Nwb(1),nmaxLevel(10),nminLevel(0),nLevel(0), nmaxWP(7), nminWP(0),hnWP(1),  
+: Nwb(1),nmaxLevel(10),nminLevel(0),nLevel(0), nmaxWP(7), nminWP(0),hnWP(1),
 E0(-10.), hE(0.01),time(0.), tmin(0.), tmax(1000.0), htime(0.1),Psi2(0.),
 totalRT(1.),Ua(-10.0),aa(1.),Ub(0.),bb(0.8),xmin(-3.),xmax(8.),hx(0.01),
 //Ubias(0.),
 Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
 psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
-QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0), 
+QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0),
 wpE_lo(5.), wpE_hi(15.), wpN(30),
-tableView(0),gbScales(0),gbIntervals(0),
+tableView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
 dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
 gbTEview(0),gbTZview(0),enzWidget(0),
-gbviewMT(0),gbviewM(0), 
+gbviewMT(0),gbviewM(0),
 gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
 {
     this->model = new PhysicalModel();
@@ -1862,7 +1887,8 @@ gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
     this->initPlotPhik();
     this->initPlotNofE();*/
     this->initControlDockWindow();
-    this->initMenuBar(); 
+    model->set_Energy(0.1);
+    this->initMenuBar();
 //    init();
 }
 
@@ -1951,7 +1977,7 @@ void MainWindow::help()
         buf[sizeof(buf)-1] = 0;
         about = new QMessageBox("New version of the KVANT packet",buf,
         QMessageBox::Information, 1, 0, 0, this, 0, FALSE );
-         
+
     }
     about->setButtonText(1, "Dismiss" );
     about->show();
@@ -1975,13 +2001,13 @@ WavePacket MainWindow::buildWPmE()
     int j=0;
     for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
     {
-//        if(j>=NwpEm) break;  
+//        if(j>=NwpEm) break;
         result[j].E = Ebound[i];
         j++;
-    } 
+    }
     Emin=result[0].E;
     Emax=result[NwpEm-1].E;
-    if(Emin==Emax) 
+    if(Emin==Emax)
     {
         result[0].w =1.;
         return result;
@@ -2025,7 +2051,7 @@ WavePacket MainWindow::buildWPpE()
     for(int i=0;i<this->wpN;i++)
     {
         result[i].E = this->wpE_lo+i*de;
-    } 
+    }
     double W=0;
     double C=(wpE_hi-wpE_lo)/2;C*=C;C=6/C;
     double Ec=(wpE_hi+wpE_lo)/2;
@@ -2061,10 +2087,10 @@ void MainWindow::WavePacketXoft()
     switch(iwp)
     {
     case 2: // E_n
-        result=buildWPmE();  
+        result=buildWPmE();
         break;
     case 1: //E>0
-        result=buildWPpE();  
+        result=buildWPpE();
         break;
     default:
         break;
@@ -2092,7 +2118,7 @@ void MainWindow::WavePacketXoft()
     {
         this->time=t;
         updateValues();
-        if (getBreakStatus(0)) 
+        if (getBreakStatus(0))
         {
             return;
         }
@@ -2121,7 +2147,7 @@ void MainWindow::WavePacketXoft()
                     model->b[n]=bp(p,n);
                 }
  //               if (model->E0 < model->get_U(N+1))
- //                   model->b[N+1]=0.; 
+ //                   model->b[N+1]=0.;
                 model->build_Psi();
                 complex yy=model->psi;
                 Psit += model->psi*result[p].w*expt[p];
@@ -2129,17 +2155,17 @@ void MainWindow::WavePacketXoft()
             }
             switch(ii)
             {
-            case 0: 
+            case 0:
                 y=squaremod(Psit);
-                break; 
-            case 1: 
+                break;
+            case 1:
                 y=real(Psit);
                 break;
-            case 2: 
+            case 2:
                 y=imag(Psit);
                 break;
             default:
-                break; 
+                break;
             }
             data.push_back(x);
             data.push_back(y);
@@ -2159,7 +2185,7 @@ void MainWindow::WavePacketPoft()
 //    bool flg=flgScale->isChecked();
     plotterPhi->scaleFixed=false;
  // E_n
-        result=buildWPmE();  
+        result=buildWPmE();
     int M=result.size();
     const int N = model->getN();
 
@@ -2212,7 +2238,7 @@ void MainWindow::WavePacketPoft()
                     model->a[n]=ap(p,n);
                     model->b[n]=bp(p,n);
                 }
-//                model->b[N+1] = 0.; 
+//                model->b[N+1] = 0.;
                 model->build_Phi();
                 complex yy=model->phi;
                 Psit += model->phi*result[p].w*expt[p];
@@ -2227,7 +2253,7 @@ void MainWindow::WavePacketPoft()
 */
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    switch (event->key()) 
+    switch (event->key())
     {
      case Qt::Key_Escape:
          setBreakStatus(1);

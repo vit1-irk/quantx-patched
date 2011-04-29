@@ -454,11 +454,17 @@ void PhysicalModel::matching()
 void PhysicalModel::Smatrix()
 {
     complex p11,p12,p22,p21;
+    int Na=a.size();
+    int Nb=b.size();
+    int Nk=k.size();
     for(int i=0; i<=N; i++)
     {
         complex Im = complex(0.,1.);
         complex up = 0.5*exp(Im*this->k[i]*this->d[i]);
         complex dn = 0.5*exp(-Im*this->k[i]*this->d[i]);
+        double mm=m[i];
+        double m1=m[i+1];
+
         complex K12= (this->k[i]/this->k[i+1])*(this->m[i+1]/this->m[i]);
         complex KPa= (1.+K12)*up;
         complex KMa= (1.-K12)*dn;
@@ -863,15 +869,9 @@ void PhysicalModel::setUparab(const Uparab& u)
     this->d[nn] = 0;
     markUchanged();
 }
-//zParameters PhysicalModel::getzParam()
 zParameters PhysicalModel::getzParam() const
 {
 zParameters tp;
-//v=this->zz;
-//tp.z=zold.z;//this->zz;
-//tp.zmin=zold.zmin;//this->zmin;
-//tp.zmax=zold.zmax;//this->zmax;
-//tp.hz=zold.hz;//this->hz;
 tp.z=this->zz;
 tp.zmin=this->zmin;
 tp.zmax=this->zmax;
@@ -940,6 +940,12 @@ tp.tmax=this->tmax;
 tp.ht=this->ht;
 return tp;
 }
+SettingParameters PhysicalModel::getSettingParameters() const
+{
+SettingParameters tp;
+tp.lineWidth=this->width_of_Line;
+return tp;
+}
 void PhysicalModel::set_z(double v)
 {
  zParameters u = getzParam();
@@ -948,15 +954,6 @@ void PhysicalModel::set_z(double v)
      u.z=v;
      setzParam(u);
  }
-/* if(v!=this->zz)
- {
-     this->set_Uxz(v);
-     emit(signalZChanged(v));
-     this->zz=v;
-     u.z=this->zz;
-     markUchanged();
- }
- */
 }
 
 void  PhysicalModel::setzParam(const zParameters& u)
@@ -1000,14 +997,34 @@ void  PhysicalModel::setTimeParam(const TimeParameters& u)
  double v=u.time;
  if(v!=this->time)
  {
-     emit(signalTimeChanged(v));
      this->time=v;
+     emit(signalTimeChanged(v));
  }
  this->tmin=u.tmin;
  this->tmax=u.tmax;
  if(this->ht!=u.ht)
  {
  this->ht=u.ht;
+ }
+}
+void  PhysicalModel::setSettingParameters(const SettingParameters &u)
+{
+ if(u.lineWidth!=this->width_of_Line)
+ {
+     this->width_of_Line=u.lineWidth;
+     emit(signalWidthChanged());
+ }
+}
+void  PhysicalModel::set_LevelNumber(int n)
+{
+ if(levelNumber!=n)
+ {
+     this->levelNumber=n;
+     emit(signalLevelNumberChanged(n));
+     if(n>=0&&n<Ebound.size())
+     {
+     this->set_Energy(this->Ebound[n]);   
+     }
  }
 }
 void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
@@ -1329,21 +1346,21 @@ void  PhysicalModel::setLevelNumberParameters(const LevelNumberParameters& u)
 {
   bool changed = false;
   int n = u.nmin;
-  if(n<0) n=0;
+//  if(n<0) n=0;
  if(n!=this->LevelNmin)
  {
     this->LevelNmin = n;
  changed = true;
  }
   n = u.nmax;
-  if(n<0) n=0;
+//  if(n<0) n=0;
   if(n!=this->LevelNmax)
  {
     this->LevelNmax = n;
  changed = true;
  }
   n = u.hn;
-  if(n==0) n=1;
+//  if(n==0) n=1;
   if(n!=this->LevelHn)
  {
     this->LevelHn = n;
@@ -1351,7 +1368,7 @@ void  PhysicalModel::setLevelNumberParameters(const LevelNumberParameters& u)
  }
     if (changed)
     {
-    emit(signalLevelNumberChanged());
+    emit(signalLevelParametersChanged());
     }
 }
 LevelNumberParameters  PhysicalModel::getLevelNumberParameters() const
@@ -1400,7 +1417,7 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
     this->d[0] = 0;
     this->Ui[0] = 0;
 //    this->Ub = u.ubias;
-    for (int n = 1; n <= u.numberOfWells; n++)
+for (int n = 1; n <= u.numberOfWells; n++)
     {
         int i = 2*n-1;
         this->Ui[i] = u.ua;
@@ -1418,7 +1435,8 @@ void PhysicalModel::setUAsMW(const UAsMW& u)
 
 PhysicalModel::PhysicalModel(QObject *parent)
 : QObject(parent),
-  N(1), N1(1),N2(1),E0(0), psi(0), x(0),
+width_of_Line(2), levelNumber(0),
+  N(1), N1(1),N2(1),E0(0.001), psi(0), x(0),
   kwave(0),
  time(0),tmin(0),tmax(100),ht(0.01),
  zz(-1),zmin(0.),zmax(1.),hz(0.01),
@@ -1437,12 +1455,6 @@ Hk(0.025), Kmax(5.), Kmin(-5),
 // xmin(-1.),xmax(15.)
 
 {
-//  zold = { 0.2, 0.1, 0.8, 0.05};
-
-zold.z=0.2;
-zold.zmin=0.1;
-zold.zmax=1.;
-zold.hz=0.025;
 }
 
 
@@ -1631,7 +1643,7 @@ void PhysicalModel::set_m(int n, double v)
 }*/
 void PhysicalModel::set_Energy(double v)
 {
-    if (E0 != v)
+    if (this->E0 != v)
     {
         this->E0 = v;
         set_E0(v);
@@ -1643,7 +1655,7 @@ void PhysicalModel::set_Time(double v)
     if (time != v)
     {
         this->time = v;
-        emit(signalTimeChanged(v));
+        emit(signalTimeChanged(v)); 
     }
 }
 void PhysicalModel::markUchanged()
@@ -1651,6 +1663,7 @@ void PhysicalModel::markUchanged()
     need_build_U = true;
     need_build_En = true;
     need_build_WP = true;
+    build_U();
     emit(signalPotentialChanged());
     emit(signalEboundChanged());
 }
@@ -1698,9 +1711,10 @@ double PhysicalModel::get_U(int n)
     }
     return U[n];
 }
-QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF)
+QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
     double y,tt,num;
+    tt=0;
     double Eold=this->E0;
     set_E0(E);
     if(E>0)
@@ -1721,14 +1735,21 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
+        if(tail) this->b[N+1]=0.;
         build_Psi();
         y = psi_real;
-        if (y > 1e6)
-        {
-            y = y;
-        }
         if(viewWF==1) y = psi_imag;
         else if(viewWF>1) y = Psi2;
+        if (fabs(y) > 1e6)
+        {
+            if(y>0) y = 1e6;
+            if(y<0) y = -1e6;
+        }
+        if (fabs(y) < 1e-8)
+        {
+            if(y>0) y = 1e-8;
+            if(y<0) y = -1e-8;
+        }
         /*        if (fabs(y)<fmin)
         {
         y=0.;
@@ -1784,7 +1805,7 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
     {
         set_E0(Emin+i*dE);
         build_k();
-        build_ab();
+         build_ab();
         if(Emin+i*dE>0)
         {
         build_RT();
@@ -1822,7 +1843,6 @@ void PhysicalModel::set_Uxz_forTz(double z)
         }
     }
 }
-
 QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int npoints)
 {
     QVector<double> transmission(npoints);
@@ -1830,16 +1850,24 @@ QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int 
     double y;
     double Eold=this->E0;
     double zold=this->zz;
+ //   QVector<double> Uold;//    = get_Ui();
+ //   Uold.resize(U.size());
+    QVector<double> Uold = get_Ui();
+ 
+    QVector<double> dold = get_d();
+    QVector<double> mold = get_m();
+
     for (int i=0; i < npoints; i++)
-    {   double z=Zmin+i*dZ;
+    {
+        double z=Zmin+i*dZ;
         set_Uxz_forTz(z);
         set_E0(Eold);
         build_k();
         build_ab();
         if(this->E0>0)
         {
-        build_RT();
-         transmission[i] = this->TT;
+            build_RT();
+            transmission[i] = this->TT;
         }
         else
         {
@@ -1856,13 +1884,14 @@ QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int 
     }
     else
         set_Uxz_forTz(zold);
-//        build_k();
-//        build_ab();
-//    this->zz=Zmax;
-//    set_z(zold);
-    return transmission;
 
+    set_Ui_d_m(Uold,dold,mold);
+    int NU=this->U.size();
+    int Nk=this->k.size();
+    int Ns=this->s11.size();
+    return transmission;
 }
+
 QVector<double> PhysicalModel::getPhiOfk(double E, double kmin, double kmax, int npoints)
 {
     set_E0(E);
@@ -2232,6 +2261,8 @@ public:
         : model(_m), r(_r), w(_w) {}
     void read();
     void write();
+    void readWidthOfLine();
+    void writeWidthOfLine();
     void readTime();
     void writeTime();
     void readLevelNumber();
@@ -2352,8 +2383,8 @@ void ModelXML::read()
 void ModelXML::write()
 {
     w->writeStartElement("model");
+    writeWidthOfLine();
     writeE0();
-    writeTypeWP();
     writeUbias();
     writeUdm();
     writeUdm1();
@@ -2366,6 +2397,7 @@ void ModelXML::write()
     writeScalesWPX();
     writeWPm();
     writeWPp();
+    writeTypeWP();
     writeScalesWPK();
     writeScalesPhi();
     w->writeEndElement();
@@ -2571,6 +2603,14 @@ void ModelXML::writeLevelNumber()
     s.sprintf("%i %i %i",hn,nmin,nmax);
     w->writeTextElement("LevelNumber",s);
 }
+void ModelXML::writeWidthOfLine()
+{
+    QString s;
+    SettingParameters wp=model->getSettingParameters();
+    int iw=wp.lineWidth;
+    s.sprintf("%i",iw);
+    w->writeTextElement("Setting",s);
+}
 void ModelXML::writeWPm()
 {
     QString s;
@@ -2674,6 +2714,17 @@ void ModelXML::readTime()
     tp.tmax=tmax;
     model->setTimeParam(tp);
 }
+void ModelXML::readWidthOfLine()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "Setting");
+    QString s = r->readElementText();
+    int iw;
+    sscanf_s(s.toAscii(),"%i",iw);
+    SettingParameters wp;  
+    wp.lineWidth=iw;
+    model->setSettingParameters(wp);  
+}
+
 void ModelXML::readLevelNumber()
 {
     Q_ASSERT(r->isStartElement() && r->name() == "LevelNumber");

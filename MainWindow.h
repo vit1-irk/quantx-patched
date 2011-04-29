@@ -20,6 +20,7 @@
 #include "MomentumView.h"
 #include "EnzView.h"
 //#include "Zview.h"
+#include "ProgramSetting.h"
 #include "WavePacketXView.h"
 #include "WavePacketKView.h"
 #include "WaveFunctionView.h"
@@ -68,6 +69,7 @@ private slots:
     void window_psi_xt();
     void window_phi_k();
     void window_phi_kt();
+    void slotSetting();
 
     void updateMouseMovedTo(QPointF);
 //    void createToolBars();
@@ -167,6 +169,8 @@ private:
     PotentialViewMultiWell *dialogUAsMW;
     Uparabolic *dialogUparab;
     Ulinear *dialogUlinear;
+    ProgramSetting *dialogSetting;
+
     WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
     TimeView *dialogTime;

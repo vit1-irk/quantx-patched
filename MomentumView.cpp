@@ -16,7 +16,7 @@
 MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogScalePhin(0),lineh(0),linev(0)//,
 {
-    widthLine = 3;;
+    lineWidth = 3;;
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -32,7 +32,7 @@ MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
     setMinimumSize(260, 100);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Phi_n_of_k()));
     connect(model,SIGNAL(signalScalePhinChanged()),this,SLOT(resizePicture()));
-    connect(model,SIGNAL(signalLevelNumberChanged()),this,SLOT(resizePicture()));
+    connect(model,SIGNAL(signalLevelParametersChanged()),this,SLOT(resizePicture()));
     resizePicture();
 }
 
@@ -156,10 +156,16 @@ void MomentumView::keyPressEvent(QKeyEvent *event)
 
 void MomentumView::slot_Phi_n_of_k()
 {
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
     QPen p;
-    p.setWidthF(widthLine);
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+//    if(lineWidth==0)lineWidth=1;
+
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -177,6 +183,7 @@ void MomentumView::slot_Phi_n_of_k()
     int nMin=wp.nmin;
     int nMax=wp.nmax;
     int hn=wp.hn;  
+    if(nMin<0||nMax<0||hn<0) return;
     for ( QMap<int,MomentumDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int n = i.key();
@@ -192,10 +199,6 @@ void MomentumView::slot_Phi_n_of_k()
     {
         lineh = new QGraphicsLineItem();
         linev = new QGraphicsLineItem();
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
@@ -205,8 +208,6 @@ void MomentumView::slot_Phi_n_of_k()
         lineh->setPen(p);
         linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
         lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-//        linev->setLine(0., phiMin, 0., phiMax);
-//        lineh->setLine(kmin,0.,kmax,0.);
     }
 
     int npoints;//=500;
@@ -215,7 +216,7 @@ void MomentumView::slot_Phi_n_of_k()
     npoints=1+(kmax-kmin)/this->dk;
     phi.resize(npoints);
     waveFunction.resize(npoints);
-    p.setWidthF(widthLine);
+//    p.setWidthF(lineWidth);
     for (int n = nMin; n <= nMax; n+= hn)
     {
             if(n>number_of_levels-1) break;    
@@ -256,11 +257,14 @@ void MomentumView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 
 void MomentumView::removeCurve(int id)
 {
+    QGraphicsItem *item = curves[id];
+    if (item) 
+    {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    curves[id] = 0; 
+    }//this is dangerous: curves.remove(id);
     update();
-//    repaint();
 }
 
 void MomentumDistribution::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)

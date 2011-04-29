@@ -41,8 +41,14 @@ LevelModel::data(const QModelIndex& index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (role != Qt::DisplayRole)
+    switch (role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+        break;
+    default:
         return QVariant();
+    }
 
     switch (index.column())
     {
@@ -81,4 +87,14 @@ LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
     default:
         return QVariant();
     }
+}
+
+
+Qt::ItemFlags LevelModel::flags (const QModelIndex & index ) const
+{
+    (void)index;
+    return Qt::NoItemFlags
+        //| Qt::ItemIsSelectable
+        //| Qt::ItemIsEditable
+        ;
 }

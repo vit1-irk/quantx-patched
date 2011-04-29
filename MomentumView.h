@@ -67,7 +67,7 @@ private:
     double widthLineE;
     double phiMax, phiMin; 
     double kmin,kmax,dk;
-    double  widthLine; 
+    double  lineWidth; 
 //    MyParamD phiMax, phiMin; 
 //    MyParamD kmin,kmax;
     QGraphicsLineItem *lineh,*linev;

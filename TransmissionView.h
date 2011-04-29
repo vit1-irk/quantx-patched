@@ -84,7 +84,7 @@ private:
     QLineEdit *leEmin;
     QLineEdit *leEmax;
     QLineEdit *leHE;
-    double widthLine;
+    double lineWidth;
     
     PhysicalModel *model;
     QGroupBox  *gbScaleXY;

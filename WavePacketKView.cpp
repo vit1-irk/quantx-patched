@@ -18,7 +18,7 @@ WavePacketKView::WavePacketKView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),
 dialogScaleWPK(0)
 {
-    widthLine = 3;;
+    lineWidth = 3;
 
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -35,6 +35,8 @@ dialogScaleWPK(0)
     setMinimumSize(160, 220);
     connect(model,SIGNAL(signalScaleWPKChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalTimeChanged(double)),this,SLOT(slot_WavePacket_of_t()));
+    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
+
     resizePicture();
 }
 /*WavePacketKView::~WavePacketKView()
@@ -145,10 +147,14 @@ void WavePacketKView::keyPressEvent(QKeyEvent *event)
 
 void WavePacketKView::slot_WavePacket_of_t()
 {
+    if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
     QPen p;
-    p.setWidthF(widthLine);
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+    p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -230,9 +236,13 @@ void WavePacketKView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 
 void WavePacketKView::removeCurve(int id)
 {
+    QGraphicsItem *item = curves[id];
+    if (item) 
+    {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; //this is dangerous: curves.remove(id);
+    curves[id] = 0;
+    }//this is dangerous: curves.remove(id);
     update();
 //    repaint();
 }

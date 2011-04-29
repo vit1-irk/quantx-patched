@@ -51,7 +51,7 @@ public slots:
     void slot_Psi_n_of_x();
     void clearAll();
     void slotEnergyChanged();
-    void updateWidth();
+//    void updateWidth();
 signals:
     void infoMouseMovedTo(QPointF);
     void signalViewChanged();
@@ -69,15 +69,15 @@ public:
     void showDialogScaleY();
     void showDialogLevNum();
 private:
-    void initDialogWidth();
-    void showDialogWidth();
-    void setWidth();
-    QLineEdit *leW;
-    QGroupBox  *gbWidth;
+//    void initDialogWidth();
+//    void showDialogWidth();
+//    void setWidth();
+//    QLineEdit *leW;
+//    QGroupBox  *gbWidth;
     ScalePsin  *dialogScalePsin;
     LevelNumber *dialogLevNum;
     void setScalesFromModel();
-    double widthLine;
+    double lineWidth;
     double psiMax, psiMin,xmin,xmax,dx; 
     int   nMax, nMin, hn;  
     QGraphicsLineItem *lineh,*linev;
@@ -99,6 +99,5 @@ class WaveFunctionWidget : public QGroupBox
 public:
     WaveFunctionWidget(PhysicalModel *model, QWidget * parent = 0);
 private:
-//    QButtonGroup *bgR;
     WaveFunctionView *waveFunctionView;
 };
