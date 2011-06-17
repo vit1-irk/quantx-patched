@@ -26,6 +26,7 @@
 #include "WaveFunctionView.h"
 #include "TransmissionView.h"
 #include "TofzView.h"
+#include "BoundaryCondition.h"
 struct WPE
 {
     double E,w;
@@ -92,6 +93,7 @@ private slots:
 //    void slotScalePsi();
 //    void slotIntervals();
     void slotSetUxt();
+    void slotSetBD();
     void slotSetEn();
     void slotSetUmwb();
 //    void slotSetWPEp();
@@ -258,6 +260,7 @@ private:
 //    QDialog *wPlotT;
 //    QWidget *winTableUx;
 //    QDialog *winTableUx;
+    BoundaryCondition *boundCondView;
     QTableView *tableView;
     QTableView *tableViewEn;
 //    QListWidget *listEn;

@@ -1,3 +1,4 @@
+//qmake -tp vc
 #include "MainWindow.h"
 #include <math.h>
 #include <cmath>
@@ -157,6 +158,7 @@ void MainWindow::initMenuBar()
 //     QMenu *uMenu = menuBar()->addMenu(tr("U(x)"));
      uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
      QAction *uTable = new QAction(tr("Табличный"), uMenu);
+     QAction *uBD    = new QAction(tr("Гран. условия"), uMenu);
      QAction *uLinear = new QAction(tr("Линейный"),uMenu);
      QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
 //     QAction *uTable = new QAction(tr("Tabular"), uMenu);
@@ -164,12 +166,15 @@ void MainWindow::initMenuBar()
 //     QAction *uZdef = new QAction(tr("U(x)=(1-z)*U1(x)+z*U2(x)"),uMenu);
      uMenu->addAction(uTable);
      uMenu->addSeparator();
+     uMenu->addAction(uBD);
+     uMenu->addSeparator();
      uMenu->addAction(uLinear);
      uMenu->addSeparator();
      uMenu->addAction(uParabolic);
      uMenu->addSeparator();
 //     uMenu->addAction(uZdef);
      connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
+     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
      connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
      connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
 //     connect(uZdef, SIGNAL(triggered()), this, SLOT(slotSetZ()));
@@ -315,6 +320,17 @@ void MainWindow::slotSetUxt()
     tableView->show();
     tableView->activateWindow();
     tableView->setFocus();
+}
+void MainWindow::slotSetBD()
+{
+    if (!boundCondView)
+    {
+        boundCondView = new BoundaryCondition(this);
+        boundCondView->setModel(model);
+    }
+    boundCondView->show();
+    boundCondView->activateWindow();
+    boundCondView->setFocus();
 }
 
 void  MainWindow::slotSetUs()
@@ -1861,7 +1877,7 @@ Emin(-10.),Emax(-0.01),Umin(-15.0),Umax(1.),kmax(10.),hk(0.005),
 psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0),
 wpE_lo(5.), wpE_hi(15.), wpN(30),
-tableView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
+tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
 dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
@@ -1877,7 +1893,7 @@ gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
     model->setUAsMW( u1 );
     model->slotU1();
 //    setSomeInitialU(this->model);
-    UAsMW u = { 1, 3, 1, -10, 0 };
+    UAsMW u = { 1, 1, 1, -15, 0 };
     this->model->setUAsMW( u );
     this->initStatusBar();
 /*    this->initPlotEnz();

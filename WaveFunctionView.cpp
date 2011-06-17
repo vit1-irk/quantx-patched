@@ -86,7 +86,9 @@ void WaveFunctionView::slotEnergyChanged()
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
+    PotentialType type = model->getPotentialType(); 
+    if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints,whatToDraw);
+    else waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
     double h=vp.height();
         for (int i=0; i < npoints; i++)
         {
@@ -405,10 +407,13 @@ void WaveFunctionView::slot_Psi_n_of_x()
     waveFunction.resize(npoints);
     p.setWidthF(lineWidth);
     bool tail=true;
+    PotentialType type = model->getPotentialType(); 
     for (int n = this->nMin; n <= this->nMax; n+= this->hn)
     {
         if(n>number_of_levels-1) break;    
-        waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
+    if(type==PERIODIC) waveFunction = model->getPsiOfX_per(Ebound[n],xmin,xmax,npoints,whatToDraw);
+    else waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
+//        waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
         for (int i=0; i < npoints; i++)
         {
  //           double x = xmin + dx*i;
@@ -537,7 +542,7 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
 
     QHBoxLayout *hl = new QHBoxLayout();
     QToolButton *bRun = new QToolButton(this);
-    bRun->setIcon(QIcon("images/player_play.png"));
+    bRun->setIcon(QIcon(":/images/player_play.png"));
     bRun->adjustSize();
     connect(bRun,SIGNAL(clicked()),waveFunctionView,SLOT(resizePicture()));
 

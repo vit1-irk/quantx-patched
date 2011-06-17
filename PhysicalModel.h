@@ -177,7 +177,7 @@ struct zParameters
     }
 };
 
-enum PotentialType { FINITE, PERIODIC };
+enum PotentialType { FINITE, PERIODIC, SEMIPERIODIC };
 
 struct PhysicalModel : public QObject
 {
@@ -240,6 +240,8 @@ public slots:
     void slotU2();
 
 private:
+    complex lambda;
+
     int N;	 // actual number of inner intervals
     QVector<double> d;      /* [u_width]  0..N+1 widths */
     QVector<double> m;      /* [u_mass]   0..N+1 masses */
@@ -346,8 +348,10 @@ public:
     friend class ETree;
 
     void build_k();
+    void build_k_per();
     void build_RT();
     void build_ab();	 /* u:r,k,d,m,fZ			r:a,b */
+    void build_ab_periodic();	 /* u:r,k,d,m,fZ			r:a,b */
     double	 RR;   /* Total reflection */
     double	 TT;   /* Total transmission */
     QVector<complex> a,b;
@@ -360,18 +364,25 @@ public:
     double	 psi_real;   /* real of total Psi */
     double	 psi_imag;   /* real of total Psi */
     void build_Psi();	 /* u:a,b,x,k,d 			r:Psi2 */
+    void build_Psi_per();	 /* u:a,b,x,k,d 			r:Psi2 */
     QVector<complex> k;      /* momentum on interval 0..N+1 for channels Ml..Mh */
     complex psi;
     complex phi;
     double funEn;
+    double discrim;
+    double findEdgeOfBand(double emin, double emax, double dmin, double dmax);
+//    void findBands();
+//    int zeroPsi();
+    int zeroPsiPer(double E);
+
 
     void setPotentialType(PotentialType);
     PotentialType getPotentialType() const { return typeOfU; }
+    int Nperiod;
 
 private:
-    PotentialType typeOfU;
-    int Nperiod;
     //! Potential including bias
+    PotentialType typeOfU;
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
     QVector<double> Ebound;
@@ -381,6 +392,7 @@ private:
     //double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
     double	  time,tmin,tmax,ht;
     double	  zz,zmin,zmax,hz;
+    double qa;
 //    int	  timeswitch;
     double	 totalRT;  /* sum of totalR and totalT */
     double	 Phi_real;   /* real of total Psi */
@@ -439,23 +451,28 @@ public:
     int findNumberOfLevels(double E);
 
       QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
+      QVector<double> getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
       QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints); 
 
 private:
     void matching( );
+    void matching_per( );
     void Smatrix();
+    void Smatrix_per();
     void build_U();
     void set_WPmE();
     void set_WPpE();
 
     void norm();
+//    void norm_per();
     int zeroPsi();
     double findOneLevel(double _emin, double _emax);
     void findBandEdges(double emin, double emax, double Edown, double Eup);
 
     void findBoundStates();
+    void findBands();
 };
 
 /* CONSTANTS

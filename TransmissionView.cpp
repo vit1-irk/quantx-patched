@@ -343,6 +343,7 @@ void TransmissionView::slot_whole_T_of_E()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     if(Emin>Emax) Emax=1.5*Emin;
+    Erase = false;
     if(Erase) curve_number=0;
     else curve_number=curve_number+1;
     int n=curve_number;
@@ -380,7 +381,7 @@ void TransmissionView::slot_whole_T_of_E()
     int npoints;//=501;
     p.setColor(colorForIds[n % size_colorForIds]);
     double x0=Emin;
-    if(Emin<0) x0=1e-7;
+//    if(Emin<0) x0=1e-7;
     QVector<double> transmission;
     QPolygonF curveTE;
     npoints=1+(Emax-x0)/hE;

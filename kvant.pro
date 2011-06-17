@@ -7,6 +7,8 @@ CODECFORTR = Windows-1251
 TRANSLATIONS += kvant_en.ts
 TRANSLATIONS += kvant_fr.ts
 
+RESOURCES = kvant.qrc
+
 # Input
 HEADERS += ProgramSetting.h
 HEADERS += LevelModel.h
@@ -40,8 +42,10 @@ HEADERS += ScalePhin.h
 HEADERS += ScaleWPK.h
 HEADERS += ScaleWPX.h
 HEADERS += LevelNumber.h
+HEADERS += BoundaryCondition.h
 
 SOURCES += ProgramSetting.cpp
+SOURCES += BoundaryCondition.cpp
 SOURCES += ScaleWPK.cpp
 SOURCES += ScaleWPX.cpp
 SOURCES += ScalePhin.cpp

@@ -59,17 +59,7 @@ PotentialViewMultiWell::PotentialViewMultiWell(QWidget *parent, Qt::WindowFlags 
         connect(this->leHeightB,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
-
-/*    {
-        QWidget *line = new QWidget(this);
-        QHBoxLayout *h = new QHBoxLayout(line);
-        h->addWidget(new QLabel(tr("Bias Ub"),this));
-        h->addWidget(this->leUBias = new QLineEdit(this));
-        this->leUBias->setToolTip(tr("U bias over whole structure"));
-        connect(this->leUBias,SIGNAL(editingFinished()),this,SLOT(updateModel()));
-        vl->addWidget(line);
-    }
-*/    this->setLayout(vl);
+    this->setLayout(vl);
     this->modelChanged();
 }
 
