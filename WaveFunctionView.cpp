@@ -78,17 +78,19 @@ void WaveFunctionView::slotEnergyChanged()
     lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
 
     p.setColor(Qt::darkCyan);//Qt::darkRed);
-
-    double E=model->get_E0(); 
+    complex Ec;
+    double E;
+    PotentialType type = model->getPotentialType(); 
+    E=model->get_E0(); 
     int npoints;//=501;
     QVector<double> waveFunction;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    PotentialType type = model->getPotentialType(); 
     if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints,whatToDraw);
-    else waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
+    if(type==FINITE||type==QUASISTATIONARY) waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
+//    if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Ec,xmin,xmax,npoints,whatToDraw,false);
     double h=vp.height();
         for (int i=0; i < npoints; i++)
         {
@@ -145,7 +147,7 @@ void WaveFunctionView::slotEnergyChanged()
     setCurve(ID_PSI_ENERGY, psi, p);
 }
 */
-/*WaveFunctionView::~WaveFunctionView()
+WaveFunctionView::~WaveFunctionView()
 {
     disconnect(this, 0, 0, 0);
     if(!dialogScalePsin) delete dialogScalePsin;
@@ -158,7 +160,6 @@ void WaveFunctionView::slotEnergyChanged()
     if (!lineh) delete lineh;
     if (!linev) delete linev;
 }
-*/
 void WaveFunctionView::resizePicture()
 {       
     ScalePsinParameters tp = model->getScalePsinParam();
@@ -366,9 +367,20 @@ void WaveFunctionView::slot_Psi_n_of_x()
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-
-    QVector<double> Ebound = model->getEn();
-    int number_of_levels = Ebound.size();
+    PotentialType type = model->getPotentialType();
+    int number_of_levels;
+    QVector<double> Ebound;
+    QVector<complex> Equasi;
+    if(type==QUASISTATIONARY)
+    {
+    Equasi = model->getEquasi();
+    number_of_levels = Equasi.size();
+    }
+    else
+    {
+    Ebound = model->getEn();
+    number_of_levels = Ebound.size();
+    }
     LevelNumberParameters wp = model->getLevelNumberParameters();
     nMin=wp.nmin;
     nMax=wp.nmax;
@@ -407,12 +419,12 @@ void WaveFunctionView::slot_Psi_n_of_x()
     waveFunction.resize(npoints);
     p.setWidthF(lineWidth);
     bool tail=true;
-    PotentialType type = model->getPotentialType(); 
     for (int n = this->nMin; n <= this->nMax; n+= this->hn)
     {
         if(n>number_of_levels-1) break;    
     if(type==PERIODIC) waveFunction = model->getPsiOfX_per(Ebound[n],xmin,xmax,npoints,whatToDraw);
-    else waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
+    if(type==FINITE) waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
+    if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Equasi[n],xmin,xmax,npoints,whatToDraw,tail);
 //        waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
         for (int i=0; i < npoints; i++)
         {

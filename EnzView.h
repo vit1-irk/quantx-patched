@@ -49,6 +49,7 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_En_of_z();
+    void slot_Ec_n();
     void slotZline();
     void updateScaleEnz();
 
@@ -78,10 +79,21 @@ private:
     void setScaleEnz();
     QGroupBox  *gbScaleXY;
     double lineWidth;
+    int numberOfCurves;
+    QVector<QPolygonF> adjCurves;
+    QVector<QPolygonF> physCurves;
+    QVector<QPolygonF> adjCurvesI;
+    QVector<QPolygonF> physCurvesI;
+    QVector<QPolygonF> adjCurvesR;
+    QVector<QPolygonF> physCurvesR;
+
 
     double zmax, zmin, hz;
 //    double Umin, Umax;
     QGraphicsLineItem *lineh,*linev;
+    QGraphicsRectItem *rectEG;
+//    QVector<QPointF*> pointEG;
+
     void contextMenuEvent(QContextMenuEvent *event);
     ZDraggable *lineZ;
 

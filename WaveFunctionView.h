@@ -35,7 +35,7 @@ class WaveFunctionView : public QGraphicsView
 public:
 
     WaveFunctionView(PhysicalModel *m, QWidget *parent = 0);
-//    virtual ~WaveFunctionView();
+    virtual ~WaveFunctionView();
 
 //    void setCurve(int id,const QPolygon&, const QPen& = QPen());
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());

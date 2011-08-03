@@ -45,6 +45,7 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_Phi_n_of_k();
+    void slotEnergyChanged();
 signals:
     void infoMouseMovedTo(QPointF);
 

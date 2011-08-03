@@ -25,6 +25,7 @@
 #include "WavePacketKView.h"
 #include "WaveFunctionView.h"
 #include "TransmissionView.h"
+#include "EofqaView.h"
 #include "TofzView.h"
 #include "BoundaryCondition.h"
 struct WPE
@@ -63,6 +64,7 @@ signals:
 private slots:
     void about();
     void window_TE();
+    void window_QE();
     void window_TZ();
     void window_Enz();
     void window_Ux_Psix();
@@ -223,6 +225,7 @@ private:
     WaveFunctionWidget *waveFunctionWidget;
     EnzWidget *enzWidget;
     TransmissionWidget *gbTEview;
+    EofqaWidget *gbQEview;
     TofzViewWidget *gbTZview;
     QGroupBox *grrb;
     QRadioButton *rad1,*rad2;

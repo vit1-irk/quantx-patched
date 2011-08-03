@@ -53,6 +53,7 @@ public slots:
     void slotEboundChanged();
     void slotEnergyChanged();
     void slotUChanged();
+    void slotUperChanged();
     void setViewportMapping();
     void resizePicture();
     void setScalesFromModel();
@@ -84,6 +85,12 @@ private:
 
     QVector<HorDraggableLine*> linesU;
     QVector<VerDraggableLine*> linesV;
+
+    QVector<HorDraggableLine*> linesUmax;
+    QVector<VerDraggableLine*> linesVmax;
+
+    QVector<HorDraggableLine*> linesUmin;
+    QVector<VerDraggableLine*> linesVmin;
 
     QVector<EnergyLevels*> linesEn;
     EnergyDraggableLine* lineEnergy;

@@ -257,7 +257,7 @@ public:
         QPoint vb(0,5);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
-        double ax = fabs(sa.x() - sb.x());
+        double ax  = fabs(sa.x() - sb.x());
         double ay = fabs(sa.y() - sb.y());
 
         QRect vpr = view->viewport()->rect();
@@ -586,97 +586,369 @@ void PotentialViewMovable::scrollView(int hx, int hy)
 }
 void PotentialViewMovable::slotUChanged()
 {
-    QVector<double> d = model->get_d();
-    QVector<double> Ui = model->get_Ui();
-    int Nd=d.size();
-    int Nu=Ui.size();
-    int Nl=linesU.size();
-    while (Ui.size() < linesU.size())
+    PotentialType type = model->getPotentialType(); 
+    if(type==PERIODIC) slotUperChanged();
+    else 
     {
-        scene()->removeItem(linesU.last()); 
-        linesU.pop_back();
-    }
-    while (Ui.size()-1 < linesV.size())
+
+        QVector<double> d = model->get_d();
+        QVector<double> Ui = model->get_Ui();
+        int Nd=d.size();
+        int Nu=Ui.size();
+        int Nl=linesU.size();
+        int Nln=linesUmin.size();
+        int Nlx=linesUmax.size();
+    while (0 < linesUmin.size())
     {
-        scene()->removeItem(linesV.last());
-        linesV.pop_back();
+        scene()->removeItem(linesUmin.last()); 
+        linesUmin.pop_back();
     }
-    while(Ui.size() > linesU.size())
+    int j=linesVmin.size();
+    while (0 < linesVmin.size())
     {
-        HorDraggableLine *line = new HorDraggableLine(this);
-        scene()->addItem(line);
-        linesU << line;
+        scene()->removeItem(linesVmin.last()); 
+        linesVmin.pop_back();
+        j--;
     }
-    while(Ui.size()-1 > linesV.size())
+    while (0 < linesUmax.size())
     {
-        VerDraggableLine *line = new VerDraggableLine(this);
-        scene()->addItem(line);
-        linesV << line;
+        scene()->removeItem(linesUmax.last()); 
+        linesUmax.pop_back();
     }
+    while (0 < linesVmax.size())
+    {
+        scene()->removeItem(linesVmax.last()); 
+        linesVmax.pop_back();
+    }
+        while (Ui.size() < linesU.size())
+        {
+            scene()->removeItem(linesU.last()); 
+            linesU.pop_back();
+        }
+        while (Ui.size()-1 < linesV.size())
+        {
+            scene()->removeItem(linesV.last());
+            linesV.pop_back();
+        }
+        while(Ui.size() > linesU.size())
+        {
+            HorDraggableLine *line = new HorDraggableLine(this);
+            scene()->addItem(line);
+            linesU << line;
+        }
+        while(Ui.size()-1 > linesV.size())
+        {
+            VerDraggableLine *line = new VerDraggableLine(this);
+            scene()->addItem(line);
+            linesV << line;
+        }
+        ///////////////////////////////////////////////////
+        // now we have number of graphical lines and segments of physical potential algned
+        ///////////////////////////////////////////////////
+        QRectF vp = sceneRect();
+        double xmin = vp.x();
+        double xmax = vp.x() + vp.width();
+        HorDraggableLine *l = linesU[1];
+        QLineF ll = l->line();
+        QPointF p1 = ll.p1();
+        QPointF p2 = ll.p2();
+        //----------------------
+        double xlast = vp.x();
+        int nlast=Ui.size()-1;
+        for (int n = 0; n < Ui.size(); ++n)
+        {
+            linesU[n]->setFlag(QGraphicsItem::ItemIsMovable,true);
+            linesU[n]->setFlag(QGraphicsItem::ItemIsSelectable,true);
+            linesU[n]->setZValue(1000);
+            linesU[n]->set_n(n);
+            qreal y = Ui[n];
+            (void)y;
+            double w;
+            if (0 < n && n < Ui.size()-1)//!!! =
+                w = d[n];
+            else if (n==0)
+                w = 0 - vp.x();
+            else
+                w = vp.x() + vp.width() - xlast;
+
+            //       if(xlast+w < xmax)
+            {
+                linesU[n]->setLine(xlast,Ui[n],w);
+                linesU[n]->setZValue(1000);
+                xlast += w;
+            }
+            /*       else
+            {
+            w = xmax-xlast;
+            linesU[n]->setLine(xlast,Ui[n],w);
+            nlast=n;
+            break;//xlast = xmax;
+            }*/
+        }
+        linesU.last()->setFlag(QGraphicsItem::ItemIsMovable,false);
+        linesU.last()->setFlag(QGraphicsItem::ItemIsSelectable,false);
+        linesU.last()->setZValue(1000);
+
+        for (int n = 0; n < linesV.size(); ++n)
+        {
+            //        if(n<nlast)
+            {
+                linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
+                linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true  );
+                linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true  );
+                linesV[n]->setZValue(1000);
+                linesV[n]->set_n(n);
+                QLineF left  = linesU[n]->line();
+                QLineF right = linesU[n+1]->line();
+                qreal y = right.y1();
+                (void)y;
+                double ud = right.y1()-left.y2();
+                linesV[n]->setLine(left.x2(),left.y2(),ud);
+            }
+            //        else break;
+        }
+        update();
+    }
+}
+void PotentialViewMovable::slotUperChanged()
+{
     ///////////////////////////////////////////////////
     // now we have number of graphical lines and segments of physical potential algned
     ///////////////////////////////////////////////////
     QRectF vp = sceneRect();
     double xmin = vp.x();
     double xmax = vp.x() + vp.width();
-    HorDraggableLine *l = linesU[1];
-    QLineF ll = l->line();
-    QPointF p1 = ll.p1();
-    QPointF p2 = ll.p2();
-//----------------------
-    double xlast = vp.x();
-    int nlast=Ui.size()-1;
-    for (int n = 0; n < Ui.size(); ++n)
+    QVector<double> d = model->get_d();
+    QVector<double> Ui = model->get_Ui();
+    int Nd=d.size();
+    int Nu=Ui.size();
+    int Nl=linesU.size();
+    int Nlmin=linesUmin.size();
+    double  xN=0;
+    for (int n = 1; n < Nd-1; n++)
     {
-        linesU[n]->setFlag(QGraphicsItem::ItemIsMovable,true);
-        linesU[n]->setFlag(QGraphicsItem::ItemIsSelectable,true);
-        linesU[n]->setZValue(1000);
-        linesU[n]->set_n(n);
+        xN+= d[n];
+    }
+    int np;
+    if(xmin<=0) np = 1+abs(xmin)/xN;
+    else  np = abs(xmin)/xN;
+//    if(xmin<=0) np = 1+abs(xmin-0.5*xN)/xN;
+//    else  np = abs(xmin+0.5*xN)/xN;
+//    int npx = abs((xmax+0.5*xN)/xN);
+    int npx = abs(xmax/xN)+1;
+    int Nlpmin=(np-1)*(Nu-2);
+    int Nlpmax=(npx-1)*(Nu-2) ;
+    while (Ui.size()-2 < linesU.size())
+    {
+        scene()->removeItem(linesU.last()); 
+        linesU.pop_back();
+    }
+    while (Ui.size()-2 < linesV.size())
+    {
+        scene()->removeItem(linesV.last());
+        linesV.pop_back();
+    }
+    while ((Ui.size()-2)*np < linesUmin.size())
+    {
+        scene()->removeItem(linesUmin.last()); 
+        linesUmin.pop_back();
+    }
+    int j=linesVmin.size();
+    while ((Ui.size()-2)*np < linesVmin.size())
+    {
+        scene()->removeItem(linesVmin.last()); 
+        linesVmin.pop_back();
+        j--;
+    }
+    while ((Ui.size()-2)*(npx-1) < linesUmax.size())
+    {
+        scene()->removeItem(linesUmax.last()); 
+        linesUmax.pop_back();
+    }
+    while ((Ui.size()-2)*(npx-1) < linesVmax.size())
+    {
+        scene()->removeItem(linesVmax.last()); 
+        linesVmax.pop_back();
+    }
+    while(Ui.size()-2 > linesU.size())
+    {
+        HorDraggableLine *line = new HorDraggableLine(this);
+        scene()->addItem(line);
+        linesU << line;
+    }
+    while((Ui.size()-2)*np > linesUmin.size())
+    {
+        HorDraggableLine *line = new HorDraggableLine(this);
+        scene()->addItem(line);
+        linesUmin << line;
+    }
+    while((Ui.size()-2)*(npx-1) > linesUmax.size())
+    {
+        HorDraggableLine *line = new HorDraggableLine(this);
+        scene()->addItem(line);
+        linesUmax << line;
+    }
+    while((Ui.size()-2)*np > linesVmin.size())
+    {
+        VerDraggableLine *lined = new VerDraggableLine(this);
+        scene()->addItem(lined);
+        linesVmin << lined;
+    }
+    while((Ui.size()-2)*(npx-1) > linesVmax.size())
+    {
+        VerDraggableLine *lined = new VerDraggableLine(this);
+        scene()->addItem(lined);
+        linesVmax << lined;
+    }
+    while(Ui.size()-2 > linesV.size())
+    {
+        VerDraggableLine *line = new VerDraggableLine(this);
+        scene()->addItem(line);
+        linesV << line;
+    }
+    double xlast=0;
+    int nlast=Ui.size()-1;
+    int it=linesU.size();
+    int iv=linesV.size();
+    int iun=linesUmin.size();
+    int iux=linesUmax.size();
+    int ivn=linesVmin.size();
+    int ivx=linesVmax.size();
+//    for (int n = 1; n < linesU.size(); ++n)
+    for (int n = 1; n < Ui.size()-1; ++n)
+    {
+        linesU[n-1]->setFlag(QGraphicsItem::ItemIsMovable,true);
+        linesU[n-1]->setFlag(QGraphicsItem::ItemIsSelectable,true);
+        linesU[n-1]->setZValue(1000);
+        linesU[n-1]->set_n(n-1);
         qreal y = Ui[n];
         (void)y;
-        double w;
-        if (0 < n && n < Ui.size()-1)//!!! =
-            w = d[n];
-        else if (n==0)
-            w = 0 - vp.x();
-        else
-            w = vp.x() + vp.width() - xlast;
-
- //       if(xlast+w < xmax)
-        {
-        linesU[n]->setLine(xlast,Ui[n],w);
-        linesU[n]->setZValue(1000);
+        double w=d[n];
+        linesU[n-1]->setLine(xlast,Ui[n],w);
+        linesU[n-1]->setZValue(1000);
         xlast += w;
-        }
- /*       else
-        {
-            w = xmax-xlast;
-            linesU[n]->setLine(xlast,Ui[n],w);
-            nlast=n;
-            break;//xlast = xmax;
-        }*/
     }
-    linesU.last()->setFlag(QGraphicsItem::ItemIsMovable,false);
-    linesU.last()->setFlag(QGraphicsItem::ItemIsSelectable,false);
-    linesU.last()->setZValue(1000);
-
-    for (int n = 0; n < linesV.size(); ++n)
+    for (int n = 0; n < linesU.size(); ++n)
     {
-//        if(n<nlast)
-        {
-        linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
-        linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true );
-        linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true );
+        linesV[n]->setCursor(Qt::SizeHorCursor);
+        linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == linesU.size()-1? false : true );
+        linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == linesU.size()-1 ? false : true  );
         linesV[n]->setZValue(1000);
         linesV[n]->set_n(n);
-        QLineF left  = linesU[n]->line();
-        QLineF right = linesU[n+1]->line();
-        qreal y = right.y1();
-        (void)y;
-        double ud = right.y1()-left.y2();
-        linesV[n]->setLine(left.x2(),left.y2(),ud);
+        if(n==linesU.size()-1)
+        {
+            QLineF left  = linesU[n]->line();
+            QLineF right = linesU[0]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            linesV[n]->setLine(left.x2(),left.y2(),ud);
         }
-//        else break;
+        else
+        {
+            QLineF left  = linesU[n]->line();
+            QLineF right = linesU[n+1]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            linesV[n]->setLine(left.x2(),left.y2(),ud);
+        }
+    }
+    xlast=-np*xN;
+    if(xmin<0)
+    {
+        for (int j = 0; j < np; ++j)
+        {
+            int jj;
+            for (int n = 1; n < Ui.size()-1; ++n)
+            {
+                qreal y = Ui[n];
+                double w=d[n];
+                jj=(Ui.size()-2)*j-1+n;
+                linesUmin[jj]->setFlag(QGraphicsItem::ItemIsMovable,false);
+                linesUmin[jj]->setFlag(QGraphicsItem::ItemIsSelectable,false);
+                linesUmin[jj]->setZValue(0);
+                linesUmin[jj]->setLine(xlast,Ui[n],w);
+                linesUmin[jj]->setZValue(0);
+                xlast += w;
+            }
+        }
+        for (int n = 0; n < linesUmin.size(); ++n)
+        {
+            linesVmin[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
+            linesVmin[n]->setFlag(QGraphicsItem::ItemIsMovable,false );
+            linesVmin[n]->setFlag(QGraphicsItem::ItemIsSelectable,false);
+            linesVmin[n]->setZValue(0);
+            linesVmin[n]->set_n(n);
+        if(n==linesUmin.size()-1)
+        {
+            QLineF left  = linesUmin[n]->line();
+            QLineF right = linesU[0]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            linesVmin[n]->setLine(left.x2(),left.y2(),ud);
+        }
+        else
+        {
+            QLineF left  = linesUmin[n]->line();
+            QLineF right = linesUmin[n+1]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            double xx=left.x2();
+            linesVmin[n]->setLine(left.x2(),left.y2(),ud);
+        }
+        }
+    }
+
+    if(xmax>xN)
+    {
+        xlast=xN;
+        int iu=linesUmax.size();
+        for (int j = 0; j < npx-1; ++j)
+        {
+            int jj;
+            for (int n = 1; n < Ui.size()-1; ++n)
+            {
+                qreal y = Ui[n];
+                double w=d[n];
+                double x=xlast+w;
+                jj=(Ui.size()-2)*j-1+n;
+                linesUmax[jj]->setFlag(QGraphicsItem::ItemIsMovable,false);
+                linesUmax[jj]->setFlag(QGraphicsItem::ItemIsSelectable,false);
+                linesUmax[jj]->setZValue(0);
+                linesUmax[jj]->setLine(xlast,Ui[n],w);
+                linesUmax[jj]->setZValue(0);
+                xlast += w;
+            }
+        }
+        for (int n = 0; n < linesUmax.size(); ++n)
+        {
+            linesVmax[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
+            linesVmax[n]->setFlag(QGraphicsItem::ItemIsMovable,false );
+            linesVmax[n]->setFlag(QGraphicsItem::ItemIsSelectable,false);
+            linesVmax[n]->setZValue(0);
+            linesVmax[n]->set_n(n);
+        if(n==linesUmax.size()-1)
+        {
+            QLineF left  = linesUmax[n]->line();
+            QLineF right = linesU[0]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            linesVmax[n]->setLine(left.x2(),left.y2(),ud);
+        }
+        else
+        {
+            QLineF left  = linesUmax[n]->line();
+            QLineF right = linesUmax[n+1]->line();
+            qreal y = right.y1();
+            (void)y;
+            double ud = right.y1()-left.y2();
+            linesVmax[n]->setLine(left.x2(),left.y2(),ud);
+        }
+        }
     }
     update();
 }
@@ -687,35 +959,60 @@ void PotentialViewMovable::slotEboundChanged()
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-    QVector<double> Ebound = model->getEn();
-    while (Ebound.size() > linesEn.size())
+    PotentialType type = model->getPotentialType(); 
+    QVector<double> Ebound;
+    QVector<complex> Equasi;
+    if(type==FINITE||type==PERIODIC) 
     {
-        int n = linesEn.size();
-        EnergyLevels *line = new EnergyLevels(this);
-        double e = Ebound[n];
-        line->setLine(xmin,e,xmax-xmin);
-        line->setFlag(QGraphicsItem::ItemIsMovable,false);
-        line->setFlag(QGraphicsItem::ItemIsSelectable,false);
-        line->setCursor(QCursor());
-        scene()->addItem(line);
-        linesEn.push_back(line);
+        Ebound = model->getEn();
+        while (Ebound.size() > linesEn.size())
+        {
+            int n = linesEn.size();
+            EnergyLevels *line = new EnergyLevels(this);
+            double e = Ebound[n];
+            line->setLine(xmin,e,xmax-xmin);
+            line->setFlag(QGraphicsItem::ItemIsMovable,false);
+            line->setFlag(QGraphicsItem::ItemIsSelectable,false);
+            line->setCursor(QCursor());
+            scene()->addItem(line);
+            linesEn.push_back(line);
+        }
+        while (Ebound.size() < linesEn.size())
+        {
+            scene()->removeItem(linesEn.last());
+            linesEn.pop_back();
+        }
+        for (int n = 0; n < linesEn.size(); ++n)
+        {
+            linesEn[n]->setLine(xmin,Ebound[n],xmax-xmin);
+            linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
+        }
     }
-    while (Ebound.size() < linesEn.size())
+    if(type==QUASISTATIONARY) 
     {
-        scene()->removeItem(linesEn.last());
-        linesEn.pop_back();
-    }
-//    int npoints=501;
-//    QVector<double> waveFunction;
-//    QPolygonF psi;
-//    psi.resize(npoints);
-//    waveFunction.resize(npoints);
-//    double dx = (xmax-xmin)/(npoints-1);
-    for (int n = 0; n < linesEn.size(); ++n)
-    {
-//        double modelEn = Ebound[n];
-        linesEn[n]->setLine(xmin,Ebound[n],xmax-xmin);
-        linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
+        Equasi = model->getEquasi();
+        while (Equasi.size() > linesEn.size())
+        {
+            int n = linesEn.size();
+            EnergyLevels *line = new EnergyLevels(this);
+            double e = real(Equasi[n]);
+            line->setLine(xmin,e,xmax-xmin);
+            line->setFlag(QGraphicsItem::ItemIsMovable,false);
+            line->setFlag(QGraphicsItem::ItemIsSelectable,false);
+            line->setCursor(QCursor());
+            scene()->addItem(line);
+            linesEn.push_back(line);
+        }
+        while (Equasi.size() < linesEn.size())
+        {
+            scene()->removeItem(linesEn.last());
+            linesEn.pop_back();
+        }
+        for (int n = 0; n < linesEn.size(); ++n)
+        {
+            linesEn[n]->setLine(xmin,real(Equasi[n]),xmax-xmin);
+            linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
+        }
     }
     update();
 }
@@ -738,7 +1035,9 @@ void PotentialViewMovable::slotEnergyChanged()
     p.setColor(Qt::green);
     lineEnergy->setPen(p);
     lineEnergy->setLine(xmin,E,xmax-xmin);
-    model->getTatE();
+    PotentialType type = model->getPotentialType(); 
+    if(type==PERIODIC) model->getQaatE();
+    if(type==FINITE) model->getTatE();
 }
 EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
@@ -830,7 +1129,10 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
 //                right->setLine(p1.x(),newU,p2.y());
                 right->setLine(p1.x(),newU,p2.y()-newU);
             }
-            view->model->set_Ui(n,newU);
+    PotentialType type = view->model->getPotentialType(); 
+    if(type==PERIODIC) view->model->set_Ui(n+1,newU);
+    else  view->model->set_Ui(n,newU);
+//            view->model->set_Ui(n,newU);
             return QVariant();
         }
     }
@@ -885,6 +1187,9 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             view->linesU[ n ]->setLine(left.x1(),left.y1(),left_w);
             view->linesU[n+1]->setLine(x,right.y1(),right_w);
             
+    PotentialType type = view->model->getPotentialType(); 
+    if(type==PERIODIC) view->model->set_d(n+1,left_w,n+2,right_w);
+    else  
             view->model->set_d(n,left_w,n+1,right_w);
 
             return QVariant();

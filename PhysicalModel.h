@@ -177,7 +177,7 @@ struct zParameters
     }
 };
 
-enum PotentialType { FINITE, PERIODIC, SEMIPERIODIC };
+enum PotentialType { FINITE, PERIODIC, QUASISTATIONARY, SEMIPERIODIC };
 
 struct PhysicalModel : public QObject
 {
@@ -188,6 +188,9 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
+    void set_EmaxEmin(double E1, double E2);
+//    double get_Gmin const { return Gmin; };
+
     LevelNumberParameters getLevelNumberParameters() const;
     void setLevelNumberParameters(const LevelNumberParameters&);
     ScaleWPXParameters getScaleWPXParam() const;
@@ -224,6 +227,7 @@ signals:
     void signalPotentialChanged();
     void signalEnergyChanged(double);
     void signalTransmissionChanged(double);
+    void signalQaChanged(double);
     void signalLevelNumberChanged(int);
     void signalEboundChanged();
     void signalScalesUChanged();
@@ -248,7 +252,9 @@ private:
     //! Heterostructural potential
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
-    double E0;
+    double E0, GG, Gmin;
+    complex Ecmplx;
+    double Emin,Emax, hE;
     int width_of_Line;
     int N1;	 // actual number of inner intervals of U1
     QVector<double> U1; //!< Inital potential values for z-animations
@@ -281,13 +287,24 @@ private:
     void markWPchanged();
 
 public:
+    int colorB;
     void set_Uxz(double z);
     void set_Uxz_forTz(double z);
     void getTatE(); 
+    void getQaatE(); 
     bool flagBondaryCondition;
     double get_U(int n);//comment
     double getUbias() const { return Ubias; }
     double get_E0() const { return E0; }
+    complex get_Ecmplx() const { return Ecmplx; }
+    QVector<double> EnOfRealB;
+    QVector<double> EnOfImagB;
+    QVector<double> getEnOfReal();
+    QVector<double> getEnOfImagB();
+    QVector<double> Egn;
+
+    void set_G(double v) {GG=v;}
+    complex bN1;
     double get_Time() const { return this->time; }
 //---------WavePacket---------------- 
 //    void set_type_of_WP(int iwp) { type_of_WP=iwp; }
@@ -309,6 +326,7 @@ public:
     void set_NofWP(int n);
     void set_LevelNumber(int n);
     int get_LevelNumber() const {return this->levelNumber; };
+    void getZeros(double Emin, double Emax, double dE, double Gmin, double Gmax, double dG);
 
 //potential:
     void setUbias(double _Ubias);
@@ -335,7 +353,11 @@ public:
     void set_U1_d1_m1(const QVector<double>& U1, const QVector<double>& d1,const QVector<double>& m1);
     void set_U2_d2_m2(const QVector<double>& U2, const QVector<double>& d2,const QVector<double>& m2);
     QVector<double> getEn();
+    QVector<double> getEgn(bool what);
     double getEn(int n);
+    QVector<complex> getEquasi();
+    complex getEquasi(int n);
+    double get_qa() const { return qa; }
     double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;  
     double Phinmin,Phinmax,Kmin,Kmax,Hk;  
     double WPKmin,WPKmax;  
@@ -348,16 +370,16 @@ public:
     friend class ETree;
 
     void build_k();
-    void build_k_per();
+    void build_kcmplx();
     void build_RT();
     void build_ab();	 /* u:r,k,d,m,fZ			r:a,b */
-    void build_ab_periodic();	 /* u:r,k,d,m,fZ			r:a,b */
     double	 RR;   /* Total reflection */
     double	 TT;   /* Total transmission */
     QVector<complex> a,b;
     QVector<complex> s11,s12,s21,s22;
     double kwave;
     void build_Phi();	 /* u:a,b,p,k,d 			r:Phi */
+    void build_Phi_per();	 /* u:a,b,p,k,d 			r:Phi */
     double	 Phi2;
     double	  x;	  /* [u_width] given point */
     double	 Psi2;
@@ -374,6 +396,7 @@ public:
 //    void findBands();
 //    int zeroPsi();
     int zeroPsiPer(double E);
+//    int zeroPsiQuasi(double E);
 
 
     void setPotentialType(PotentialType);
@@ -386,8 +409,9 @@ private:
     QVector<double> U;      /* [u_energy] 0..N+1 constant potential (build by build_U) */
     //    complex r, t; /* reflection & transmission magnitudes, Ml...Mh */
     QVector<double> Ebound;
-    QVector<double> EbandUp;
-    QVector<double> EbandDown;
+    QVector<complex> Equasi;
+//    QVector<double> EbandUp;
+//    QVector<double> EbandDown;
     std::vector<int> NumberofZero;
     //double	  Xmin,Xmax,Umin,Umax;	  /* [u_width] given point */
     double	  time,tmin,tmax,ht;
@@ -408,7 +432,23 @@ public:
     void set_N(int N)
     {
         this->N = N;
-
+//        PotentialType type = getPotentialType(); 
+//    if(type==PERIODIC) 
+//    {
+/*        d.resize(N);
+        m.resize(N);
+        U.resize(N);
+        Ui.resize(N);
+        k.resize(N);
+        a.resize(N);
+        b.resize(N);
+        s12.resize(N);
+        s21.resize(N);
+        s11.resize(N);
+        s22.resize(N);*/
+//    }
+//    if(type==FINITE) 
+    {
         d.resize(1+N+1);
         m.resize(1+N+1);
         U.resize(1+N+1);
@@ -420,7 +460,7 @@ public:
         s21.resize(1+N+1);
         s11.resize(1+N+1);
         s22.resize(1+N+1);
-
+    }
 
         this->psi_imag = 0;
         this->psi_real = 0;
@@ -444,23 +484,33 @@ public:
         U2.resize(1+N+1);
     }
     void set_type_of_WP(int iwp) { type_of_WP=iwp; }
-    void set_E0(double e) { E0 = e; }	  /* [u_energy] incident wave energy */
+    void set_E0(double e); 	  /* [u_energy] incident wave energy */
+    void set_Ecmplx(complex e); 	  /* [u_energy] incident wave energy */
+    void set_E00(double e) { E0 = e; }	  /* [u_energy] incident wave energy */
     //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
 
     QRectF getGoodViewportAtU() const;
     int findNumberOfLevels(double E);
+    int findNumberOfQuasiLevels(double E);
 
+      QVector<double> getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF, bool tail);
       QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
       QVector<double> getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
+      QVector<double> getPhiOfkPer(double kmin, double kmax);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
       QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints); 
+//      void findEdgeOfBands(double Emin, double Emax);
+complex findOneQuasiLevel(double _emin, double _emax);
+//complex findOneQuasiLevelG(complex Ec0, complex Ec1);
 
 private:
+    complex findOneQuasiLevelG(complex Ec0, complex Ec1);
     void matching( );
     void matching_per( );
     void Smatrix();
     void Smatrix_per();
+//    void Smatrix_quasi();
     void build_U();
     void set_WPmE();
     void set_WPpE();
@@ -468,11 +518,15 @@ private:
     void norm();
 //    void norm_per();
     int zeroPsi();
+    int zeroPsiQuasi();
     double findOneLevel(double _emin, double _emax);
-    void findBandEdges(double emin, double emax, double Edown, double Eup);
-
+    void findZerosOfReImbN1(bool first);
+    double findZeroOfImagbN1(double E1, double b1, double E2, double b2);
+    double findZeroOfRealbN1(double E1, double b1, double E2, double b2);
     void findBoundStates();
+    void findQuasiStates();
     void findBands();
+
 };
 
 /* CONSTANTS

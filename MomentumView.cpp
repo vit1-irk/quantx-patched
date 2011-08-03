@@ -31,6 +31,7 @@ MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMinimumSize(260, 100);
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_Phi_n_of_k()));
+    connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalScalePhinChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalLevelParametersChanged()),this,SLOT(resizePicture()));
     resizePicture();
@@ -58,6 +59,8 @@ void MomentumView::resizePicture()
     phiMax=tp.Phinmax;
     phiMin=tp.Phinmin;
     setViewportMapping();
+    PotentialType type = model->getPotentialType(); 
+    if(type==PERIODIC)  slotEnergyChanged();
     slot_Phi_n_of_k();
 }
 
@@ -153,6 +156,81 @@ void MomentumView::keyPressEvent(QKeyEvent *event)
     }
     QGraphicsView::keyPressEvent(event);
 }
+#define ID_PSI_ENERGY (200)
+void MomentumView::slotEnergyChanged()
+{
+    if (! isVisible()) return;
+    LevelNumberParameters wp = model->getLevelNumberParameters();
+    int nMin=wp.nmin;
+    int nMax=wp.nmax;
+    int hn=wp.hn;  
+    if(nMin>0&&nMax>0&&hn>0) return;
+    PotentialType type = model->getPotentialType(); 
+    if(type!=PERIODIC) return; 
+    QRectF vp = scene()->sceneRect();
+    //    QRect a = QRect(this->viewport()->rect());
+    QPen p;
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+    p.setWidthF(lineWidth);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
+/*    if(!linev)
+    {
+        lineh = new QGraphicsLineItem();
+        linev = new QGraphicsLineItem();
+        scene()->addItem(lineh);
+        scene()->addItem(linev);
+    }
+    else
+    {
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
+    }*/
+    p.setColor(Qt::darkCyan);//Qt::darkRed);
+
+    double E=model->get_E0(); 
+    model->set_E0(E);
+    double     ax=0;
+
+    for(int n=1; n<=model->getN(); n++)
+    {
+        ax += model->get_d(n);
+    }
+    double bk = 2*M_PI/ax;//this is bb in my old programm 
+    double qa = model->get_qa();
+    double qx = qa/ax;
+    if(abs(qa)>M_PI) return;
+    int nqmin = (kmin-qx)/bk;
+    int nqmax = (kmax-qx)/bk;
+    int np = nqmax-nqmin+1;
+    QVector<double> waveFunction(np);
+    QPolygonF phi;
+    phi.resize(3*np+2);
+    waveFunction = model->getPhiOfkPer(kmin,kmax);
+    double x = 0;
+    double y0 = vp.height()*(-phiMin)/(phiMax-phiMin);
+    phi[0]=QPointF(0., y0);
+    for (int n = 0; n < np; n++)
+    {
+        double q = (nqmin+n)*bk+qx;
+        x = (q-kmin)*vp.width()/(kmax-kmin);
+        double y = vp.height()*(waveFunction[n]-phiMin)/(phiMax-phiMin);
+
+        phi[3*(n+1)-2]=QPointF(x, y0);
+        phi[3*(n+1)-1]=QPointF(x, y);
+        phi[3*(n+1)]=QPointF(x, y0);
+    }
+    x = vp.width();
+    phi[3*np+1]=QPointF(x, y0);
+//    p.setColor(colorForIds[1 % size_colorForIds]);
+    setCurve(ID_PSI_ENERGY, phi, p);
+    update();
+}
 
 void MomentumView::slot_Phi_n_of_k()
 {
@@ -163,14 +241,14 @@ void MomentumView::slot_Phi_n_of_k()
     SettingParameters ts;  
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-//    if(lineWidth==0)lineWidth=1;
+    //    if(lineWidth==0)lineWidth=1;
 
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     static const QColor colorForIds[12] = {
-            Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
 
@@ -183,7 +261,7 @@ void MomentumView::slot_Phi_n_of_k()
     int nMin=wp.nmin;
     int nMax=wp.nmax;
     int hn=wp.hn;  
-    if(nMin<0||nMax<0||hn<0) return;
+    if(nMin<0||nMax<0||hn<0||nMin>number_of_levels-1||nMax<nMin) return;
     for ( QMap<int,MomentumDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int n = i.key();
@@ -194,47 +272,97 @@ void MomentumView::slot_Phi_n_of_k()
         if(n>nMax&&nMax<number_of_levels-1) removeCurve(n);
         if(n<nMin&&nMin<number_of_levels-1) removeCurve(n);
     }
-
-    if(!linev)
+    PotentialType type = model->getPotentialType(); 
+    if(type==PERIODIC) 
     {
-        lineh = new QGraphicsLineItem();
-        linev = new QGraphicsLineItem();
-        scene()->addItem(lineh);
-        scene()->addItem(linev);
+        double     ax=0;
+        for(int n=1; n<=model->getN(); n++)
+        {
+            ax += model->get_d(n);
+        }
+        double bk = 2*M_PI/ax;//this is bb in my old programm 
+        model->set_E0(Ebound[nMin]);
+        double qx = model->get_qa()/ax;
+        int nqmin = (kmin-qx)/bk;
+        int nqmax = (kmax-qx)/bk;
+        int np = nqmax-nqmin+1;
+        QVector<double> waveFunction(np);
+        for (int j = nMin; j <= nMax; j+= hn)
+        {
+            if(j>number_of_levels-1) break;
+            double ee=Ebound[j];
+            model->set_E0(ee);
+            qx = model->get_qa()/ax;
+            nqmin = (kmin-qx)/bk;
+            nqmax = (kmax-qx)/bk;
+            np = nqmax-nqmin+1;
+            waveFunction.resize(np);
+            waveFunction = model->getPhiOfkPer(kmin,kmax);
+            QPolygonF phi;
+            phi.resize(3*np+2);
+            double x = 0;
+            double y0 = vp.height()*(2*j-phiMin)/(phiMax-phiMin);
+            phi[0]=QPointF(0., y0);
+            for (int n = 0; n < np; n++)
+            {
+                double q = (nqmin+n)*bk+qx;
+                x = (q-kmin)*vp.width()/(kmax-kmin);
+                double y = vp.height()*(2*j+waveFunction[n]-phiMin)/(phiMax-phiMin);
+
+                phi[3*(n+1)-2]=QPointF(x, y0);
+                phi[3*(n+1)-1]=QPointF(x, y);
+                phi[3*(n+1)]=QPointF(x, y0);
+            }
+            x = vp.width();
+            phi[3*np+1]=QPointF(x, y0);
+            p.setColor(colorForIds[j % size_colorForIds]);
+            setCurve(j, phi, p);
+        }
+        update();
     }
+    else 
+    {
+        if(!linev)
+        {
+            lineh = new QGraphicsLineItem();
+            linev = new QGraphicsLineItem();
+            scene()->addItem(lineh);
+            scene()->addItem(linev);
+        }
         else
-    {
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-    }
+        {
+            linev->setPen(p);
+            lineh->setPen(p);
+            linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+            lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
+        }
 
-    int npoints;//=500;
-    QVector<double> waveFunction;
-    QPolygonF phi;
-    npoints=1+(kmax-kmin)/this->dk;
-    phi.resize(npoints);
-    waveFunction.resize(npoints);
-//    p.setWidthF(lineWidth);
-    for (int n = nMin; n <= nMax; n+= hn)
-    {
+        int npoints;
+        QVector<double> waveFunction;
+        QPolygonF phi;
+        npoints=1+(kmax-kmin)/this->dk;
+        phi.resize(npoints);
+        waveFunction.resize(npoints);
+        //    p.setWidthF(lineWidth);
+        for (int n = nMin; n <= nMax; n+= hn)
+        {
             if(n>number_of_levels-1) break;    
             waveFunction = model->getPhiOfk(Ebound[n],kmin,kmax,npoints);
             for (int i=0; i < npoints; i++)
             {
-//                double x = kmin + dk*i;
-//                double y = waveFunction[i];
-//                phi[i]  = QPointF(x, y);
-            double x = (i*vp.width())/(npoints-1);
-            double y =vp.height()*(waveFunction[i]-phiMin)/(phiMax-phiMin);
-            phi[i]  = QPointF(x, y);
+                //                double x = kmin + dk*i;
+                //                double y = waveFunction[i];
+                //                phi[i]  = QPointF(x, y);
+                double x = (i*vp.width())/(npoints-1);
+                double y =vp.height()*(waveFunction[i]-phiMin)/(phiMax-phiMin);
+                phi[i]  = QPointF(x, y);
             }
-        p.setColor(colorForIds[n % size_colorForIds]);
-        setCurve(n, phi, p);
-//            setCurve(n,phi,colorForIds[n % size_colorForIds]);
+            p.setColor(colorForIds[n % size_colorForIds]);
+            setCurve(n, phi, p);
+            //            setCurve(n,phi,colorForIds[n % size_colorForIds]);
+        }
+        update();
     }
-    update();
 }
 
 void MomentumView::setCurve(int id,const QPolygonF & curve, const QPen& pen)

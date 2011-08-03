@@ -64,6 +64,8 @@ PotentialModel::data(const QModelIndex& index, int role) const
         else 
         return QVariant(model->get_Ui(index.row()));
     case 2: // mass
+        if (index.row() == model->getN() + 1)
+            return QVariant();
         return QVariant(model->get_m(index.row()));
     default:
         return QVariant();

@@ -129,13 +129,19 @@ void MainWindow::initMenuBar()
 
      mPsiXT->setStatusTip(tr("Временная эволюция волнового пакета: импульсное распределение"));
 //     mPhiKT->setStatusTip(tr("Momentum distribution: time development of wave packet"));
-     QAction *mTE = new QAction(tr("T(E)"), this);
+     QAction *mTE = new QAction(tr("T(E)/qa(E)"), this);
      wMenu->addAction(mTE);
      wMenu->addSeparator();
      mTE->setStatusTip(tr("Коэффициент прохождения в зависимости от энергии"));
      QAction *mTZ = new QAction(tr("T(z)"), this);
      wMenu->addAction(mTZ);
      wMenu->addSeparator();
+
+     QAction *mQE = new QAction(tr("qa(E)"), this);
+     wMenu->addAction(mQE);
+     wMenu->addSeparator();
+     mQE->setStatusTip(tr("Закон дисперсии"));
+
      mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
 //     mTE->setStatusTip(tr("Transmission coefficient as a function of energy"));
      QAction *mEnz = new QAction(tr("Enz"), this);
@@ -148,17 +154,24 @@ void MainWindow::initMenuBar()
      connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux_Psix()));
      connect(mPsinX, SIGNAL(triggered()), this, SLOT(window_psi_x()));
      connect(mPhinK, SIGNAL(triggered()), this, SLOT(window_phi_k()));
-    connect(mPsiXT, SIGNAL(triggered()), this, SLOT(window_psi_xt()));
+     connect(mPsiXT, SIGNAL(triggered()), this, SLOT(window_psi_xt()));
      connect(mPhiKT, SIGNAL(triggered()), this, SLOT(window_phi_kt()));
      connect(mTE, SIGNAL(triggered()), this, SLOT(window_TE()));
+     connect(mQE, SIGNAL(triggered()), this, SLOT(window_QE()));
      connect(mTZ, SIGNAL(triggered()), this, SLOT(window_TZ()));
      connect(mEnz, SIGNAL(triggered()), this, SLOT(window_Enz()));
 
+/*     QMenu *bcMenu = menuBar()->addMenu(tr("Гран. условия"));
+     bcMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
+     QAction *uBD    = new QAction(tr("Гран. условия"), bcMenu);
+     bcMenu->addAction(uBD);
+     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
+*/
      QMenu *uMenu = menuBar()->addMenu(tr("Потенциалы"));
 //     QMenu *uMenu = menuBar()->addMenu(tr("U(x)"));
      uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
      QAction *uTable = new QAction(tr("Табличный"), uMenu);
-     QAction *uBD    = new QAction(tr("Гран. условия"), uMenu);
+//     QAction *uBD    = new QAction(tr("Гран. условия"), uMenu);
      QAction *uLinear = new QAction(tr("Линейный"),uMenu);
      QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
 //     QAction *uTable = new QAction(tr("Tabular"), uMenu);
@@ -166,7 +179,7 @@ void MainWindow::initMenuBar()
 //     QAction *uZdef = new QAction(tr("U(x)=(1-z)*U1(x)+z*U2(x)"),uMenu);
      uMenu->addAction(uTable);
      uMenu->addSeparator();
-     uMenu->addAction(uBD);
+//     uMenu->addAction(uBD);
      uMenu->addSeparator();
      uMenu->addAction(uLinear);
      uMenu->addSeparator();
@@ -174,10 +187,18 @@ void MainWindow::initMenuBar()
      uMenu->addSeparator();
 //     uMenu->addAction(uZdef);
      connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
-     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
+//     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
      connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
      connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
 //     connect(uZdef, SIGNAL(triggered()), this, SLOT(slotSetZ()));
+
+     QToolBar *bcTool = new QToolBar;
+     bcTool->setFont(font);
+     addToolBar(bcTool);
+     QAction *bcAc = new QAction(tr("Model"), bcTool);
+     bcTool->addAction(bcAc);
+     bcAc->setToolTip(tr("Граничные условия"));
+     connect(bcAc, SIGNAL(triggered()), this, SLOT(slotSetBD()));
 
      QToolBar *uTool = new QToolBar;
      uTool->setFont(font);
@@ -188,7 +209,7 @@ void MainWindow::initMenuBar()
      uMulti->setToolTip(tr("Система одинаковых ям/барьеров"));
 //     uMulti->setToolTip("Multi-well/barrier potential");
      connect(uMulti, SIGNAL(triggered()), this, SLOT(slotSetUmwb()));
-
+ 
      QToolBar *EnTool = new QToolBar;
      addToolBar(EnTool);
      QAction *EnAction = new QAction(tr("En"), EnTool);
@@ -462,6 +483,15 @@ void MainWindow::windowDownLeft()
     }
     splitterL->addWidget(gbTEview);
     gbTEview->show();
+}
+    void MainWindow::window_QE()
+{
+    if(!gbQEview)
+    {
+    gbQEview = new EofqaWidget(model);
+    }
+    splitterL->addWidget(gbQEview);
+    gbQEview->show();
 }
 void MainWindow::window_TZ()
 {
@@ -1881,7 +1911,7 @@ tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
 dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-gbTEview(0),gbTZview(0),enzWidget(0),
+gbTEview(0),gbQEview(0),gbTZview(0),enzWidget(0),
 gbviewMT(0),gbviewM(0),
 gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
 {
