@@ -81,7 +81,8 @@ LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
         }
     case Qt::Vertical:
         if (section >= 0 && section < model->getEn().size())
-            return QVariant(model->getEn().size() - section);
+//            return QVariant(model->getEn().size() - section);
+            return QVariant(model->getEn().size() - section-1);
         else
             return QVariant();
     default:

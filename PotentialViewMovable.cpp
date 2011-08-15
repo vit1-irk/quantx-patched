@@ -955,7 +955,9 @@ void PotentialViewMovable::slotUperChanged()
 void PotentialViewMovable::slotEboundChanged()
 {
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+//        Qt::yellow,
+        Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
@@ -1038,6 +1040,7 @@ void PotentialViewMovable::slotEnergyChanged()
     PotentialType type = model->getPotentialType(); 
     if(type==PERIODIC) model->getQaatE();
     if(type==FINITE) model->getTatE();
+    if(type==QUASISTATIONARY) model->getTnatE();
 }
 EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)

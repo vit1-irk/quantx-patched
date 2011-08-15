@@ -14,16 +14,16 @@
 #include <QXmlStreamWriter>
 #include "myparam.h"
 #include "BreakStatus.h"
-#include "Zview.h"
+#include "GView.h"
 
-class EnzView;
-class ZDraggable;
+class EGView;
+class gDraggable;
 
-class EnzCurve : public QGraphicsPolygonItem
+class EGCurve : public QGraphicsPolygonItem
 {
-    EnzView *view;
+    EGView *view;
 public:
-    EnzCurve(const QPolygonF& p, EnzView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
+    EGCurve(const QPolygonF& p, EGView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
         : QGraphicsPolygonItem(p,parent,scene), view(_view)
     {
     }
@@ -31,33 +31,32 @@ public:
 //    void mousePressEvent(QGraphicsSceneMouseEvent * event);
 };
 
-class EnzView : public QGraphicsView
+class EGView : public QGraphicsView
 {
     Q_OBJECT
 public:
 
-    EnzView(PhysicalModel *m, QWidget *parent = 0);
-//    virtual ~EnzView();
+    EGView(PhysicalModel *m, QWidget *parent = 0);
+//    virtual ~EGView();
 
     void setCurve(int id,const QPolygonF& pcurve,const QPolygonF& curve, const QPen& = QPen());
     void removeCurve(int id);
-//    void redrawCurves();
 public:
     void showDialogScaleY();
     bool Erase;
 
 public slots:
-    void redrawCurves();
+//    void redrawCurves();
     void setViewportMapping();
     void resizePicture();
-    void slot_En_of_z();
+//    void slot_En_of_z();
     void slot_Ec_n();
-    void slotZline();
-    void updateScaleEnz();
+    void slotGLine();
+    void updateScaleEG();
     void slot_drawEc_n();
 signals:
     void infoMouseMovedTo(QPointF);
-    void signalScaleEnzChanged();
+    void signalScaleEGChanged();
 protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
@@ -68,17 +67,19 @@ protected:
     void clearAll();
 
 public:
-    void showDialogZ();
-    QPair<double,double> getEnzMinMax();
-    void setEnzMinMax(const QPair<double,double> &s);
+    void showDialogG();
+    QPair<double,double> getEGScale();
+    void setEGScale(const QPair<double,double> &s);
+    PhysicalModel *model;
+    double Emin, Emax, hE;
 
-//    getScalesEnz();
 private:
     void initDialogScaleY();
-    QLineEdit *leEnzmin;
-    QLineEdit *leEnzmax;
-    double Enzmin, Enzmax;
-    void setScaleEnz();
+    QLineEdit *leEmin;
+    QLineEdit *leEmax;
+    QLineEdit *leHE;
+//    double Emin, Emax, hE;
+    void setScaleEG();
     QGroupBox  *gbScaleXY;
     double lineWidth;
     int numberOfCurves;
@@ -90,35 +91,33 @@ private:
     QVector<QPolygonF> physCurvesR;
    
     int curve_number;
-    double zmax, zmin, hz;
-//    double Umin, Umax;
+    double Gmax, Gmin, dG, GG;
     QGraphicsLineItem *lineh,*linev;
     QGraphicsRectItem *rectEG;
-//    QVector<QPointF*> pointEG;
 
     void contextMenuEvent(QContextMenuEvent *event);
-    ZDraggable *lineZ;
+    gDraggable *lineG;
 
-    friend class ZDraggable;
+    friend class gDraggable;
 
-    PhysicalModel *model;
-    Zview *dialogZ;
+//    PhysicalModel *model;
+    GView *dialogG;
 
-    QMap<int,EnzCurve*> curves;
+    QMap<int,EGCurve*> curves;
     QMap<int,QPolygonF> pcurves;
 
 };
-class EnzWidget : public QGroupBox
+class EGWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    EnzWidget(PhysicalModel *model, QWidget * parent = 0);
+    EGWidget(PhysicalModel *model, QWidget * parent = 0);
     void readFromXml(QXmlStreamReader *r);
     void writeToXml(QXmlStreamWriter *w);
 public slots:
-    void slotRunEnz();
+    void slotRunEG();
     void slotErase();
 private:
-    EnzView *enzView;
-    QToolButton *bRunEnz;
+    EGView *egView;
+    QToolButton *bRunEG;
 };

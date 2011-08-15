@@ -19,6 +19,7 @@
 #include "PotentialViewMovable.h"
 #include "MomentumView.h"
 #include "EnzView.h"
+#include "EGView.h"
 //#include "Zview.h"
 #include "ProgramSetting.h"
 #include "WavePacketXView.h"
@@ -67,6 +68,7 @@ private slots:
     void window_QE();
     void window_TZ();
     void window_Enz();
+    void window_EG();
     void window_Ux_Psix();
     void window_psi_x();
     void window_psi_xt();
@@ -97,6 +99,7 @@ private slots:
     void slotSetUxt();
     void slotSetBD();
     void slotSetEn();
+    void slotSetEquasi();
     void slotSetUmwb();
 //    void slotSetWPEp();
 //    void slotSetWPEm();
@@ -224,6 +227,7 @@ private:
     MomentumViewWidget *gbviewM;
     WaveFunctionWidget *waveFunctionWidget;
     EnzWidget *enzWidget;
+    EGWidget *egWidget;
     TransmissionWidget *gbTEview;
     EofqaWidget *gbQEview;
     TofzViewWidget *gbTZview;
@@ -266,7 +270,7 @@ private:
     BoundaryCondition *boundCondView;
     QTableView *tableView;
     QTableView *tableViewEn;
-//    QListWidget *listEn;
+    QTableView *tableViewEquasi;
     QLabel *mouseAtX;
     QLabel *mouseAtY;
     QAction *Uaction;

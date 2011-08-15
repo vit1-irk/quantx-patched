@@ -248,7 +248,9 @@ void MomentumView::slot_Phi_n_of_k()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+//        Qt::yellow,
+        Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
 
@@ -272,7 +274,8 @@ void MomentumView::slot_Phi_n_of_k()
         if(n>nMax&&nMax<number_of_levels-1) removeCurve(n);
         if(n<nMin&&nMin<number_of_levels-1) removeCurve(n);
     }
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
+    if(type==QUASISTATIONARY) return;
     if(type==PERIODIC) 
     {
         double     ax=0;

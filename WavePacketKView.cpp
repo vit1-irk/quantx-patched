@@ -148,6 +148,8 @@ void WavePacketKView::keyPressEvent(QKeyEvent *event)
 void WavePacketKView::slot_WavePacket_of_t()
 {
     if (! isVisible()) return;
+    PotentialType type = model->getPotentialType();
+    if(type==QUASISTATIONARY) return;
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
     QPen p;

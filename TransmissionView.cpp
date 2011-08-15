@@ -138,7 +138,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
     initDialogScaleY();
 
     model = m;
-    curve_number = 0;
+    curve_number = -1;
     
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -154,15 +154,16 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
     model->set_EmaxEmin(Emax,Emin);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //rubberBandIsShown = false;
-
-//    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
-    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
+    setViewportMapping();
+ 
+//    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
+    connect(model,SIGNAL(signalLevelNumberChanged(int)),this,SLOT(slot_whole_T_of_E()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
-//    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_whole_T_of_E()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
-    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
-    resizePicture();
+    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
+//    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
+    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(reDraw()));
+//    resizePicture();
 }
 /*TransmissionView::~TransmissionView()
 {
@@ -185,7 +186,8 @@ void TransmissionView::setScalesFromModel()
 void TransmissionView::slotEline()
 {
     QRectF vp = scene()->sceneRect();
-    double E=model->get_E0(); 
+    PotentialType type = model->getPotentialType(); 
+    double E=model->get_E0();
     if (!lineE) 
     {
         lineE = new EnergyDraggable(this);
@@ -204,7 +206,6 @@ void TransmissionView::resizePicture()
     setViewportMapping();
     slot_whole_T_of_E();
     slotEline();
-//    slot_T_of_E();
 }
 void TransmissionView::setViewportMapping()
 {
@@ -224,34 +225,13 @@ void TransmissionView::setViewportMapping()
         this->setMatrix(m);
         scene()->update(scene()->sceneRect());
     }
-    /*
-    if(Emin>Emax) Emax=1.5*Emin;
-    QRectF vp  = QRectF(QPointF(this->Emin,this->tMin),QPointF(this->Emax,this->tMax));
-//    QRectF sr  = scene()->sceneRect();
-    {
-        scene()->setSceneRect(vp);
-
-        QRectF b = vp; //scene()->sceneRect();
-        QRectF a = QRectF(this->viewport()->rect());
-        qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height();
-        qreal dx = - m11 * a.x();
-        qreal dy = - m22 * (a.y() + a.height());
-        QMatrix m(m11,0,0,m22,dx,dy);
-        this->setMatrix(m);
-        scene()->update(scene()->sceneRect());
-//        sr = scene()->sceneRect();
-    }
-    */
     update();
 } 
 void TransmissionView::resizeEvent(QResizeEvent *)
 {
-//    QSize s = e->size();
-//    QSize o = e->oldSize();
-    this->resizePicture();
-//    setViewportMapping();
-    //QWidget::resizeEvent(e);
+    setViewportMapping();
+    this->reDraw();
+    slotEline();
 }
 
 void TransmissionView::wheelEvent(QWheelEvent *event)
@@ -273,6 +253,9 @@ void TransmissionView::clearAll()
         int m = i.key();
         removeCurve(m);
     }
+    physCurves.resize(0);
+    colorOfCurves.resize(0);
+    curve_number=-1;
 }
 void TransmissionView::scrollView(int dx, int dy)
 {
@@ -286,13 +269,6 @@ void TransmissionView::scrollView(int dx, int dy)
     if(Emax<0) Emax=1.;
     setScaleTE();
     emit(signalScaleTEChanged());
-/*    double stepX=(tMax-tMin)/5;//numTTicks;
-    tMin +=dx*stepX;
-    tMax +=dx*stepX;
-    double stepY=(Emax-Emin)/5;//numETicks;
-    Emin +=dy*stepY;
-    Emax +=dy*stepY;
-    emit(signalScalesChanged());*/
 }
 
 void TransmissionView::keyPressEvent(QKeyEvent *event)
@@ -328,28 +304,86 @@ void TransmissionView::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void TransmissionView::reDraw()
+{ 
+    if (! isVisible()) return;
+    QRectF vp = scene()->sceneRect();
+    QPen p;
+    SettingParameters ts;  
+    ts=model->getSettingParameters();
+    lineWidth=ts.lineWidth;
+    p.setWidthF(lineWidth);
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
+    p.setColor(Qt::black);
+    if(!linev)
+    {
+        lineh = new QGraphicsLineItem();
+        linev = new QGraphicsLineItem();
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+        scene()->addItem(lineh);
+        scene()->addItem(linev);
+    }
+    else
+    {
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
+        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+    }
+    if(physCurves.size()==0) return;
+    int j=physCurves.size();
+        for ( QMap<int,TransmissionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+        {
+            int m = i.key();
+            removeCurve(m);
+        }
+    for (int ic = 0; ic < physCurves.size();    ++ic)
+    {
+         QPolygonF ipg;// = curves[ic]->polygon();
+         QPolygonF ppg = physCurves[ic];
+        for (int k = 0; k < ppg.size(); ++k)
+        {
+            qreal newx = vp.width()*(-Emin)/(Emax-Emin) + ppg[k].x()*vp.width()/(Emax-Emin);
+            qreal newy = vp.height()*(ppg[k].y()-tMin)/(tMax-tMin);
+            ipg.push_back(QPointF(newx,newy));
+//            ipg[k] = QPointF(newx,newy);
+        }
+        QColor q=colorOfCurves[ic];
+        p.setColor(colorOfCurves[ic]);
+        if(ipg.size()>=1)setCurve(ic,ipg,p);
+    }
+    update();
+}
+
 void TransmissionView::slot_whole_T_of_E()
 {
 
     if (! isVisible()) return;
     PotentialType type = model->getPotentialType(); 
     if(type==PERIODIC) return; 
-//    if(type!=FINITE) return; 
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
     SettingParameters ts;  
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-//    if(lineWidth==0)lineWidth=1;
-
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     if(Emin>Emax) Emax=1.5*Emin;
-    Erase = true;
-    if(Erase) curve_number=0;
+//    Erase = false;
+    if(Erase) 
+    {
+        curve_number=0;
+        physCurves.resize(0);
+        colorOfCurves.resize(0);
+
+    }
     else curve_number=curve_number+1;
     int n=curve_number;
     if(Erase)
@@ -378,45 +412,24 @@ void TransmissionView::slot_whole_T_of_E()
         linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
         lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
     }
-//--------------------------
-    static const QColor colorForIds[6] = {
-        Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
+    static const QColor colorForIds[12] = {
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+        Qt::black,
+        Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-/*    PotentialType type = model->getPotentialType(); 
-    if(type==PERIODIC) 
-    {
-        model->set_EmaxEmin(Emax,Emin); 
-        QVector<double> Ebound = model->getEn();
-        int number_of_levels = Ebound.size();
-        QPolygonF curveTE;
-        curveTE.resize(51);
-        double ed,eu;
-        for (int i=0; i < number_of_levels; i=i+2)
-        {
-            ed=Ebound[i];
-            if((i+1)<number_of_levels) eu=Ebound[i+1];
-            else eu=Emax;
-            if(ed>=Emin||eu>=Emin)
-            {
-            double dE=(eu-ed)/50;
-            for(int j=0; j<51;j++)
-            {
-                double EE=ed+dE*j;
-                model->set_E0(EE);
-                double qa = model->get_qa()/M_PI;
-                double x = vp.width()*(EE-Emin)/(Emax-Emin);
-                double y = vp.height()*(qa-tMin)/(tMax-tMin);
-                curveTE[j]  = QPointF(x,y);
-            }
-            setCurve(i/2,curveTE,colorForIds[ i/2 % size_colorForIds]);
-            }
-        }
-    }
-    else*/
     {
         int npoints;//=501;
-        p.setColor(colorForIds[n % size_colorForIds]);
+        QColor color_n;
+        if(type==FINITE) 
+        {
+            color_n=colorForIds[n % size_colorForIds];
+        }
+        if(type==QUASISTATIONARY) 
+        {
+            color_n=colorForIds[model->get_LevelNumber() % size_colorForIds];
+        }
+        p.setColor(color_n);
         double x0=Emin;
         //    if(Emin<0) x0=1e-7;
         QVector<double> transmission;
@@ -425,16 +438,24 @@ void TransmissionView::slot_whole_T_of_E()
         curveTE.resize(npoints);
         transmission.resize(npoints);
         transmission=model->getTransmissionOfE(x0,Emax,npoints);
+        if (curve_number >= physCurves.size())
+        {
+            physCurves.push_back( QPolygonF() );
+            colorOfCurves.push_back( QColor());
+        }
+        colorOfCurves[curve_number]=color_n;
+        int kk=physCurves.size();
         for (int i=0; i < npoints; i++)
         {
             double x = vp.width()*(-Emin)/(Emax-Emin)+(x0 + hE*i)*vp.width()/(Emax-Emin);//x0 + hE*i;
             double y = vp.height()*(transmission[i]-tMin)/(tMax-tMin);//transmission[i];
             curveTE[i]  = QPointF(x,y);
+            physCurves[curve_number].push_back(QPointF(x0+hE*i, transmission[i]));
+
         }
-        setCurve(n,curveTE,p);
+        setCurve(curve_number,curveTE,p);
     }
-    //    setCurve(n,curveTE,colorForIds[n % size_colorForIds]);
-    }
+}
 /*
 void TransmissionView::slot_T_of_E()
 {
@@ -855,8 +876,20 @@ TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
     hl->addWidget(buttonClose);
 
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
+
+    QCheckBox *ch=new QCheckBox(tr("Erase"),this);
+    ch->setCheckState(Qt::Checked);//Qt::Unchecked);
+    connect(ch, SIGNAL(stateChanged(int)), this, SLOT(slotErase(int))); //???
+    hl->addWidget(ch);
+
     vl->addLayout(hl);
     setLayout(vl);
+}
+void TransmissionWidget::slotErase(int j)
+{
+    if(transmissionView->Erase==true)
+        transmissionView->Erase=false;
+    else transmissionView->Erase=true;
 }
 void TransmissionWidget::slotRunTE()
 {

@@ -176,6 +176,17 @@ struct zParameters
             || hz  != o.hz; 
     }
 };
+struct gParameters
+{
+    double g,gmin,gmax,hg;
+    bool operator != (const gParameters& o) 
+    { 
+        return g != o.g
+            ||gmin != o.gmin 
+            ||gmax != o.gmax 
+            || hg  != o.hg; 
+    }
+};
 
 enum PotentialType { FINITE, PERIODIC, QUASISTATIONARY, SEMIPERIODIC };
 
@@ -183,6 +194,11 @@ struct PhysicalModel : public QObject
 {
     Q_OBJECT
 public:
+    QVector<QPointF> redBoundary;
+    QVector<QPointF> yellowBoundary;
+    QVector<QPointF> greenBoundary;
+    QVector<QPointF> blueBoundary;
+
     PhysicalModel(QObject * parent = 0);
     EpWP getEpWP() const;
     void setEpWP(const EpWP&);
@@ -205,15 +221,18 @@ public:
     void setScalesUParam(const ScalesUParameters&);
     Uparab getUparab() const;
     void set_z(double v);
+    void set_G(double v);
 
     void setUparab(const Uparab&);
 //    zParameters getzParam();
     zParameters getzParam() const;
+    gParameters getGParam() const;
     TimeParameters getTimeParam() const;
     void  setTimeParam(const TimeParameters&);
     void setSettingParameters(const SettingParameters &);
     SettingParameters getSettingParameters() const;
     void  setzParam(const zParameters&);
+    void  setGParam(const gParameters&);
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
@@ -236,7 +255,9 @@ signals:
     void signalLevelParametersChanged();
     void signalTimeChanged(double);
     void signalZChanged(double);
+    void signalGChanged(double);
     void signalScaleZChanged();
+    void signalScaleGChanged();
     void signalWidthChanged();
     void signalWavePacketChanged();
 public slots:
@@ -252,7 +273,7 @@ private:
     //! Heterostructural potential
     QVector<double> Ui;      /* [u_energy] 0..N+1 constant potential (defined by user) */
     //! U bias over whole structure
-    double E0, GG, Gmin;
+    double E0, GG, Gmin, Gmax, dG;
     complex Ecmplx;
     double Emin,Emax, hE;
     int width_of_Line;
@@ -291,6 +312,7 @@ public:
     void set_Uxz(double z);
     void set_Uxz_forTz(double z);
     void getTatE(); 
+    void getTnatE(); 
     void getQaatE(); 
     bool flagBondaryCondition;
     double get_U(int n);//comment
@@ -303,7 +325,7 @@ public:
     QVector<double> getEnOfImagB();
     QVector<double> Egn;
 
-    void set_G(double v) {GG=v;}
+//    void set_G(double v) {GG=v;}
     complex bN1;
     double get_Time() const { return this->time; }
 //---------WavePacket---------------- 
@@ -326,12 +348,14 @@ public:
     void set_NofWP(int n);
     void set_LevelNumber(int n);
     int get_LevelNumber() const {return this->levelNumber; };
-    void getZeros(double Emin, double Emax, double dE, double Gmin, double Gmax, double dG);
+    void getColors(double Emin, double Emax, double dE, double Gmin, double Gmax, double dG);
 
 //potential:
     void setUbias(double _Ubias);
 //    QVector<double> get_U() const { return U; }//added
     QVector<double> get_Ui() const { return Ui; }
+    QVector<complex> getEnquasi() const { return Equasi; }
+
     double get_Ui(int n) const { return Ui.at(n); }
     double get_U1(int n) const { return U1.at(n); }
     double get_U2(int n) const { return U2.at(n); }

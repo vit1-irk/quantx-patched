@@ -7,6 +7,7 @@
 #include "PhysicalModel.h"
 #include "PotentialModel.h"
 #include "LevelModel.h"
+#include "QuasiLevelModel.h"
 #include "PotentialViewMultiWell.h"
 #include "LineEditDelegate.h"
 #include "PotentialViewMovable.h"
@@ -103,7 +104,8 @@ void MainWindow::initMenuBar()
 
      //     QAction *mU = new QAction("U(x), En, "+psi+"(x,E)", this);
      //     wMenu->addAction(mU);
-     Uaction = new QAction("U(x), En, "+psi+"(x,E)", this);
+     Uaction = new QAction("U(x) && En", this);
+//     Uaction = new QAction("U(x), En, "+psi+"(x,E)", this);
      wMenu->addAction(Uaction);
      wMenu->addSeparator();
      //Uaction->setStatusTip(tr("Calculated energy levels and wave function at energy E for potential U(x)"));
@@ -129,11 +131,13 @@ void MainWindow::initMenuBar()
 
      mPsiXT->setStatusTip(tr("Временная эволюция волнового пакета: импульсное распределение"));
 //     mPhiKT->setStatusTip(tr("Momentum distribution: time development of wave packet"));
-     QAction *mTE = new QAction(tr("T(E)/qa(E)"), this);
+     QAction *mTE = new QAction(tr("T(E)"), this);
      wMenu->addAction(mTE);
      wMenu->addSeparator();
      mTE->setStatusTip(tr("Коэффициент прохождения в зависимости от энергии"));
+
      QAction *mTZ = new QAction(tr("T(z)"), this);
+     mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
      wMenu->addAction(mTZ);
      wMenu->addSeparator();
 
@@ -142,14 +146,16 @@ void MainWindow::initMenuBar()
      wMenu->addSeparator();
      mQE->setStatusTip(tr("Закон дисперсии"));
 
-     mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
-//     mTE->setStatusTip(tr("Transmission coefficient as a function of energy"));
+
      QAction *mEnz = new QAction(tr("Enz"), this);
      wMenu->addAction(mEnz);
      wMenu->addSeparator();
      mEnz->setStatusTip(tr("Уровни энергии как функция деформации потенциала z"));
-//     mEnz->setStatusTip(tr("Energy levels as a function of potential deformation z"));
-//     mEnz->setWhatsThis(tr("Click this option to create a new file."));
+
+     QAction *mEG = new QAction(tr("B_{N+1}(E+iG)"), this);
+     wMenu->addAction(mEG);
+     wMenu->addSeparator();
+     mEG->setStatusTip(tr("Нули реальной и мнимой части B_{N+1}на комплексной пл. E+iG"));
 
      connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux_Psix()));
      connect(mPsinX, SIGNAL(triggered()), this, SLOT(window_psi_x()));
@@ -160,6 +166,7 @@ void MainWindow::initMenuBar()
      connect(mQE, SIGNAL(triggered()), this, SLOT(window_QE()));
      connect(mTZ, SIGNAL(triggered()), this, SLOT(window_TZ()));
      connect(mEnz, SIGNAL(triggered()), this, SLOT(window_Enz()));
+     connect(mEG, SIGNAL(triggered()), this, SLOT(window_EG()));
 
 /*     QMenu *bcMenu = menuBar()->addMenu(tr("Гран. условия"));
      bcMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
@@ -217,6 +224,14 @@ void MainWindow::initMenuBar()
      EnAction->setToolTip(tr("Таблица уровней энергии En"));
 //   EnAction->setToolTip("Values of energy levels En");
      connect(EnAction, SIGNAL(triggered()), this, SLOT(slotSetEn()));
+
+     QToolBar *EquasiTool = new QToolBar;
+     addToolBar(EquasiTool);
+     QAction *EquasiAction = new QAction(tr("(E+iG)n"), EquasiTool);
+     EquasiTool->addAction(EquasiAction);
+     EquasiAction->setToolTip(tr("Таблица квазиуровней"));
+//   EnAction->setToolTip("Values of energy levels En");
+     connect(EquasiAction, SIGNAL(triggered()), this, SLOT(slotSetEquasi()));
 
      QToolBar *U1Tool = new QToolBar;
      addToolBar(U1Tool);
@@ -317,6 +332,38 @@ void MainWindow::slotSetEn()
     tableViewEn->show();
     tableViewEn->activateWindow();
     tableViewEn->setFocus();
+}
+void MainWindow::slotSetEquasi()
+{
+    if (!tableViewEquasi)
+    {
+        tableViewEquasi = new QTableView(this);
+        tableViewEquasi->setWindowFlags(Qt::Window);
+        tableViewEquasi->setFont(QFont("Serif", 12, QFont::Bold ));
+        tableViewEquasi->setWindowTitle("Quasilevels");
+
+        tableViewEquasi->setCornerButtonEnabled(false);
+        tableViewEquasi->setSortingEnabled(false);
+        tableViewEquasi->setWordWrap(false);
+
+        tableViewEquasi->setItemDelegate(new LineEditDelegate(this));
+#if 0
+        tableViewEquasi->setSelectionMode(QAbstractItemView::SingleSelection);
+        tableViewEquasi->setSelectionBehavior(QAbstractItemView::SelectItems);
+        tableViewEquasi->setCursor(Qt::IBeamCursor);
+        tableViewEquasi->setEditTriggers(QAbstractItemView::AllEditTriggers);
+        tableViewEquasi->setItemDelegate(new LineEditDelegate(tableViewEquasi));
+#endif
+
+        QuasiLevelModel *lm = new QuasiLevelModel(tableViewEquasi);
+        lm->setQuasiLevels(model);
+        tableViewEquasi->setModel(lm);
+    }
+
+    tableViewEquasi->reset();
+    tableViewEquasi->show();
+    tableViewEquasi->activateWindow();
+    tableViewEquasi->setFocus();
 }
 
 
@@ -563,6 +610,15 @@ void MainWindow::window_Enz()
     }
     splitterL->addWidget(enzWidget);
     enzWidget->show();
+}
+void MainWindow::window_EG()
+{
+    if(!egWidget)
+    {
+        egWidget = new EGWidget(model);
+    }
+    splitterL->addWidget(egWidget);
+    egWidget->show();
 }
 
 void MainWindow::window_phi_kt()
@@ -1908,10 +1964,10 @@ psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0),
 wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
-dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0), gbScaleX(0),
+dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-gbTEview(0),gbQEview(0),gbTZview(0),enzWidget(0),
+gbTEview(0),gbQEview(0),gbTZview(0),enzWidget(0),egWidget(0),
 gbviewMT(0),gbviewM(0),
 gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
 {
@@ -1962,6 +2018,10 @@ bool MainWindow::save()
         {
             enzWidget->writeToXml(&writer);
         }
+        if (egWidget)
+        {
+            egWidget->writeToXml(&writer);
+        }
         writer.writeEndDocument();
 
         f.close();
@@ -1997,6 +2057,11 @@ bool MainWindow::openFile()
             {
                 window_Enz();
                 enzWidget->readFromXml(&reader);
+            }
+            else if (reader.name() == "EGView")
+            {
+                window_EG();
+                egWidget->readFromXml(&reader);
             }
         }
         f.close();

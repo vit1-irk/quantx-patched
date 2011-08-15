@@ -88,6 +88,7 @@ void WaveFunctionView::slotEnergyChanged()
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
+    if(type==QUASISTATIONARY) return;
     if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints,whatToDraw);
     if(type==FINITE||type==QUASISTATIONARY) waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
 //    if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Ec,xmin,xmax,npoints,whatToDraw,false);
@@ -363,7 +364,9 @@ void WaveFunctionView::slot_Psi_n_of_x()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow,
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+//        Qt::yellow,
+        Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
