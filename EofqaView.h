@@ -49,7 +49,7 @@ public slots:
 signals:
     void infoMouseMovedTo(QPointF);
 //    void signalScalesChanged();
-    void signalScaleTEChanged();    
+    void signalScaleTEChanged();
 protected:
     void resizeEvent(QResizeEvent *event);
     void keyPressEvent(QKeyEvent *event);
@@ -66,7 +66,7 @@ public:
 private:
     void initDialogScaleY();
     void updateRubberBandRegion();
-    double tMax, tMin; 
+    double tMax, tMin;
     double Emin,Emax,hE;
     QGraphicsLineItem *lineh,*linev;
     EEDrag *lineE;
@@ -75,9 +75,9 @@ private:
     QLineEdit *leTmax;
     QLineEdit *leEmin;
     QLineEdit *leEmax;
-    QLineEdit *leHE;
+//    QLineEdit *leHE;
     double lineWidth;
-    
+
     PhysicalModel *model;
     QGroupBox  *gbScaleXY;
     QMap<int,EofqaCurve*> curves;
@@ -92,7 +92,7 @@ public:
     EofqaWidget(PhysicalModel *model, QWidget * parent = 0);
 private:
     EofqaView *eofqaView;
-//    QPushButton *bRunEqa;	
+//    QPushButton *bRunEqa;
 
 public slots:
     void slotRunEqa();

@@ -82,12 +82,24 @@ void MainWindow::initMenuBar()
 //     chooseFontAction->setShortcut(tr("Ctrl+F"));
 //     connect(chooseFontAction, SIGNAL(triggered()), this, SLOT(chooseFont()));
 
+     QMenu *uMenu = menuBar()->addMenu(tr("Потенциалы"));
+     uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
+     QAction *uTable = new QAction(tr("Табличный"), uMenu);
+     QAction *uLinear = new QAction(tr("Линейный"),uMenu);
+     QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
+     uMenu->addAction(uTable);
+     uMenu->addSeparator();
+     uMenu->addSeparator();
+     uMenu->addAction(uLinear);
+     uMenu->addSeparator();
+     uMenu->addAction(uParabolic);
+     uMenu->addSeparator();
+     connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
+     connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
+     connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
 
-//     QMenu *helpMenu = menuBar()->addMenu("&Help");
-//     helpMenu->addAction(aboutAction);
      QMenu *wMenu = menuBar()->addMenu(tr("Зависимости"));
-     wMenu->setWhatsThis(tr("What calculates"));
-//     wMenu->setStatusTip(tr("What calculates"));
+     wMenu->setWhatsThis(tr("Основные варианты счета"));
      wMenu->setFont(font);
      QString psi=QChar(0x03C8);
      QString Psi=QChar(0x03A8);
@@ -136,68 +148,64 @@ void MainWindow::initMenuBar()
      wMenu->addSeparator();
      mTE->setStatusTip(tr("Коэффициент прохождения в зависимости от энергии"));
 
-     QAction *mTZ = new QAction(tr("T(z)"), this);
+/*     QAction *mTZ = new QAction(tr("T(z)"), this);
      mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
      wMenu->addAction(mTZ);
      wMenu->addSeparator();
-
-     QAction *mQE = new QAction(tr("qa(E)"), this);
-     wMenu->addAction(mQE);
-     wMenu->addSeparator();
-     mQE->setStatusTip(tr("Закон дисперсии"));
-
 
      QAction *mEnz = new QAction(tr("Enz"), this);
      wMenu->addAction(mEnz);
      wMenu->addSeparator();
      mEnz->setStatusTip(tr("Уровни энергии как функция деформации потенциала z"));
 
+     QAction *mQE = new QAction(tr("qa(E)"), this);
+     wMenu->addAction(mQE);
+     wMenu->addSeparator();
+     mQE->setStatusTip(tr("Закон дисперсии в периодическом поле"));
+
      QAction *mEG = new QAction(tr("B_{N+1}(E+iG)"), this);
      wMenu->addAction(mEG);
      wMenu->addSeparator();
-     mEG->setStatusTip(tr("Нули реальной и мнимой части B_{N+1}на комплексной пл. E+iG"));
-
+     mEG->setStatusTip(tr("Квазистационарные сост. на пл. E+iG, нули Re и Im B_{N+1}" ));
+*/
      connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux_Psix()));
      connect(mPsinX, SIGNAL(triggered()), this, SLOT(window_psi_x()));
      connect(mPhinK, SIGNAL(triggered()), this, SLOT(window_phi_k()));
      connect(mPsiXT, SIGNAL(triggered()), this, SLOT(window_psi_xt()));
      connect(mPhiKT, SIGNAL(triggered()), this, SLOT(window_phi_kt()));
      connect(mTE, SIGNAL(triggered()), this, SLOT(window_TE()));
+/*     connect(mTZ, SIGNAL(triggered()), this, SLOT(window_TZ()));
+     connect(mEnz, SIGNAL(triggered()), this, SLOT(window_Enz()));
      connect(mQE, SIGNAL(triggered()), this, SLOT(window_QE()));
+     connect(mEG, SIGNAL(triggered()), this, SLOT(window_EG()));
+*/
+     QMenu *adMenu = menuBar()->addMenu(tr("Доп. зависимости"));
+     adMenu->setWhatsThis(tr("Additional dependences"));
+     adMenu->setFont(font);
+     QAction *mTZ = new QAction(tr("T(z)"), this);
+     mTZ->setStatusTip(tr("Коэффициент прохождения в зависимости от z"));
+     adMenu->addAction(mTZ);
+     adMenu->addSeparator();
+
+     QAction *mEnz = new QAction(tr("Enz"), this);
+     adMenu->addAction(mEnz);
+     adMenu->addSeparator();
+     mEnz->setStatusTip(tr("Уровни энергии как функция деформации потенциала z"));
+
+     QAction *mQE = new QAction(tr("qa(E)"), this);
+     adMenu->addAction(mQE);
+     adMenu->addSeparator();
+     mQE->setStatusTip(tr("Закон дисперсии в периодическом поле"));
+
+     QAction *mEG = new QAction(tr("B_{N+1}(E+iG)"), this);
+     adMenu->addAction(mEG);
+     adMenu->addSeparator();
+     mEG->setStatusTip(tr("Квазистационарные сост. на пл. E+iG, нули Re и Im B_{N+1}" ));
+
      connect(mTZ, SIGNAL(triggered()), this, SLOT(window_TZ()));
      connect(mEnz, SIGNAL(triggered()), this, SLOT(window_Enz()));
+     connect(mQE, SIGNAL(triggered()), this, SLOT(window_QE()));
      connect(mEG, SIGNAL(triggered()), this, SLOT(window_EG()));
-
-/*     QMenu *bcMenu = menuBar()->addMenu(tr("Гран. условия"));
-     bcMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
-     QAction *uBD    = new QAction(tr("Гран. условия"), bcMenu);
-     bcMenu->addAction(uBD);
-     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
-*/
-     QMenu *uMenu = menuBar()->addMenu(tr("Потенциалы"));
-//     QMenu *uMenu = menuBar()->addMenu(tr("U(x)"));
-     uMenu->setFont(font);//setFont(QFont("Serif", 12, QFont::Bold ));
-     QAction *uTable = new QAction(tr("Табличный"), uMenu);
-//     QAction *uBD    = new QAction(tr("Гран. условия"), uMenu);
-     QAction *uLinear = new QAction(tr("Линейный"),uMenu);
-     QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
-//     QAction *uTable = new QAction(tr("Tabular"), uMenu);
-//     QAction *uParabolic = new QAction(tr("Parabolic"),uMenu);
-//     QAction *uZdef = new QAction(tr("U(x)=(1-z)*U1(x)+z*U2(x)"),uMenu);
-     uMenu->addAction(uTable);
-     uMenu->addSeparator();
-//     uMenu->addAction(uBD);
-     uMenu->addSeparator();
-     uMenu->addAction(uLinear);
-     uMenu->addSeparator();
-     uMenu->addAction(uParabolic);
-     uMenu->addSeparator();
-//     uMenu->addAction(uZdef);
-     connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
-//     connect(uBD, SIGNAL(triggered()), this, SLOT(slotSetBD()));
-     connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
-     connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
-//     connect(uZdef, SIGNAL(triggered()), this, SLOT(slotSetZ()));
 
      QToolBar *bcTool = new QToolBar;
      bcTool->setFont(font);
@@ -216,7 +224,7 @@ void MainWindow::initMenuBar()
      uMulti->setToolTip(tr("Система одинаковых ям/барьеров"));
 //     uMulti->setToolTip("Multi-well/barrier potential");
      connect(uMulti, SIGNAL(triggered()), this, SLOT(slotSetUmwb()));
- 
+
      QToolBar *EnTool = new QToolBar;
      addToolBar(EnTool);
      QAction *EnAction = new QAction(tr("En"), EnTool);

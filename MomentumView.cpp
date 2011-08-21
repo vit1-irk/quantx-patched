@@ -59,7 +59,7 @@ void MomentumView::resizePicture()
     phiMax=tp.Phinmax;
     phiMin=tp.Phinmin;
     setViewportMapping();
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==PERIODIC)  slotEnergyChanged();
     slot_Phi_n_of_k();
 }
@@ -74,7 +74,7 @@ void MomentumView::setViewportMapping()
     QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
     scene()->setSceneRect(b);
         qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height(); 
+        qreal m22 = - a.height() / b.height();
         qreal dx = - m11 * a.x();
         qreal dy = - m22 * (a.y() + a.height());
         QMatrix m(m11,0,0,m22,dx,dy);
@@ -102,8 +102,8 @@ void MomentumView::setViewportMapping()
         sr = scene()->sceneRect();
     }
     update();*/
-} 
-void MomentumView::resizeEvent(QResizeEvent *e) 
+}
+void MomentumView::resizeEvent(QResizeEvent *e)
 {
         resizePicture();
 //    setViewportMapping();
@@ -130,7 +130,7 @@ void MomentumView::scaleView(qreal scaleFactor)
 }
 void MomentumView::clearAll()
 {
-    
+
         for ( QMap<int,MomentumDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int m = i.key();
@@ -163,14 +163,14 @@ void MomentumView::slotEnergyChanged()
     LevelNumberParameters wp = model->getLevelNumberParameters();
     int nMin=wp.nmin;
     int nMax=wp.nmax;
-    int hn=wp.hn;  
+    int hn=wp.hn;
     if(nMin>0&&nMax>0&&hn>0) return;
-    PotentialType type = model->getPotentialType(); 
-    if(type!=PERIODIC) return; 
+    PotentialType type = model->getPotentialType();
+    if(type!=PERIODIC) return;
     QRectF vp = scene()->sceneRect();
     //    QRect a = QRect(this->viewport()->rect());
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
@@ -193,7 +193,7 @@ void MomentumView::slotEnergyChanged()
     }*/
     p.setColor(Qt::darkCyan);//Qt::darkRed);
 
-    double E=model->get_E0(); 
+    double E=model->get_E0();
     model->set_E0(E);
     double     ax=0;
 
@@ -201,7 +201,7 @@ void MomentumView::slotEnergyChanged()
     {
         ax += model->get_d(n);
     }
-    double bk = 2*M_PI/ax;//this is bb in my old programm 
+    double bk = 2*M_PI/ax;//this is bb in my old programm
     double qa = model->get_qa();
     double qx = qa/ax;
     if(abs(qa)>M_PI) return;
@@ -238,7 +238,7 @@ void MomentumView::slot_Phi_n_of_k()
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     //    if(lineWidth==0)lineWidth=1;
@@ -248,7 +248,7 @@ void MomentumView::slot_Phi_n_of_k()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
 //        Qt::yellow,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
@@ -262,7 +262,7 @@ void MomentumView::slot_Phi_n_of_k()
     LevelNumberParameters wp = model->getLevelNumberParameters();
     int nMin=wp.nmin;
     int nMax=wp.nmax;
-    int hn=wp.hn;  
+    int hn=wp.hn;
     if(nMin<0||nMax<0||hn<0||nMin>number_of_levels-1||nMax<nMin) return;
     for ( QMap<int,MomentumDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
@@ -276,14 +276,14 @@ void MomentumView::slot_Phi_n_of_k()
     }
     PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY) return;
-    if(type==PERIODIC) 
+    if(type==PERIODIC)
     {
         double     ax=0;
         for(int n=1; n<=model->getN(); n++)
         {
             ax += model->get_d(n);
         }
-        double bk = 2*M_PI/ax;//this is bb in my old programm 
+        double bk = 2*M_PI/ax;//this is bb in my old programm
         model->set_E0(Ebound[nMin]);
         double qx = model->get_qa()/ax;
         int nqmin = (kmin-qx)/bk;
@@ -323,7 +323,7 @@ void MomentumView::slot_Phi_n_of_k()
         }
         update();
     }
-    else 
+    else
     {
         if(!linev)
         {
@@ -349,7 +349,7 @@ void MomentumView::slot_Phi_n_of_k()
         //    p.setWidthF(lineWidth);
         for (int n = nMin; n <= nMax; n+= hn)
         {
-            if(n>number_of_levels-1) break;    
+            if(n>number_of_levels-1) break;
             waveFunction = model->getPhiOfk(Ebound[n],kmin,kmax,npoints);
             for (int i=0; i < npoints; i++)
             {
@@ -389,11 +389,11 @@ void MomentumView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 void MomentumView::removeCurve(int id)
 {
     QGraphicsItem *item = curves[id];
-    if (item) 
+    if (item)
     {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; 
+    curves[id] = 0;
     }//this is dangerous: curves.remove(id);
     update();
 }
@@ -405,13 +405,13 @@ void MomentumDistribution::paint(QPainter * painter, const QStyleOptionGraphicsI
     painter->drawPolyline(polygon().data(),polygon().size());
 }
 void MomentumView::showDialogScale()
-{   
-    if (!dialogScalePhin) 
+{
+    if (!dialogScalePhin)
     {
         dialogScalePhin = new ScalePhin(this);
         dialogScalePhin->setModel(model);
     }
-    dialogScalePhin->show(); 
+    dialogScalePhin->show();
     dialogScalePhin->activateWindow();
     dialogScalePhin->setFocus();
 }
@@ -440,15 +440,15 @@ MomentumViewWidget::MomentumViewWidget(PhysicalModel *model, QWidget *parent)
     vl->addWidget(momentumView);
 
     QHBoxLayout *hl = new QHBoxLayout();
-//    QPushButton * reset = new QPushButton("&Resize");	
+//    QPushButton * reset = new QPushButton("&Resize");
 //    QPushButton *buttonClose = new QPushButton(tr("Close"));
     QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
     hl->addStretch();
     hl->addWidget(buttonClose);
 
-//    hl->addWidget(reset);		
+//    hl->addWidget(reset);
 
 //    connect(reset,SIGNAL(clicked()),momentumView,SLOT(resizePicture()));
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???

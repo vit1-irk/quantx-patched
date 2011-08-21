@@ -54,7 +54,7 @@ public:
     double EnergyDraggable::getEnergyFromLine()
     {
         QPointF p = pos();
-        return p.x(); 
+        return p.x();
     }
     QRectF boundingRect() const
     {
@@ -67,7 +67,7 @@ public:
         QPointF fv2 = view->mapToScene(v2);
         //double widthLine1 = fabs(fv2.x() - fv1.x());
 //        double widthLine1 = fabs(fv2.y() - fv1.y());
-    
+
         QPoint va(0,0);
         QPoint vb(5,0);
 //        QPoint vb(0,5);
@@ -139,7 +139,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
 
     model = m;
     curve_number = -1;
-    
+
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -155,7 +155,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewportMapping();
- 
+
 //    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalLevelNumberChanged(int)),this,SLOT(slot_whole_T_of_E()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
@@ -186,9 +186,9 @@ void TransmissionView::setScalesFromModel()
 void TransmissionView::slotEline()
 {
     QRectF vp = scene()->sceneRect();
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     double E=model->get_E0();
-    if (!lineE) 
+    if (!lineE)
     {
         lineE = new EnergyDraggable(this);
         //        lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
@@ -226,7 +226,7 @@ void TransmissionView::setViewportMapping()
         scene()->update(scene()->sceneRect());
     }
     update();
-} 
+}
 void TransmissionView::resizeEvent(QResizeEvent *)
 {
     setViewportMapping();
@@ -305,11 +305,11 @@ void TransmissionView::keyPressEvent(QKeyEvent *event)
 }
 
 void TransmissionView::reDraw()
-{ 
+{
     if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
@@ -363,12 +363,12 @@ void TransmissionView::slot_whole_T_of_E()
 {
 
     if (! isVisible()) return;
-    PotentialType type = model->getPotentialType(); 
-    if(type==PERIODIC) return; 
+    PotentialType type = model->getPotentialType();
+    if(type==PERIODIC) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
@@ -377,7 +377,7 @@ void TransmissionView::slot_whole_T_of_E()
     p.setColor(Qt::black);
     if(Emin>Emax) Emax=1.5*Emin;
 //    Erase = false;
-    if(Erase) 
+    if(Erase)
     {
         curve_number=0;
         physCurves.resize(0);
@@ -413,7 +413,7 @@ void TransmissionView::slot_whole_T_of_E()
         lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
     }
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
@@ -421,11 +421,11 @@ void TransmissionView::slot_whole_T_of_E()
     {
         int npoints;//=501;
         QColor color_n;
-        if(type==FINITE) 
+        if(type==FINITE)
         {
             color_n=colorForIds[n % size_colorForIds];
         }
-        if(type==QUASISTATIONARY) 
+        if(type==QUASISTATIONARY)
         {
             color_n=colorForIds[model->get_LevelNumber() % size_colorForIds];
         }
@@ -463,7 +463,7 @@ void TransmissionView::slot_T_of_E()
         Qt::red, Qt::green, Qt::black, Qt::cyan, Qt::magenta, Qt::yellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-    int n=0; 
+    int n=0;
     bool Erase=false;
     if(Erase) n=0;
     else n=n+1;
@@ -484,7 +484,7 @@ void TransmissionView::slot_T_of_E()
 //        lineh->setLine(tMin, 0., tMax, 0);
 //        linev->setLine(0.,Emin,0.,Emax);
         scene()->addItem(lineh);
-        scene()->addItem(linev); 
+        scene()->addItem(linev);
     }
     else
     {
@@ -537,11 +537,11 @@ void TransmissionView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 void TransmissionView::removeCurve(int id)
 {
     QGraphicsItem *item = curves[id];
-    if (item) 
+    if (item)
     {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; 
+    curves[id] = 0;
     }//this is dangerous: curves.remove(id);
     update();
 //    repaint();
@@ -556,11 +556,11 @@ void TransmissionCurve::paint(QPainter * painter, const QStyleOptionGraphicsItem
 }
 
 void TransmissionView::initDialogScaleY()
-{   
+{
     gbScaleXY = new QGroupBox(this);
     gbScaleXY->setWindowTitle("Scales for T(E)");
     gbScaleXY->setWindowFlags(Qt::Window);
-    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
+    gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
 
     QVBoxLayout *vl = new QVBoxLayout;
     {
@@ -627,8 +627,8 @@ void TransmissionView::initDialogScaleY()
 }
 
 void TransmissionView::showDialogScaleY()
-{   
-    gbScaleXY->show(); 
+{
+    gbScaleXY->show();
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
@@ -760,7 +760,7 @@ void TransmissionView::paintEvent(QPaintEvent *event)
         painter.setPen(palette().light().color());//was 2!!!!
         painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
     }
-    if (hasFocus()) 
+    if (hasFocus())
     {
         QStyleOptionFocusRect option;
         option.initFrom(this);
@@ -784,8 +784,8 @@ EnergyDraggable::EnergyDraggable(TransmissionView *v,QGraphicsItem *parent)
     pen.setWidth(v->lineWidth);
 
     setCursor(Qt::SizeHorCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setZValue(999);
     setAcceptHoverEvents ( true );
 }
@@ -794,7 +794,7 @@ QVariant EnergyDraggable::itemChange(GraphicsItemChange change, const QVariant &
 {
     switch (change)
     {
-    case ItemPositionChange: 
+    case ItemPositionChange:
         if (isSelected())
         {
             QPointF newpos = value.toPointF();
@@ -836,12 +836,12 @@ TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
 
     QHBoxLayout *hl = new QHBoxLayout();
     QToolButton *reset = new QToolButton(this);
-    reset->setIcon(QIcon("images/player_play.png"));
+    reset->setIcon(QIcon(":/images/player_play.png"));
     reset->adjustSize();//QPushButton(tr("Close"));
-//    QPushButton *reset = new QPushButton(tr("&Resize"));	
+//    QPushButton *reset = new QPushButton(tr("&Resize"));
     connect(reset,SIGNAL(clicked()),transmissionView,SLOT(resizePicture()));
 
-//    bRunTE = new QPushButton(tr("Run "));	
+//    bRunTE = new QPushButton(tr("Run "));
 //    connect(bRunTE,SIGNAL(clicked()),this,SLOT(slotRunWP()));
 
     QLabel *lTtext= new QLabel(this);
@@ -855,32 +855,26 @@ TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
 
     QLabel *lE = new MyLabel("",this);
 
-//    hl->addWidget(bRunTE);		
-    hl->addWidget(reset);		
+//    hl->addWidget(bRunTE);
+    hl->addWidget(reset);
     hl->addWidget(lEtext);
     hl->addWidget(lE);
     hl->addWidget(lTtext);
     hl->addWidget(lT);
-
     connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
-
-//    zoomInButton = new QToolButton(this);
-//    zoomInButton->setIcon(QIcon("images/zoomin.png"));
-//    zoomInButton->adjustSize();
-//    connect(zoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
-
-    QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
-    buttonClose->adjustSize();//QPushButton(tr("Close"));
     hl->addStretch();
-    hl->addWidget(buttonClose);
-
-    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
 
     QCheckBox *ch=new QCheckBox(tr("Erase"),this);
     ch->setCheckState(Qt::Checked);//Qt::Unchecked);
     connect(ch, SIGNAL(stateChanged(int)), this, SLOT(slotErase(int))); //???
     hl->addWidget(ch);
+
+    QToolButton *buttonClose = new QToolButton(this);
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
+    buttonClose->adjustSize();//QPushButton(tr("Close"));
+//    hl->addStretch();
+    hl->addWidget(buttonClose);
+    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
 
     vl->addLayout(hl);
     setLayout(vl);

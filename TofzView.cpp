@@ -371,7 +371,7 @@ void TofzView::slot_whole_T_of_z()
     if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     QPen p;
@@ -464,11 +464,11 @@ void TofzView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 void TofzView::removeCurve(int id)
 {
     QGraphicsItem *item = curves[id];
-    if (item) 
+    if (item)
     {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; 
+    curves[id] = 0;
     }//this is dangerous: curves.remove(id);
     update();
 //    repaint();
@@ -622,7 +622,7 @@ TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
 
     QHBoxLayout *hl = new QHBoxLayout();
     QToolButton *reset = new QToolButton(this);
-    reset->setIcon(QIcon("images/player_play.png"));
+    reset->setIcon(QIcon(":/images/player_play.png"));
     reset->adjustSize();
 //    QPushButton *reset = new QPushButton(tr("&Resize"));
     connect(reset,SIGNAL(clicked()),tofzView,SLOT(resizePicture()));
@@ -648,7 +648,7 @@ TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
 
 //    QPushButton *buttonClose = new QPushButton(tr("Close"));
     QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
     hl->addStretch();
     hl->addWidget(buttonClose);

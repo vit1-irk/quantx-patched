@@ -7,12 +7,12 @@
 BoundaryCondition::BoundaryCondition(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-    this->setWindowTitle(tr("Boundaru conditions"));
+    this->setWindowTitle(tr("Boundary conditions"));
     this->setFont(QFont("Serif", 12, QFont::Bold ));
     int index;
     QVBoxLayout *vl = new QVBoxLayout(this);
     {
-        QRadioButton *rad1= new QRadioButton("Finite");
+        QRadioButton *rad1= new QRadioButton("Bound States/Scattering");
         QRadioButton *rad2= new QRadioButton("Periodic");
         QRadioButton *rad3= new QRadioButton("Quasistationary");
         vl->addWidget(rad1);

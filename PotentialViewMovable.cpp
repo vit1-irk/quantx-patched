@@ -52,7 +52,7 @@ public:
     double EnergyDraggableLine::getEnergyFromLine()
     {
         QPointF p = pos();
-        return p.y(); 
+        return p.y();
     }
     QRectF boundingRect() const
     {
@@ -63,7 +63,7 @@ public:
         QPointF fv1 = view->mapToScene(v1);
         QPointF fv2 = view->mapToScene(v2);
         double widthLine1 = fabs(fv2.y() - fv1.y());
- */   
+ */
         QPoint va(0,0);
         QPoint vb(0,5);
         QPointF sa = view->mapToScene(va);
@@ -126,32 +126,32 @@ public:
 
 };
 /*void  PotentialViewMovable::scaleE()
-{   
-    if (!gbScaleE) 
+{
+    if (!gbScaleE)
     {
         gbScaleE = new QGroupBox(this);
         gbScaleE->setWindowTitle(tr("Energy interval"));
         gbScaleE->setWindowFlags(Qt::Window);
-        gbScaleE->setFont(QFont("Serif", 12, QFont::Bold )); 
+        gbScaleE->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout;
         this->Emin.setDisplay(tr("Emin"),tr("lower limit of energy"),vl);
         this->Emax.setDisplay(tr("Emax"),tr("upper limit of energy"),vl);
         this->hE.setDisplay(tr("hE"),tr("energy step"),vl);
         gbScaleE->setLayout(vl);
     }
-    gbScaleE->show(); 
+    gbScaleE->show();
     gbScaleE->raise();//->raactivateWindow();
     gbScaleE->setFocus();
 }*/
 /*
 void  PotentialViewMovable::scaleXY()
-{   
-    if (!gbScaleXY) 
+{
+    if (!gbScaleXY)
     {
         gbScaleXY = new QGroupBox(this);
         gbScaleXY->setWindowTitle("Scales for plots Psi(x) and U(x)");
         gbScaleXY->setWindowFlags(Qt::Window);
-        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold )); 
+        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout;
         this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
         this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
@@ -159,7 +159,7 @@ void  PotentialViewMovable::scaleXY()
         this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
         gbScaleXY->setLayout(vl);
     }
-    gbScaleXY->show(); 
+    gbScaleXY->show();
     gbScaleXY->raise();//->raactivateWindow();
     gbScaleXY->setFocus();
 }
@@ -206,8 +206,8 @@ EnergyLevels::EnergyLevels(PotentialViewMovable *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
     setCursor(Qt::SizeVerCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,false);		
-    setFlag(QGraphicsItem::ItemIsSelectable,false);	
+    setFlag(QGraphicsItem::ItemIsMovable,false);
+    setFlag(QGraphicsItem::ItemIsSelectable,false);
 }
 
 QVariant EnergyLevels::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -393,7 +393,7 @@ public:
 };
 
 PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m),  lineEnergy(0), 
+: QGraphicsView(parent), model(m),  lineEnergy(0),
 Umin(-15.), Umax(10.), xmin(-1.), xmax(10.),
 dialogScalesU(0),
 widthLineE(0.02),widthLineH(0.02),widthLineV(0.02),
@@ -452,7 +452,7 @@ void PotentialViewMovable::setScalesFromModel()
     model->setScalesUParam(tp);
 }
 void PotentialViewMovable::resizePicture()
-{   
+{
     ScalesUParameters tp = model->getScalesUParam();
     if(this->dx!=tp.Hx||xmin!=tp.Xmin||xmax!=tp.Xmax||
         Umin!=tp.Umin||Umax!=tp.Umax)
@@ -491,7 +491,7 @@ void PotentialViewMovable::setViewportMapping()
         this->setMatrix(m);
         scene()->update(scene()->sceneRect());
         sr = scene()->sceneRect();
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
 //    if(lineWidth==0)lineWidth=1;
@@ -501,8 +501,8 @@ void PotentialViewMovable::setViewportMapping()
     widthLineH= fabs(ay);
     widthLineV= fabs(ax);//0.05;//0.0025*vp.width();
     widthLineE= fabs(ay);
-} 
-void PotentialViewMovable::resizeEvent(QResizeEvent*) 
+}
+void PotentialViewMovable::resizeEvent(QResizeEvent*)
 {
     setViewportMapping();
 }
@@ -528,7 +528,7 @@ void PotentialViewMovable::scaleView(qreal scaleFactor)
 
 void PotentialViewMovable::keyPressEvent(QKeyEvent *event)
 {
-    switch (event->key()) 
+    switch (event->key())
     {
     case Qt::Key_Plus:
         scaleView(qreal(1.2));
@@ -586,9 +586,9 @@ void PotentialViewMovable::scrollView(int hx, int hy)
 }
 void PotentialViewMovable::slotUChanged()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==PERIODIC) slotUperChanged();
-    else 
+    else
     {
 
         QVector<double> d = model->get_d();
@@ -600,29 +600,29 @@ void PotentialViewMovable::slotUChanged()
         int Nlx=linesUmax.size();
     while (0 < linesUmin.size())
     {
-        scene()->removeItem(linesUmin.last()); 
+        scene()->removeItem(linesUmin.last());
         linesUmin.pop_back();
     }
     int j=linesVmin.size();
     while (0 < linesVmin.size())
     {
-        scene()->removeItem(linesVmin.last()); 
+        scene()->removeItem(linesVmin.last());
         linesVmin.pop_back();
         j--;
     }
     while (0 < linesUmax.size())
     {
-        scene()->removeItem(linesUmax.last()); 
+        scene()->removeItem(linesUmax.last());
         linesUmax.pop_back();
     }
     while (0 < linesVmax.size())
     {
-        scene()->removeItem(linesVmax.last()); 
+        scene()->removeItem(linesVmax.last());
         linesVmax.pop_back();
     }
         while (Ui.size() < linesU.size())
         {
-            scene()->removeItem(linesU.last()); 
+            scene()->removeItem(linesU.last());
             linesU.pop_back();
         }
         while (Ui.size()-1 < linesV.size())
@@ -740,7 +740,7 @@ void PotentialViewMovable::slotUperChanged()
     int Nlpmax=(npx-1)*(Nu-2) ;
     while (Ui.size()-2 < linesU.size())
     {
-        scene()->removeItem(linesU.last()); 
+        scene()->removeItem(linesU.last());
         linesU.pop_back();
     }
     while (Ui.size()-2 < linesV.size())
@@ -750,24 +750,24 @@ void PotentialViewMovable::slotUperChanged()
     }
     while ((Ui.size()-2)*np < linesUmin.size())
     {
-        scene()->removeItem(linesUmin.last()); 
+        scene()->removeItem(linesUmin.last());
         linesUmin.pop_back();
     }
     int j=linesVmin.size();
     while ((Ui.size()-2)*np < linesVmin.size())
     {
-        scene()->removeItem(linesVmin.last()); 
+        scene()->removeItem(linesVmin.last());
         linesVmin.pop_back();
         j--;
     }
     while ((Ui.size()-2)*(npx-1) < linesUmax.size())
     {
-        scene()->removeItem(linesUmax.last()); 
+        scene()->removeItem(linesUmax.last());
         linesUmax.pop_back();
     }
     while ((Ui.size()-2)*(npx-1) < linesVmax.size())
     {
-        scene()->removeItem(linesVmax.last()); 
+        scene()->removeItem(linesVmax.last());
         linesVmax.pop_back();
     }
     while(Ui.size()-2 > linesU.size())
@@ -955,16 +955,16 @@ void PotentialViewMovable::slotUperChanged()
 void PotentialViewMovable::slotEboundChanged()
 {
     static const QColor colorForIds[12] = {
-        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, 
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
 //        Qt::yellow,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     QVector<double> Ebound;
     QVector<complex> Equasi;
-    if(type==FINITE||type==PERIODIC) 
+    if(type==FINITE||type==PERIODIC)
     {
         Ebound = model->getEn();
         while (Ebound.size() > linesEn.size())
@@ -990,7 +990,7 @@ void PotentialViewMovable::slotEboundChanged()
             linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
         }
     }
-    if(type==QUASISTATIONARY) 
+    if(type==QUASISTATIONARY)
     {
         Equasi = model->getEquasi();
         while (Equasi.size() > linesEn.size())
@@ -1024,7 +1024,7 @@ void PotentialViewMovable::slotEnergyChanged()
     double scalePsi = (Umax-Umin)/(psiMax-psiMin);
     double E=model->get_E0();
     //    model->set_Energy(E);
-    if (!lineEnergy) 
+    if (!lineEnergy)
     {
         lineEnergy = new EnergyDraggableLine(this);
         scene()->addItem(lineEnergy);
@@ -1037,7 +1037,7 @@ void PotentialViewMovable::slotEnergyChanged()
     p.setColor(Qt::green);
     lineEnergy->setPen(p);
     lineEnergy->setLine(xmin,E,xmax-xmin);
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==PERIODIC) model->getQaatE();
     if(type==FINITE) model->getTatE();
     if(type==QUASISTATIONARY) model->getTnatE();
@@ -1055,8 +1055,8 @@ EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *
     pen.setWidthF(v->widthLineE);
 
     setCursor(Qt::SizeVerCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setZValue(999);
     setAcceptHoverEvents ( true );
 }
@@ -1065,7 +1065,7 @@ QVariant EnergyDraggableLine::itemChange(GraphicsItemChange change, const QVaria
 {
     switch (change)
     {
-    case ItemPositionChange: 
+    case ItemPositionChange:
         if (isSelected())
         {
             QPointF newpos = value.toPointF();
@@ -1093,8 +1093,8 @@ HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
     penHover.setColor(Qt::blue);
 
     setCursor(Qt::SizeVerCursor);
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);	
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setAcceptHoverEvents ( true );
 }
 
@@ -1128,11 +1128,11 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             {
                 QLineF r = right->line();
                 QPointF p1 = r.p1();
-                QPointF p2 = r.p2(); 
+                QPointF p2 = r.p2();
 //                right->setLine(p1.x(),newU,p2.y());
                 right->setLine(p1.x(),newU,p2.y()-newU);
             }
-    PotentialType type = view->model->getPotentialType(); 
+    PotentialType type = view->model->getPotentialType();
     if(type==PERIODIC) view->model->set_Ui(n+1,newU);
     else  view->model->set_Ui(n,newU);
 //            view->model->set_Ui(n,newU);
@@ -1154,8 +1154,8 @@ VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
     pen.setWidthF(view->widthLineV);
     pen.setColor(Qt::black);
 
-    setFlag(QGraphicsItem::ItemIsMovable,true);		
-    setFlag(QGraphicsItem::ItemIsSelectable,true);		
+    setFlag(QGraphicsItem::ItemIsMovable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     setAcceptHoverEvents ( true );
 }
 QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -1170,8 +1170,8 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             double newx = newpos.x();
             QLineF left  = view->linesU[ n ]->line();
             QLineF right = view->linesU[n+1]->line();
-            if (newx > right.x2()) newx = right.x2(); 
-            if (newx < left.x1())   newx = left.x1(); 
+            if (newx > right.x2()) newx = right.x2();
+            if (newx < left.x1())   newx = left.x1();
             newpos.setX(newx);
             newpos.setY(oldpos.y());
             return newpos;
@@ -1182,17 +1182,17 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             QLineF self  = line();
             QLineF left  = view->linesU[ n ]->line();
             QLineF right = view->linesU[n+1]->line();
-    
+
             double x = self.x1();
             double left_w = x - left.x1();
             double right_w = right.x2() - x;
 
             view->linesU[ n ]->setLine(left.x1(),left.y1(),left_w);
             view->linesU[n+1]->setLine(x,right.y1(),right_w);
-            
-    PotentialType type = view->model->getPotentialType(); 
+
+    PotentialType type = view->model->getPotentialType();
     if(type==PERIODIC) view->model->set_d(n+1,left_w,n+2,right_w);
-    else  
+    else
             view->model->set_d(n,left_w,n+1,right_w);
 
             return QVariant();
@@ -1243,19 +1243,19 @@ void MyGraphicsPolylineItem::paint(QPainter * painter, const QStyleOptionGraphic
 }
 */
 void PotentialViewMovable::showDialogScaleY()
-{   
-    if (!dialogScalesU) 
+{
+    if (!dialogScalesU)
     {
         dialogScalesU = new ScalesUx(this);
         dialogScalesU->setModel(model);
     }
-    dialogScalesU->show(); 
+    dialogScalesU->show();
     dialogScalesU->activateWindow();
     dialogScalesU->setFocus();
 }
 void PotentialViewMovable::setWhatToDraw(int w)
-{   
-    if (whatToDraw != w) 
+{
+    if (whatToDraw != w)
     {
         whatToDraw = w;
         this->slotEnergyChanged();
@@ -1375,9 +1375,9 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
     hl->addWidget(lT);
 
     hl->addStretch();
-    
+
     QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
     hl->addStretch();
     hl->addWidget(buttonClose);

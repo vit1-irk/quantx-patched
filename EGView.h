@@ -78,6 +78,7 @@ private:
     QLineEdit *leEmin;
     QLineEdit *leEmax;
     QLineEdit *leHE;
+    QGraphicsRectItem *rectFirst;
 //    double Emin, Emax, hE;
     void setScaleEG();
     QGroupBox  *gbScaleXY;
@@ -89,7 +90,7 @@ private:
     QVector<QPolygonF> physCurvesI;
     QVector<QPolygonF> adjCurvesR;
     QVector<QPolygonF> physCurvesR;
-   
+
     int curve_number;
     double Gmax, Gmin, dG, GG;
     QGraphicsLineItem *lineh,*linev;

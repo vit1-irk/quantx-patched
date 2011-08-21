@@ -17,36 +17,43 @@ struct WPEw
     double E,w;
 };
 
+struct WPEcw
+{
+    double w;
+    complex E;
+};
+
 typedef std::vector<WPEw>  WavePacketEw;
+typedef std::vector<WPEcw>  WavePacketEcw;
 
 struct UAsMW
 {
     int numberOfWells;
     double wa,wb,ua,ub;//,ubias;
-    bool operator != (const UAsMW& o) 
-    { 
-        return numberOfWells != o.numberOfWells 
-            || wa != o.wa || wb != o.wb 
-            || ua != o.ua || ub != o.ub;// || ubias != o.ubias; 
+    bool operator != (const UAsMW& o)
+    {
+        return numberOfWells != o.numberOfWells
+            || wa != o.wa || wb != o.wb
+            || ua != o.ua || ub != o.ub;// || ubias != o.ubias;
     }
 };
 
 struct LevelNumberParameters
 {
     int nmin, nmax, hn;
-    bool operator != (const LevelNumberParameters& o) 
-    { 
-        return nmin != o.nmin 
-            || nmax != o.nmax || hn != o.hn; 
+    bool operator != (const LevelNumberParameters& o)
+    {
+        return nmin != o.nmin
+            || nmax != o.nmax || hn != o.hn;
     }
 };
 struct EmWP
 {
     int nmin, nmax, hn;
-    bool operator != (const EmWP& o) 
-    { 
-        return nmin != o.nmin 
-            || nmax != o.nmax || hn != o.hn; 
+    bool operator != (const EmWP& o)
+    {
+        return nmin != o.nmin
+            || nmax != o.nmax || hn != o.hn;
     }
 };
 
@@ -54,11 +61,11 @@ struct EpWP
 {
     int numberOfModes;
     double E_low, E_high;
-    bool operator != (const EpWP& o) 
-    { 
+    bool operator != (const EpWP& o)
+    {
         return numberOfModes != o.numberOfModes
-            || E_low != o.E_low 
-            || E_high != o.E_high; 
+            || E_low != o.E_low
+            || E_high != o.E_high;
     }
 };
 
@@ -66,30 +73,30 @@ struct Uparab
 {
     int numberOfIntervals;
     double U0, Width;
-    bool operator != (const Uparab& o) 
-    { 
+    bool operator != (const Uparab& o)
+    {
         return numberOfIntervals != o.numberOfIntervals
-            || U0 != o.U0 
-            || Width != o.Width; 
+            || U0 != o.U0
+            || Width != o.Width;
     }
 };
 
 struct TimeParameters
 {
     double time,tmin,tmax,ht;
-    bool operator != (const TimeParameters& o) 
-    { 
+    bool operator != (const TimeParameters& o)
+    {
         return time != o.time
-            ||tmin != o.tmin 
-            ||tmax != o.tmax 
-            || ht  != o.ht; 
+            ||tmin != o.tmin
+            ||tmax != o.tmax
+            || ht  != o.ht;
     }
 };
 struct SettingParameters
 {
     int lineWidth;
-    bool operator != (const SettingParameters& o) 
-    { 
+    bool operator != (const SettingParameters& o)
+    {
         return lineWidth != o.lineWidth;
     }
 };
@@ -99,15 +106,15 @@ struct ScalesUParameters
     double Xmin,Xmax,Hx;
 //    double Psimin,Psimax;
     double Umin,Umax;
-    bool operator != (const ScalesUParameters& o) 
-    { 
+    bool operator != (const ScalesUParameters& o)
+    {
         return Hx != o.Hx
-            ||Xmin != o.Xmin 
-            ||Xmax != o.Xmax 
-            ||Umin != o.Umin 
-            ||Umax != o.Umax; 
-//            ||Psimin != o.Psimin 
-//            ||Psimax != o.Psimax; 
+            ||Xmin != o.Xmin
+            ||Xmax != o.Xmax
+            ||Umin != o.Umin
+            ||Umax != o.Umax;
+//            ||Psimin != o.Psimin
+//            ||Psimax != o.Psimax;
     }
 };
 
@@ -115,39 +122,39 @@ struct ScalePsinParameters
 {
     double Xmin,Xmax,Hx;
     double Psinmin,Psinmax;
-    bool operator != (const ScalePsinParameters& o) 
-    { 
+    bool operator != (const ScalePsinParameters& o)
+    {
         return Hx != o.Hx
-            ||Xmin != o.Xmin 
-            ||Xmax != o.Xmax 
-            ||Psinmin != o.Psinmin 
-            ||Psinmax != o.Psinmax; 
+            ||Xmin != o.Xmin
+            ||Xmax != o.Xmax
+            ||Psinmin != o.Psinmin
+            ||Psinmax != o.Psinmax;
     }
 };
 struct ScaleWPXParameters
 {
     double Xmin,Xmax,Hx;
     double WPXmin,WPXmax;
-    bool operator != (const ScaleWPXParameters& o) 
-    { 
+    bool operator != (const ScaleWPXParameters& o)
+    {
         return Hx != o.Hx
-            ||Xmin != o.Xmin 
-            ||Xmax != o.Xmax 
-            ||WPXmin != o.WPXmin 
-            ||WPXmax != o.WPXmax; 
+            ||Xmin != o.Xmin
+            ||Xmax != o.Xmax
+            ||WPXmin != o.WPXmin
+            ||WPXmax != o.WPXmax;
     }
 };
 struct ScaleWPKParameters
 {
     double Kmin,Kmax,Hk;
     double WPKmin,WPKmax;
-    bool operator != (const ScaleWPKParameters& o) 
-    { 
+    bool operator != (const ScaleWPKParameters& o)
+    {
         return Hk != o.Hk
-            ||Kmin != o.Kmin 
-            ||Kmax != o.Kmax 
-            ||WPKmin != o.WPKmin 
-            ||WPKmax != o.WPKmax; 
+            ||Kmin != o.Kmin
+            ||Kmax != o.Kmax
+            ||WPKmin != o.WPKmin
+            ||WPKmax != o.WPKmax;
     }
 };
 
@@ -155,36 +162,36 @@ struct ScalePhinParameters
 {
     double Kmin,Kmax,Hk;
     double Phinmin,Phinmax;
-    bool operator != (const ScalePhinParameters& o) 
-    { 
+    bool operator != (const ScalePhinParameters& o)
+    {
         return Hk != o.Hk
-            ||Kmin != o.Kmin 
-            ||Kmax != o.Kmax 
-            ||Phinmin != o.Phinmin 
-            ||Phinmax != o.Phinmax; 
+            ||Kmin != o.Kmin
+            ||Kmax != o.Kmax
+            ||Phinmin != o.Phinmin
+            ||Phinmax != o.Phinmax;
     }
 };
 
 struct zParameters
 {
     double z,zmin,zmax,hz;
-    bool operator != (const zParameters& o) 
-    { 
+    bool operator != (const zParameters& o)
+    {
         return z != o.z
-            ||zmin != o.zmin 
-            ||zmax != o.zmax 
-            || hz  != o.hz; 
+            ||zmin != o.zmin
+            ||zmax != o.zmax
+            || hz  != o.hz;
     }
 };
 struct gParameters
 {
     double g,gmin,gmax,hg;
-    bool operator != (const gParameters& o) 
-    { 
+    bool operator != (const gParameters& o)
+    {
         return g != o.g
-            ||gmin != o.gmin 
-            ||gmax != o.gmax 
-            || hg  != o.hg; 
+            ||gmin != o.gmin
+            ||gmax != o.gmax
+            || hg  != o.hg;
     }
 };
 
@@ -285,35 +292,37 @@ private:
     QVector<double> d2; //!< Final potential step widths for z-animations
     QVector<double> m1; //!< Initial potential step masses for z-animations
     QVector<double> m2; //!< Final potential step masses for z-animations
-//    double Ub1,Ub2; 
-    double Ubias; 
+//    double Ub1,Ub2;
+    double Ubias;
     int numberOfLevels, LevelNmin, LevelNmax, LevelHn; // min, max and step for the level numbers of wavefunctions at E<0
 //    zParameters zold;
-    int levelNumber;    
+    int levelNumber;
     // wavepacket:
     int type_of_WP;
     int wpN;
     double wpE_lo, wpE_hi;
     WavePacketEw EWofWP;
+    WavePacketEcw EcWofWP;
+    QVector<complex> lambdap;
     Matrix<complex> kp;
     Matrix<complex> ap;
     Matrix<complex> bp;
     int nminWP, nmaxWP, hnWP; // min, max and step for the level numbers of the wavepacket at E<0
-    
+
     bool need_build_U;
     bool need_build_En;
     bool need_build_WP;
 
-    void markUchanged(); 
+    void markUchanged();
     void markWPchanged();
 
 public:
     int colorB;
     void set_Uxz(double z);
     void set_Uxz_forTz(double z);
-    void getTatE(); 
-    void getTnatE(); 
-    void getQaatE(); 
+    void getTatE();
+    void getTnatE();
+    void getQaatE();
     bool flagBondaryCondition;
     double get_U(int n);//comment
     double getUbias() const { return Ubias; }
@@ -328,9 +337,9 @@ public:
 //    void set_G(double v) {GG=v;}
     complex bN1;
     double get_Time() const { return this->time; }
-//---------WavePacket---------------- 
+//---------WavePacket----------------
 //    void set_type_of_WP(int iwp) { type_of_WP=iwp; }
- 
+
     int get_type_of_WP() const { return this->type_of_WP;};
    //En<0
     int get_nminWP() const { return nminWP; };
@@ -382,10 +391,10 @@ public:
     QVector<complex> getEquasi();
     complex getEquasi(int n);
     double get_qa() const { return qa; }
-    double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;  
-    double Phinmin,Phinmax,Kmin,Kmax,Hk;  
-    double WPKmin,WPKmax;  
-    double WPXmin,WPXmax;  
+    double Umin,Umax,Psimin,Psimax,Psinmin,Psinmax,Xmin,Xmax,Hx;
+    double Phinmin,Phinmax,Kmin,Kmax,Hk;
+    double WPKmin,WPKmax;
+    double WPXmin,WPXmax;
     QPair<double,double> getUminUmax();
     QPair<double,double> getXminXmax();
     void split_d(int n,double fraction);
@@ -447,8 +456,8 @@ private:
     double	 Phi_imag;   /* real of total Psi */
 
 public:
-//    double width, height, scalex, scaley; 
-//    int iwidth, iheight, scalex, scaley; 
+//    double width, height, scalex, scaley;
+//    int iwidth, iheight, scalex, scaley;
     int getN() const { return N; }
     int getN1() const { return N1; }
     int getN2() const { return N2; }
@@ -456,8 +465,8 @@ public:
     void set_N(int N)
     {
         this->N = N;
-//        PotentialType type = getPotentialType(); 
-//    if(type==PERIODIC) 
+//        PotentialType type = getPotentialType();
+//    if(type==PERIODIC)
 //    {
 /*        d.resize(N);
         m.resize(N);
@@ -471,7 +480,7 @@ public:
         s11.resize(N);
         s22.resize(N);*/
 //    }
-//    if(type==FINITE) 
+//    if(type==FINITE)
     {
         d.resize(1+N+1);
         m.resize(1+N+1);
@@ -522,8 +531,8 @@ public:
       QVector<double> getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getPhiOfkPer(double kmin, double kmax);
-      QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints); 
-      QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints); 
+      QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints);
+      QVector<double> getTransmissionOfZ(double Zmin, double Zmax, int npoints);
 //      void findEdgeOfBands(double Emin, double Emax);
 complex findOneQuasiLevel(double _emin, double _emax);
 //complex findOneQuasiLevelG(complex Ec0, complex Ec1);
@@ -554,7 +563,7 @@ private:
 };
 
 /* CONSTANTS
-------------*/   
+------------*/
 
 const double u_eV	= 1.;//1.6021892e-19; /* J */
 const double u_meV	= 1.;//1e-3*u_eV;	 /* J */
@@ -573,9 +582,9 @@ const double ps2tt = 1.;//u_meV*1e-12/u_hbar;
 #define u_mass	 "m_e"
 #define u_time	 "ps"
 
-inline double squaremod(complex& c) 
+inline double squaremod(complex& c)
 {
-    return real(c)*real(c) + imag(c)*imag(c); 
+    return real(c)*real(c) + imag(c)*imag(c);
 }
 
 const double M_PI = 3.1415926535897932384626433832795;

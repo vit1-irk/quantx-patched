@@ -60,21 +60,21 @@ public:
         //double lineWidth= 0.005*vp.height();
         QPoint v1(0,0);
         QPoint v2(3,0);
-        //        QPoint v2(0,3);
+        // QPoint v2(0,3);
         QPointF fv1 = view->mapToScene(v1);
         QPointF fv2 = view->mapToScene(v2);
         //double widthLine1 = fabs(fv2.x() - fv1.x());
-        //        double widthLine1 = fabs(fv2.y() - fv1.y());
+        // double widthLine1 = fabs(fv2.y() - fv1.y());
 
         QPoint va(0,0);
         QPoint vb(5,0);
-        //        QPoint vb(0,5);
+        // QPoint vb(0,5);
         QPointF sa = view->mapToScene(va);
         QPointF sb = view->mapToScene(vb);
         double ay = fabs(sa.y() - sb.y());
-        //        double ax = fabs(sa.x() - sb.x());
+        // double ax = fabs(sa.x() - sb.x());
         double ax= fabs(sa.x() - sb.x());
-        //      double ay = fabs(sa.y() - sb.y());
+        // double ay = fabs(sa.y() - sb.y());
         QRect vpr = view->viewport()->rect();
         QPointF vpr1 = view->mapToScene(vpr.topLeft());
         QPointF vpr2 = view->mapToScene(vpr.bottomRight());
@@ -163,7 +163,7 @@ QVariant gDraggable::itemChange(GraphicsItemChange change, const QVariant & valu
     return QGraphicsItem::itemChange(change,value);
 }
 EGView::EGView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m),lineh(0),linev(0),lineG(0), rectEG(0),
+: QGraphicsView(parent), model(m),lineh(0),linev(0),lineG(0), rectEG(0), rectFirst(0),
 Emin(0.001), Emax(20), hE(0.05), Gmax(-0.0001), Gmin(-5.), dG(0.05), dialogG(0),gbScaleXY(0),numberOfCurves(0)
 {
     curve_number=-1;
@@ -186,10 +186,12 @@ Emin(0.001), Emax(20), hE(0.05), Gmax(-0.0001), Gmin(-5.), dG(0.05), dialogG(0),
     setMinimumSize(260, 100);
     setScalesFromModel();
     initDialogScaleY();
+    setViewportMapping();
     connect(model,SIGNAL(signalGChanged(double)),this,SLOT(slotGLine()));
-//    connect(this,SIGNAL(signalScaleEGChanged()),this,SLOT(redrawCurves()));
-//    connect(this,SIGNAL(signalScaleEGChanged()),this,SLOT(slot_Ec_n()));
-//    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_drawEc_n()));
+    // connect(this,SIGNAL(signalScaleEGChanged()),this,SLOT(redrawCurves()));
+    connect(this,SIGNAL(signalScaleEGChanged()),this,SLOT(resizePicture()));
+    // connect(this,SIGNAL(signalScaleEGChanged()),this,SLOT(slot_Ec_n()));
+    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_drawEc_n()));
 }
 /*EGView::~EGView()
 {
@@ -216,22 +218,21 @@ void EGView::setEGScale(const QPair<double,double> &s)
 }
 void EGView::slotGLine()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type!=QUASISTATIONARY) return;
     gParameters tp = model->getGParam();
     double g=tp.g;
     if(g>tp.gmax) g=tp.gmax;
     if(g<tp.gmin) g=tp.gmin;
+    tp.g=g;
+    model->setGParam(tp);
     QRectF vp = scene()->sceneRect();
     if (!lineG)
     {
         lineG = new gDraggable(this);
-        double gg=vp.width()*(g-tp.gmin)/(tp.gmax-tp.gmin);
         scene()->addItem(lineG);
-        lineG->setLine(gg, 0., vp.height());
     }
-    else
-        lineG->setLine(vp.width()*(g-tp.gmin)/(tp.gmax-tp.gmin), 0., vp.height());
+    lineG->setLine(vp.width()*(g-Gmin)/(Gmax-Gmin), 0., vp.height());
 }
 
 void EGView::setScalesFromModel()
@@ -243,7 +244,7 @@ void EGView::setScalesFromModel()
 
 void EGView::resizePicture()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type!=QUASISTATIONARY) return;
     gParameters tp = model->getGParam();
     if(tp.gmax!=Gmax||tp.gmin!=Gmin||dG!=tp.hg)
@@ -254,8 +255,8 @@ void EGView::resizePicture()
         GG=tp.g;
     }
     setViewportMapping();
-    slot_Ec_n();
     slotGLine();
+    slot_Ec_n();
 }
 void EGView::setViewportMapping()
 {
@@ -280,8 +281,9 @@ void EGView::setViewportMapping()
 
 void EGView::resizeEvent(QResizeEvent*)
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     setViewportMapping();
+    slot_drawEc_n();
     slotGLine();
 }
 
@@ -306,13 +308,17 @@ void EGView::scaleView(qreal scaleFactor)
 
 void EGView::clearAll()
 {
-
-    for ( QMap<int,EGCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
+    if(rectFirst)
     {
-        int m = i.key();
-        removeCurve(m);
+        scene()->removeItem(rectFirst);
     }
-    numberOfCurves=0;
+    /*
+    for ( QMap<int,EGCurve*>::iterator i = curves.begin(); i != curves.end(); ++i)
+    {
+    int m = i.key();
+    removeCurve(m);
+    }
+    numberOfCurves=0;*/
 }
 
 void EGView::keyPressEvent(QKeyEvent *event)
@@ -353,14 +359,15 @@ const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
 
 void EGView::slot_drawEc_n()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type!=QUASISTATIONARY) return;
     if (! isVisible()) return;
-    scene()->clear();
+    // scene()->clear();
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     QRectF vp = scene()->sceneRect();
-    QRectF vp_old=vp;
     QPen p;
+    if(rectFirst) scene()->removeItem(rectFirst);
+    rectFirst = new QGraphicsRectItem(NULL,scene());
     QVector<complex> Equasi;
     Equasi = model->getEnquasi();
     gParameters tp = model->getGParam();
@@ -381,12 +388,11 @@ void EGView::slot_drawEc_n()
         double gg = imag(Equasi[i]);
         double Er = real(Equasi[i]);
         b.setColor(Qt::red);
-        QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         r->setBrush(b);
-        double a=0.1;
-//        tp.g=gg;
-//        model->setGParam(tp);
-        r->setRect(vp.width()*(gg-a/2-Gmin)/(Gmax-Gmin),vp.height()*(Er-a/2-Emin)/(Emax-Emin), 5, 5 );
+        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-a/2-Gmin)/(Gmax-Gmin),vp.height()*(Er-a/2-Emin)/(Emax-Emin), 5, 5 );
     }
     update();
 
@@ -400,7 +406,7 @@ void EGView::slot_Ec_n()
     QPen p;
     SettingParameters ts;
     ts=model->getSettingParameters();
-    lineWidth=ts.lineWidth; 
+    lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
@@ -417,96 +423,119 @@ void EGView::slot_Ec_n()
     int npoints=1+(g0-Gmin)/dG;
     int nmxold=-1;
     double Er=Emin;
-//    double hE=0.01;
-    if (1)
+    /* if (0)
     {
-        scene()->clear();
+    scene()->clear();
     }
     else
     {
-        QList<QGraphicsItem *> list = scene()->items();
-        QList<QGraphicsItem *>::Iterator it = list.begin();
-        for ( ; it != list.end(); ++it )
-        {
-            if ( *it )
-            {
-                scene()->removeItem(*it);
-                delete *it;
-            }
-        }
+    QList<QGraphicsItem *> list = scene()->items();
+    QList<QGraphicsItem *>::Iterator it = list.begin()+1;
+    // QList<QGraphicsItem *>::Iterator it = list.begin();
+    for ( ; it != list.end(); ++it )
+    {
+    if ( *it )
+    {
+    scene()->removeItem(*it);
+    delete *it;
     }
+    }
+    }*/
+
     QVector<complex> Equasi;
     QBrush b(Qt::SolidPattern);
     model->set_EmaxEmin(Emax,Emin);
     model->getColors(Emin, Emax, hE, Gmin, Gmax, dG);
     Equasi = model->getEnquasi();
     int nR=model->redBoundary.size();
-        for (int i=0; i < nR; i++)
-        {
-            QPointF pp=model->redBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
-        }
-        for (int i=0; i < model->yellowBoundary.size(); i++)
-        {
-            QPointF pp=model->yellowBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
-        }
-        for (int i=0; i < model->greenBoundary.size(); i++)
-        {
-            QPointF pp=model->greenBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
-        }
-        for (int i=0; i < model->blueBoundary.size(); i++)
-        {
-            QPointF pp=model->blueBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
-        }
-        double a=10;
+    double a=2;
+    QPointF pp=model->redBoundary[0];
+    double gg=pp.x();
+    Er=pp.y();
+    if(rectFirst) scene()->removeItem(rectFirst);
+    rectFirst = new QGraphicsRectItem(NULL,scene());
+    b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
+    p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
+    rectFirst->setBrush(b);
+    rectFirst->setPen(p);
+    // rectFirst->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
+    rectFirst->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+    for (int i=1; i < nR; i++)
+    {
+        QPointF pp=model->redBoundary[i];
+        double gg=pp.x();
+        Er=pp.y();
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
+        p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
+        r->setBrush(b);
+        r->setPen(p);
+        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
+    }
+    for (int i=0; i < model->yellowBoundary.size(); i++)
+    {
+        QPointF pp=model->yellowBoundary[i];
+        double gg=pp.x();
+        Er=pp.y();
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        b.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
+        p.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
+        r->setBrush(b);
+        r->setPen(p);
+        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
+    }
+    for (int i=0; i < model->greenBoundary.size(); i++)
+    {
+        QPointF pp=model->greenBoundary[i];
+        double gg=pp.x();
+        Er=pp.y();
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
+        b.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
+        p.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
+        r->setBrush(b);
+        r->setPen(p);
+        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
+    }
+    for (int i=0; i < model->blueBoundary.size(); i++)
+    {
+        QPointF pp=model->blueBoundary[i];
+        double gg=pp.x();
+        Er=pp.y();
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
+        b.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
+        p.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
+        r->setBrush(b);
+        r->setPen(p);
+        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
+    }
+    a=10;
     for (int i=0; i < Equasi.size(); i++)
     {
         double gg = imag(Equasi[i]);
         Er = real(Equasi[i]);
-//        b.setColor(Qt::darkRed);
-        QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        b.setColor(Qt::darkRed);
+        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
+        QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
         p.setColor(Qt::black);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
+        // r->setRect(vp.width()*(gg-a/2-Gmin)/(Gmax-Gmin),vp.height()*(Er-a/2-Emin)/(Emax-Emin), 5, 5 );
     }
-        
+
         update();
 }
 /*
 void EGView::redrawCurves()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY) return;
     if(type==FINITE&&curves.size()==0) return;
     QPen p;
@@ -634,7 +663,7 @@ EGWidget::EGWidget(PhysicalModel *model, QWidget *parent)
     vl->addWidget(egView);
     QHBoxLayout *hl = new QHBoxLayout();
     bRunEG = new QToolButton(this);
-    bRunEG->setIcon(QIcon("images/player_play.png"));
+    bRunEG->setIcon(QIcon(":/images/player_play.png"));
     bRunEG->adjustSize();
     hl->addWidget(bRunEG);
 
@@ -644,20 +673,21 @@ EGWidget::EGWidget(PhysicalModel *model, QWidget *parent)
     QLabel *lg= new QLabel(this);
     hl->addWidget(lg);
     connect(model, SIGNAL(signalGChanged(double)), lg, SLOT(setNum(double)));
-
-    QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
-    hl->addStretch();
-    hl->addWidget(buttonClose);
-    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
-
-    connect(bRunEG,SIGNAL(clicked()),this,SLOT(slotRunEG()));
     hl->addStretch();
 
     QCheckBox *ch=new QCheckBox(tr("Erase"),this);
     ch->setCheckState(Qt::Checked);//Qt::Unchecked);
     connect(ch, SIGNAL(stateChanged(int)), this, SLOT(slotErase())); //???
     hl->addWidget(ch);
+
+    QToolButton *buttonClose = new QToolButton(this);
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
+    hl->addWidget(buttonClose);
+    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
+
+    connect(bRunEG,SIGNAL(clicked()),this,SLOT(slotRunEG()));
+    // hl->addStretch();
+
 
     vl->addLayout(hl);
 
@@ -672,14 +702,14 @@ void EGWidget::slotErase()
 
 void EGWidget::slotRunEG()
 {
-    bRunEG->setIcon(QIcon("images/player_stop.png"));//->setText(tr("STOP"));
+    bRunEG->setIcon(QIcon(":/images/player_stop.png"));//->setText(tr("STOP"));
     bRunEG->adjustSize();
     disconnect(bRunEG, SIGNAL(clicked()), this, SLOT(slotRunEG()));
     breakStatus.onButton(bRunEG);
     egView->resizePicture();
     breakStatus.noButton(bRunEG);
-//    breakStatus.disconnect();
-    bRunEG->setIcon(QIcon("images/player_play.png"));//->setText(tr("RUN "));
+    // breakStatus.disconnect();
+    bRunEG->setIcon(QIcon(":/images/player_play.png"));//->setText(tr("RUN "));
     bRunEG->adjustSize();
     connect(bRunEG, SIGNAL(clicked()), this, SLOT(slotRunEG()));
 }

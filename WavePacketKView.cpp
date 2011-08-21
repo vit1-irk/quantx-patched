@@ -74,7 +74,7 @@ void WavePacketKView::setViewportMapping()
     QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
     scene()->setSceneRect(b);
         qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height(); 
+        qreal m22 = - a.height() / b.height();
         qreal dx = - m11 * a.x();
         qreal dy = - m22 * (a.y() + a.height());
         QMatrix m(m11,0,0,m22,dx,dy);
@@ -102,8 +102,8 @@ void WavePacketKView::setViewportMapping()
         sr = scene()->sceneRect();
     }
     update();*/
-} 
-void WavePacketKView::resizeEvent(QResizeEvent*) 
+}
+void WavePacketKView::resizeEvent(QResizeEvent*)
 {
     this->resizePicture();
 //    setViewportMapping();
@@ -153,7 +153,7 @@ void WavePacketKView::slot_WavePacket_of_t()
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
@@ -163,7 +163,7 @@ void WavePacketKView::slot_WavePacket_of_t()
 
     QVector<double> Ebound = model->getEn();
     int number_of_levels = Ebound.size();
-    if(number_of_levels==0) return;    
+    if(number_of_levels==0) return;
     int iwp=model->get_type_of_WP();
     if(iwp==1) return;
     for ( QMap<int,MomentumDistributionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
@@ -239,7 +239,7 @@ void WavePacketKView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 void WavePacketKView::removeCurve(int id)
 {
     QGraphicsItem *item = curves[id];
-    if (item) 
+    if (item)
     {
     scene()->removeItem(curves[id]);
     delete curves[id];
@@ -256,13 +256,13 @@ void MomentumDistributionCurve::paint(QPainter * painter, const QStyleOptionGrap
     painter->drawPolyline(polygon().data(),polygon().size());
 }
 void WavePacketKView::showDialogScaleY()
-{   
-    if (!dialogScaleWPK) 
+{
+    if (!dialogScaleWPK)
     {
         dialogScaleWPK = new ScaleWPK(this);
         dialogScaleWPK->setModel(model);
     }
-    dialogScaleWPK->show(); 
+    dialogScaleWPK->show();
     dialogScaleWPK->activateWindow();
     dialogScaleWPK->setFocus();
 }
@@ -289,7 +289,7 @@ WavePacketKWidget::WavePacketKWidget(PhysicalModel *model, QWidget *parent)
     vl->addWidget(wavePacketKView);
 
     QHBoxLayout *hl = new QHBoxLayout();
-//    bRunPsiKT = new QPushButton(tr("Run "));	
+//    bRunPsiKT = new QPushButton(tr("Run "));
 //    connect(bRunPsiKT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
     QString Phi=QChar(0x03A6);
     QLabel *ltext= new QLabel(this);
@@ -301,7 +301,7 @@ WavePacketKWidget::WavePacketKWidget(PhysicalModel *model, QWidget *parent)
 
     QToolButton *buttonClose = new QToolButton(this);
 //     QPushButton *buttonClose = new QPushButton(tr("Close"));
-    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
 

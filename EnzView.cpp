@@ -220,7 +220,7 @@ void EnzView::setEnzMinMax(const QPair<double,double> &s)
 }
 void EnzView::slotZline()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY) return;
     zParameters tp = model->getzParam();
     double z=tp.z;
@@ -261,7 +261,7 @@ void EnzView::resizePicture()
         }*/
     }
     setViewportMapping();
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY)
     {
     slot_Ec_n();
@@ -295,7 +295,7 @@ void EnzView::setViewportMapping()
 
 void EnzView::resizeEvent(QResizeEvent*)
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     setViewportMapping();
     if(type==QUASISTATIONARY)
     {
@@ -375,12 +375,12 @@ const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
 void EnzView::slot_En_of_z()
 {
     if (! isVisible()) return;
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY)
     {
     slot_Ec_n();
     return;
-    } 
+    }
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
@@ -437,14 +437,14 @@ void EnzView::slot_En_of_z()
 //    QVector<QPolygonF> physCurves;
     int nmxold=-1;
     double Eold=model->get_E0();
-    if(Erase) 
+    if(Erase)
     {
         curve_number=0;
         adjCurves.resize(0);
         physCurves.resize(0);
     }
     else curve_number=curve_number+1;
-    if(curve_number<0) curve_number=0;  
+    if(curve_number<0) curve_number=0;
     int n=curve_number;
     if(numberOfCurves==0)
     {
@@ -514,7 +514,7 @@ void EnzView::slot_En_of_z()
 
 void EnzView::slot_drawEc_n()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type!=QUASISTATIONARY) return;
     if (! isVisible()) return;
     scene()->clear();
@@ -557,7 +557,7 @@ void EnzView::slot_Ec_n()
     QPen p;
     SettingParameters ts;
     ts=model->getSettingParameters();
-    lineWidth=ts.lineWidth; 
+    lineWidth=ts.lineWidth;
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
@@ -619,7 +619,7 @@ void EnzView::slot_Ec_n()
         }
         Er = Er + hE;
     }
-*/    
+*/
     int nR=model->redBoundary.size();
         for (int i=0; i < nR; i++)
         {
@@ -680,7 +680,7 @@ void EnzView::slot_Ec_n()
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Enzmin)/(Enzmax-Enzmin)-a/2, a,a );
     }
-        
+
         update();
 }
 /*
@@ -753,7 +753,7 @@ void EnzView::slot_Ec_n()
                     adjCurves.push_back( QPolygonF() );
                     physCurves.push_back( QPolygonF() );
                     if(first) numberOfRealCurves=adjCurves.size();
-                    else numberOfRealCurves++; 
+                    else numberOfRealCurves++;
                 }
                 adjCurves[ic].push_back(QPointF(gi, adjEbound[i]));
                 physCurves[ic].push_back(QPointF(gg, Ere[i]));
@@ -762,7 +762,7 @@ void EnzView::slot_Ec_n()
 //        for(int j=0; j<adjCurves.size(); j++)
 //        if(first) p.setColor(colorForIds[1 % size_colorForIds]);
         p.setColor(colorForIds[2 % size_colorForIds]);
- 
+
         for(int j=0; j<numberOfRealCurves; j++)
         {
              setCurve(j,physCurves[j],adjCurves[j],p);
@@ -779,7 +779,7 @@ void EnzView::slot_Ec_n()
         adjEbound = Eim;
         for(int m=0; m<=nmx; m++)
         {
-            double Ei= Eim[m]; 
+            double Ei= Eim[m];
             adjEbound[m]=vp.height()*(Eim[m]-Enzmin)/(Enzmax-Enzmin);
         }
         {
@@ -796,7 +796,7 @@ void EnzView::slot_Ec_n()
             }
         }
         p.setColor(colorForIds[1 % size_colorForIds]);
- 
+
         for(int j=Ere.size(); j<Ere.size()+Eim.size(); j++)
 //        for(int j=numberOfCurves; j<adjCurves.size(); j++)
         {
@@ -810,7 +810,7 @@ void EnzView::slot_Ec_n()
 */
 void EnzView::redrawCurves()
 {
-    PotentialType type = model->getPotentialType(); 
+    PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY) return;
     if(type==FINITE&&curves.size()==0) return;
     QPen p;
@@ -939,7 +939,7 @@ EnzWidget::EnzWidget(PhysicalModel *model, QWidget *parent)
     vl->addWidget(enzView);
     QHBoxLayout *hl = new QHBoxLayout();
     bRunEnz = new QToolButton(this);
-    bRunEnz->setIcon(QIcon("images/player_play.png"));
+    bRunEnz->setIcon(QIcon(":/images/player_play.png"));
     bRunEnz->adjustSize();
     hl->addWidget(bRunEnz);
 
@@ -949,21 +949,22 @@ EnzWidget::EnzWidget(PhysicalModel *model, QWidget *parent)
     QLabel *lz= new QLabel(this);
     hl->addWidget(lz);
     connect(model, SIGNAL(signalZChanged(double)), lz, SLOT(setNum(double)));
-
-    QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
-    buttonClose->adjustSize();//QPushButton(tr("Close"));
-    hl->addStretch();
-    hl->addWidget(buttonClose);
-    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
-
-    connect(bRunEnz,SIGNAL(clicked()),this,SLOT(slotRunEnz()));
     hl->addStretch();
 
     QCheckBox *ch=new QCheckBox(tr("Erase"),this);
     ch->setCheckState(Qt::Checked);//Qt::Unchecked);
     connect(ch, SIGNAL(stateChanged(int)), this, SLOT(slotErase())); //???
     hl->addWidget(ch);
+
+    QToolButton *buttonClose = new QToolButton(this);
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
+    buttonClose->adjustSize();//QPushButton(tr("Close"));
+    hl->addWidget(buttonClose);
+    connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
+
+    connect(bRunEnz,SIGNAL(clicked()),this,SLOT(slotRunEnz()));
+ //   hl->addStretch();
+
 
     vl->addLayout(hl);
 
@@ -979,14 +980,14 @@ void EnzWidget::slotErase()
 
 void EnzWidget::slotRunEnz()
 {
-    bRunEnz->setIcon(QIcon("images/player_stop.png"));//->setText(tr("STOP"));
+    bRunEnz->setIcon(QIcon(":/images/player_stop.png"));//->setText(tr("STOP"));
     bRunEnz->adjustSize();
     disconnect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
     breakStatus.onButton(bRunEnz);
     enzView->resizePicture();
     breakStatus.noButton(bRunEnz);
 //    breakStatus.disconnect();
-    bRunEnz->setIcon(QIcon("images/player_play.png"));//->setText(tr("RUN "));
+    bRunEnz->setIcon(QIcon(":/images/player_play.png"));//->setText(tr("RUN "));
     bRunEnz->adjustSize();
     connect(bRunEnz, SIGNAL(clicked()), this, SLOT(slotRunEnz()));
 }

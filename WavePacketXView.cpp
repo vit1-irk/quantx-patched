@@ -15,7 +15,7 @@
 
 WavePacketXView::WavePacketXView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogTime(0),
-lineh(0), linev(0),lineWidth(2), 
+lineh(0), linev(0),lineWidth(2),
 dialogWPEp(0),dialogWPEm(0),dialogScaleWPX(0),
 whatToDraw(2)
 {
@@ -25,7 +25,7 @@ whatToDraw(2)
     if (1)
     {
         setViewportUpdateMode(BoundingRectViewportUpdate);///
-        setCacheMode(CacheBackground);  
+        setCacheMode(CacheBackground);
         setRenderHint(QPainter::Antialiasing);///
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
@@ -95,8 +95,8 @@ void WavePacketXView::setViewportMapping()
         scene()->update(scene()->sceneRect());
     }
     update();
-} 
-void WavePacketXView::resizeEvent(QResizeEvent *) 
+}
+void WavePacketXView::resizeEvent(QResizeEvent *)
 {
     setViewportMapping();
     reDraw();
@@ -125,7 +125,7 @@ void WavePacketXView::scaleView(qreal scaleFactor)
 void WavePacketXView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
-    {    
+    {
     case Qt::Key_Delete:
         clearAll();
         break;
@@ -152,7 +152,7 @@ void WavePacketXView::keyPressEvent(QKeyEvent *event)
 }
 void WavePacketXView::clearAll()
 {
-    
+
         for ( QMap<int,CoordinateDistributionCurve*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int m = i.key();
@@ -160,11 +160,11 @@ void WavePacketXView::clearAll()
     }
 }
 void WavePacketXView::reDraw()
-{ 
+{
     if (! isVisible()) return;
     QRectF vp = scene()->sceneRect();
     QPen p;
-    SettingParameters ts;  
+    SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
 //    if(lineWidth==0)lineWidth=1;
@@ -233,25 +233,28 @@ void WavePacketXView::slot_WavePacket_of_t()
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    TimeParameters tp=model->getTimeParam(); 
+    TimeParameters tp=model->getTimeParam();
     this->time=tp.time;
     this->htime=tp.ht;
     this->tmin=tp.tmin;
     this->tmax=tp.tmax;
     double tt=this->time+this->htime;
-    if(tt>=this->tmax) 
-    { 
+    if(tt>=this->tmax)
+    {
         tt=this->tmin;
         this->time=tt;
     }
-    if(tt<this->tmin) 
-    { 
+    if(tt<this->tmin)
+    {
         tt=this->tmax;
         this->time=tt;
     }
     p.setColor(Qt::darkCyan);
-    for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
+
+        for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
     {
+        tp.time=t;
+        tp.ht=htime;
         ScaleWPXParameters sc = model->getScaleWPXParam();
         vp = scene()->sceneRect();
         ts=model->getSettingParameters();
@@ -279,12 +282,6 @@ void WavePacketXView::slot_WavePacket_of_t()
 //            p.setWidthF(widthLineWP);
             vp_old=vp;
         }
-/*        TimeParameters tt=model->getTimeParam(); 
-        if(t!=tt.time||htime!=tt.ht)
-        {
-            this->time=tt.time;
-            htime=tt.ht;
-        }*/
         waveFunction = model->getPsiOfXT(t, xmin, xmax, npoints, whatToDraw);
         for (int i=0; i < npoints; i++)
         {
@@ -293,14 +290,13 @@ void WavePacketXView::slot_WavePacket_of_t()
             psi[i]  = QPointF(x, y);
         }
         setCurve(0, psi, p);
-        tp=model->getTimeParam();//ашкн
-//        TimeParameters tt=model->getTimeParam(); 
+        tp=model->getTimeParam();
         if(t!=tp.time||htime!=tp.ht)
         {
             this->time=tp.time;
             htime=tp.ht;
         }
-        if (getBreakStatus(0)) 
+        if (getBreakStatus(0))
         {
             return;
         }
@@ -309,7 +305,7 @@ void WavePacketXView::slot_WavePacket_of_t()
 
 void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 {
- 
+
     if (curves[id])
     {
         curves[id]->setPolygon(curve);
@@ -327,11 +323,11 @@ void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
 void WavePacketXView::removeCurve(int id)
 {
     QGraphicsItem *item = curves[id];
-    if (item) 
+    if (item)
     {
     scene()->removeItem(curves[id]);
     delete curves[id];
-    curves[id] = 0; 
+    curves[id] = 0;
     }//this is dangerous: curves.remove(id);
     update();
 }
@@ -345,11 +341,11 @@ void CoordinateDistributionCurve::paint(QPainter * painter, const QStyleOptionGr
 }
 /*
 void WavePacketXView::initDialogWidth()
-{   
+{
     gbWidth = new QGroupBox(this);
     gbWidth->setWindowTitle("Width of lines");
     gbWidth->setWindowFlags(Qt::Window);
-    gbWidth->setFont(QFont("Serif", 12, QFont::Bold )); 
+    gbWidth->setFont(QFont("Serif", 12, QFont::Bold ));
 
     QVBoxLayout *vl = new QVBoxLayout;
     {
@@ -395,13 +391,13 @@ void WavePacketXView::updateWidth()
 */
 //---------------
 void WavePacketXView::showDialogScaleY()
-{   
-    if (!dialogScaleWPX) 
+{
+    if (!dialogScaleWPX)
     {
         dialogScaleWPX = new ScaleWPX(this);
         dialogScaleWPX->setModel(model);
     }
-    dialogScaleWPX->show(); 
+    dialogScaleWPX->show();
     dialogScaleWPX->activateWindow();
     dialogScaleWPX->setFocus();
 }
@@ -450,7 +446,7 @@ void  WavePacketXView::slotSetWPEm()
         dialogWPEm = new WPparametersM(this);
         dialogWPEm->setModel(model);
     }
-    dialogWPEm->show(); 
+    dialogWPEm->show();
     dialogWPEm->activateWindow();
     dialogWPEm->setFocus();
 }
@@ -461,7 +457,7 @@ void  WavePacketXView::slotSetWPEp()
         dialogWPEp = new WPparametersP(this);
         dialogWPEp->setModel(model);
     }
-    dialogWPEp->show(); 
+    dialogWPEp->show();
     dialogWPEp->activateWindow();
     dialogWPEp->setFocus();
 }
@@ -473,14 +469,14 @@ void WavePacketXView::slotSetTime()
         dialogTime = new TimeView(this);
         dialogTime->setModel(model);
     }
-    dialogTime->show(); 
+    dialogTime->show();
     dialogTime->activateWindow();
     dialogTime->setFocus();
 }
 
 void WavePacketXView::setWhatToDraw(int w)
-{   
-    if (whatToDraw != w) 
+{
+    if (whatToDraw != w)
     {
         whatToDraw = w;
 //        slot_WavePacket_of_t();
@@ -497,9 +493,9 @@ WavePacketXWidget::WavePacketXWidget(PhysicalModel *model, QWidget *parent)
 
     QHBoxLayout *hl = new QHBoxLayout();
     bRunPsiXT = new QToolButton(this);
-    bRunPsiXT->setIcon(QIcon("images/player_play.png"));
+    bRunPsiXT->setIcon(QIcon(":/images/player_play.png"));
     bRunPsiXT->adjustSize();
-//    bRunPsiXT = new QPushButton(tr("Run "));	
+//    bRunPsiXT = new QPushButton(tr("Run "));
     connect(bRunPsiXT,SIGNAL(clicked()),this,SLOT(slotRunWP()));
     //------------
     QString psi=QChar(0x03C8);
@@ -527,13 +523,13 @@ WavePacketXWidget::WavePacketXWidget(PhysicalModel *model, QWidget *parent)
     QLabel *ltime= new QLabel(this);
     connect(model, SIGNAL(signalTimeChanged(double)), ltime, SLOT(setNum(double)));
 
-    hl->addWidget(bRunPsiXT);		
+    hl->addWidget(bRunPsiXT);
     hl->addWidget(ltext);
     hl->addWidget(ltime);
 
     //    QPushButton *buttonClose = new QPushButton(tr("Close"));
     QToolButton *buttonClose = new QToolButton(this);
-    buttonClose->setIcon(QIcon("images/erase.png"));
+    buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
     hl->addStretch();
     hl->addWidget(buttonClose);
@@ -545,14 +541,14 @@ WavePacketXWidget::WavePacketXWidget(PhysicalModel *model, QWidget *parent)
 
 void WavePacketXWidget::slotRunWP()
 {
-    bRunPsiXT->setIcon(QIcon("images/player_pause.png"));
+    bRunPsiXT->setIcon(QIcon(":/images/player_pause.png"));
     bRunPsiXT->adjustSize();
 //    bRunPsiXT->setText(tr("STOP"));
     disconnect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
     breakStatus.onButton(bRunPsiXT);
     wavePacketXView->resizePicture();
     breakStatus.noButton(bRunPsiXT);
-    bRunPsiXT->setIcon(QIcon("images/player_play.png"));
+    bRunPsiXT->setIcon(QIcon(":/images/player_play.png"));
     bRunPsiXT->adjustSize();
 //    bRunPsiXT->setText(tr("RUN "));
     connect(bRunPsiXT, SIGNAL(clicked()), this, SLOT(slotRunWP()));
