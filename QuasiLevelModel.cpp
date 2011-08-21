@@ -16,7 +16,7 @@ QuasiLevelModel::rowCount(const QModelIndex& /*parent*/) const
 }
 
 
-int 
+int
 QuasiLevelModel::columnCount(const QModelIndex& /*parent*/) const
 {
     return 2;
@@ -28,14 +28,14 @@ QuasiLevelModel::invalidateModel()
     reset();
 }
 
-void 
+void
 QuasiLevelModel::setQuasiLevels(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(invalidateModel()));
 }
 
-QVariant 
+QVariant
 QuasiLevelModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
@@ -57,7 +57,7 @@ QuasiLevelModel::data(const QModelIndex& index, int role) const
         int j = index.row();
         if (j < model->getEquasi().size())
             return QVariant(real(model->getEquasi(model->getEquasi().size() - j - 1)));
-        else 
+        else
             return QVariant();
         }
     case 1: // En
@@ -65,7 +65,7 @@ QuasiLevelModel::data(const QModelIndex& index, int role) const
         int j = index.row();
         if (j < model->getEquasi().size())
             return QVariant(imag(model->getEquasi(model->getEquasi().size() - j - 1)));
-        else 
+        else
             return QVariant();
         }
     default:
@@ -74,7 +74,7 @@ QuasiLevelModel::data(const QModelIndex& index, int role) const
 }
 
 
-QVariant 
+QVariant
 QuasiLevelModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole)

@@ -50,10 +50,10 @@ public slots:
     void slotSetWPEp();
     void slotSetTime();
 //    void updateWidth();
-    void reDraw();  
+    void reDraw();
 signals:
     void infoMouseMovedTo(QPointF);
-    void signalWidthChanged();    
+    void signalWidthChanged();
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -71,7 +71,7 @@ private:
      WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
     int lineWidth;
-    double psiMax, psiMin; 
+    double psiMax, psiMin;
     double xmin,xmax,dx;
     ScaleWPX *dialogScaleWPX;
     double tmin,tmax, time, htime;
@@ -98,7 +98,7 @@ public:
 private:
     QButtonGroup *bgR;
     WavePacketXView *wavePacketXView;
-    QToolButton *bRunPsiXT;	
+    QToolButton *bRunPsiXT;
 
 public slots:
     void slotRunWP();

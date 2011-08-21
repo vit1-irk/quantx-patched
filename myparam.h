@@ -34,7 +34,7 @@ class MyParamI : public QObject
 {
     Q_OBJECT
 public:
-    MyParamI(int _v = 0) : v(_v), ledit(0) {}    
+    MyParamI(int _v = 0) : v(_v), ledit(0) {}
     int& operator=(int d) { return v = d; }
     int& operator+=(int d) { return v += d; }
     operator int() const { return v; }
@@ -56,11 +56,11 @@ private:
     int v;
 };
 /*
-class MyParamUxN : public QObject 
+class MyParamUxN : public QObject
 {
     Q_OBJECT
 public:
-    MyParamUxN(int _v = 0) : v(_v), ledit(0) {}    
+    MyParamUxN(int _v = 0) : v(_v), ledit(0) {}
     int& operator=(int d) { return v = d; }
     int& operator+=(int d) { return v += d; }
     operator int() const { return v; }
@@ -72,7 +72,7 @@ public slots:
     void updateDisplay();
     void textToValue();
     void showU();
- 
+
 signals:
     void valueChanged();
 

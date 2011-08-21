@@ -25,7 +25,7 @@ main(int argc, char **argv)
 
 //    QPalette pal(Qt::green.light(200), Qt::blue.light(200));
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));//!!!!!!!!!
- 
+
     MainWindow mainWindow;
 
     mainWindow.resize(mainWindow.sizeHint());
@@ -40,6 +40,6 @@ main(int argc, char **argv)
     mainWindow.show();
 
     QObject::connect( &mainWindow, SIGNAL(closed()), qApp, SLOT(quit()) );
-    
+
     return app.exec();
 }

@@ -76,7 +76,7 @@ void ScaleWPX::setModel(PhysicalModel *_model)
 }
 
 void ScaleWPX::modelChanged()
-{  
+{
     if (!model)
     {
         this->leHx->setDisabled(true);

@@ -98,4 +98,4 @@ void WPparametersM::updateModel()
         last = wp;
     }
 }
-  
+

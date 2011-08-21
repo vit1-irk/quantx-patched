@@ -44,7 +44,7 @@ private:
     void removeCurve(int id);
     void contextMenuEvent(QContextMenuEvent *event);
 
-     
+
 public slots:
     void setViewportMapping();
     void resizePicture();
@@ -55,7 +55,7 @@ public slots:
 signals:
     void infoMouseMovedTo(QPointF);
     void signalViewChanged();
-    void signalWidthChanged();    
+    void signalWidthChanged();
 //    void signalScalesChanged();
 protected:
     void scrollView(int dx, int dy);
@@ -78,8 +78,8 @@ private:
     LevelNumber *dialogLevNum;
     void setScalesFromModel();
     double lineWidth;
-    double psiMax, psiMin,xmin,xmax,dx; 
-    int   nMax, nMin, hn;  
+    double psiMax, psiMin,xmin,xmax,dx;
+    int   nMax, nMin, hn;
     QGraphicsLineItem *lineh,*linev;
     PhysicalModel *model;
     QMap<int,CoordinateDistribution*> curves;

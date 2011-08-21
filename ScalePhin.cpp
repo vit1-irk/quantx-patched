@@ -76,7 +76,7 @@ void ScalePhin::setModel(PhysicalModel *_model)
 }
 
 void ScalePhin::modelChanged()
-{  
+{
     if (!model)
     {
         this->leHk->setDisabled(true);

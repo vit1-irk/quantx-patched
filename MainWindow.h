@@ -37,7 +37,7 @@ struct WPE
 typedef std::vector<WPE>  WavePacket;
 
 //---------------------------------------------------------------------
-// Define main window 
+// Define main window
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -161,12 +161,12 @@ private:
     void initControlDockWindow();
     void initTable();
     void initTableEn();
-/*    void initPlotT(); 
-    void initPlotPhik(); 
-    void initPlotPsix(); 
-    void initPlotUx(); 
-    void initPlotEnz(); 
-    void initPlotNofE(); 
+/*    void initPlotT();
+    void initPlotPhik();
+    void initPlotPsix();
+    void initPlotUx();
+    void initPlotEnz();
+    void initPlotNofE();
     void updateValues();
     void setScalesPsi();
     */
@@ -205,7 +205,7 @@ private:
     QButtonGroup *argRT;
     QComboBox *psi_type, *psix_var, *psip_var,*U_type, *En_type;
     QComboBox *T_type;
-    MyParamI Nwb, nmaxLevel, nminLevel, nLevel,nmaxWP, nminWP,hnWP; 
+    MyParamI Nwb, nmaxLevel, nminLevel, nLevel,nmaxWP, nminWP,hnWP;
     MyParamD E0,time,Ua,aa,Ub,bb,xmin,xmax,Emin,Emax,hE,Umin,Umax, kmax,hk;
     MyParamD psixmin,psixmax,hx,zz,zmin,zmax,hz;
     MyParamD wpE_lo, wpE_hi, wpN;
@@ -218,8 +218,8 @@ private:
 //    QVector<double> d2; //!< Final potential step widths for z-animations
 //    QVector<double> m1; //!< Initial potential step masses for z-animations
 //    QVector<double> m2; //!< Final potential step masses for z-animations
-//    double Ubias; 
-//    double Ub1,Ub2; 
+//    double Ubias;
+//    double Ub1,Ub2;
 //    QGroupBox *gbviewPsixT,*gbPview,*gbviewMT,*gbTEview;
     WavePacketXWidget *gbviewPsixT;
     WavePacketKWidget *gbviewMT;
@@ -238,7 +238,7 @@ private:
     QPushButton *bRunPsi;
     QPushButton *bRunPhi;
     QPushButton *bRunD;
-    
+
     QPushButton *bRunPsiXT;
 
     int countW;
@@ -249,7 +249,7 @@ private:
     QAction *exitAction, *aboutAction, *saveAction, *chooseFontAction, *mUx,*mUx1, *mVxt;//, *menuE;
     QMenu *file, *menuUx, *mE;
     std::vector<double> Elevels;
-    int Number_of_Levels; 
+    int Number_of_Levels;
     //    QComboBox *typeCond;
     PhysicalModel *model;
 

@@ -30,12 +30,12 @@ PotentialWidget::PotentialWidget()
         connect(potentialViewMovable,SIGNAL(infoMouseMovedTo(QPointF)),
             this,SLOT(updateMouseMovedTo(QPointF)));
 
-        QPushButton * reset = new QPushButton("&Reset Potential");	
+        QPushButton * reset = new QPushButton("&Reset Potential");
         connect(reset,SIGNAL(clicked()),scene,SLOT(redrawU()));
         connect(reset,SIGNAL(clicked()),scene,SLOT(redrawEn()));
-        vl->addWidget(reset);		
+        vl->addWidget(reset);
 
-        QPushButton * addseg = new QPushButton("&Add Potential Segment");	
+        QPushButton * addseg = new QPushButton("&Add Potential Segment");
         connect(addseg,SIGNAL(clicked()),scene,SLOT(addNewSegment()));
         vl->addWidget(addseg);
 }*/

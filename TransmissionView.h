@@ -50,7 +50,7 @@ public slots:
     void updateScaleTE();
 signals:
     void infoMouseMovedTo(QPointF);
-    void signalScaleTEChanged();    
+    void signalScaleTEChanged();
 protected:
     void resizeEvent(QResizeEvent *event);
     void keyPressEvent(QKeyEvent *event);
@@ -67,7 +67,7 @@ public:
 private:
     void initDialogScaleY();
     void updateRubberBandRegion();
-    double tMax, tMin; 
+    double tMax, tMin;
     double Emin,Emax,hE;
     QGraphicsLineItem *lineh,*linev;
     EnergyDraggable *lineE;
@@ -78,7 +78,7 @@ private:
     QLineEdit *leEmax;
     QLineEdit *leHE;
     double lineWidth;
-    
+
     PhysicalModel *model;
     QGroupBox  *gbScaleXY;
     QMap<int,TransmissionCurve*> curves;
@@ -95,7 +95,7 @@ public:
     TransmissionWidget(PhysicalModel *model, QWidget * parent = 0);
 private:
     TransmissionView *transmissionView;
-    QPushButton *bRunTE;	
+    QPushButton *bRunTE;
     QCheckBox *ch;
 public slots:
     void slotRunTE();

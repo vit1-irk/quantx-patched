@@ -7,7 +7,7 @@ class MySplitterHandle : public QSplitterHandle
 {
 public:
     MySplitterHandle(Qt::Orientation orientation, QSplitter *parent = 0);
-    void paintEvent(QPaintEvent *event); 
+    void paintEvent(QPaintEvent *event);
 private:
     QColor c0, c1;
 };

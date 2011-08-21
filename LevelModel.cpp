@@ -16,7 +16,7 @@ LevelModel::rowCount(const QModelIndex& /*parent*/) const
 }
 
 
-int 
+int
 LevelModel::columnCount(const QModelIndex& /*parent*/) const
 {
     return 1;
@@ -28,14 +28,14 @@ LevelModel::invalidateModel()
     reset();
 }
 
-void 
+void
 LevelModel::setLevels(PhysicalModel *_model)
 {
     this->model = _model;
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(invalidateModel()));
 }
 
-QVariant 
+QVariant
 LevelModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
@@ -57,7 +57,7 @@ LevelModel::data(const QModelIndex& index, int role) const
         int j = index.row();
         if (j < model->getEn().size())
             return QVariant(model->getEn(model->getEn().size() - j - 1));
-        else 
+        else
             return QVariant();
         }
     default:
@@ -66,7 +66,7 @@ LevelModel::data(const QModelIndex& index, int role) const
 }
 
 
-QVariant 
+QVariant
 LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole)

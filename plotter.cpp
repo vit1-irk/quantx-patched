@@ -15,28 +15,28 @@ void Plotter::moveButtons()
     const int sep = 1;
     int lx = sep;
 
-    zoomAllButton->move(lx, sep); 
+    zoomAllButton->move(lx, sep);
     lx += zoomAllButton->width() + sep;
 
-    zoomInButton->move(lx, sep); 
+    zoomInButton->move(lx, sep);
     lx += zoomInButton->width() + sep;
 
-    zoomOutButton->move(lx, sep); 
+    zoomOutButton->move(lx, sep);
     lx += zoomOutButton->width() + sep;
 
-/*    scaleXButton->move(lx, sep); 
+/*    scaleXButton->move(lx, sep);
     lx += scaleXButton->width() + sep;
 */
-    scaleYButton->move(lx, sep); 
+    scaleYButton->move(lx, sep);
     lx += scaleYButton->width() + sep;
 
 }
 
 Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
-:   QWidget(parent, flags), 
+:   QWidget(parent, flags),
     scaleFixed(true),
     eraseButton(0)
-{   
+{
 //    setBackgroundRole(QPalette::Dark);
     setBackgroundRole(QPalette::Text); //was!!!1.
     setAutoFillBackground ( true );
@@ -74,7 +74,7 @@ Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
     zoomAllButton->adjustSize();
     zoomAllButton->show();
     connect(zoomAllButton, SIGNAL(clicked()), this, SLOT(zoomAll()));
-    
+
     setPlotSettings(PlotSettings());
     setMouseTracking(true);
 }
@@ -82,7 +82,7 @@ Plotter::Plotter(QWidget *parent, Qt::WindowFlags flags)
 /*void Plotter::initStatusBar()
 {
 //    createStatusBar();
-    this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold )); 
+    this->statusBar()->setFont(QFont("Serif", 10, QFont::DemiBold ));
     this->mouseAtX = new QLabel("x: --------------",
             this->statusBar());
     this->statusBar()->addWidget(this->mouseAtX);
@@ -98,7 +98,7 @@ void Plotter::setPlotSettings(const PlotSettings &settings)
 {
     zoomStack.resize(1);
     zoomStack[0] = settings;
-    curZoom = 0; 
+    curZoom = 0;
     yScale=0;
     xScale=0;
     zoomInButton->hide();
@@ -137,7 +137,7 @@ void Plotter::scaleY()
         if(yScale==2) yScale=0;
         this->captureBoundsToSettings();
         refreshPixmap();
-   
+
 }
 void Plotter::zoomIn()
 {
@@ -169,7 +169,7 @@ void Plotter::captureBoundsToSettings()
         for (int i=0; i<maxPoints; ++i)
         {
             double xd=data[2*i];
-            double yd=data[2*i+1]; 
+            double yd=data[2*i+1];
             if(yScale==1) yd=log10(yd);
 //            if(xScale==1) xd=1./xd;
 //           if(xScale==2) xd=log10(xd);
@@ -226,7 +226,7 @@ void Plotter::paintEvent(QPaintEvent *event)
 //        painter.setPen(palette().color(QPalette::WindowText));
         painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
     }
-    if (hasFocus()) 
+    if (hasFocus())
     {
         QStyleOptionFocusRect option;
         option.initFrom(this);
@@ -238,7 +238,7 @@ void Plotter::resizeEvent(QResizeEvent *)
 {
     moveButtons();
     refreshPixmap();
-} 
+}
 
 void Plotter::mousePressEvent(QMouseEvent *event)
 {
@@ -350,7 +350,7 @@ void Plotter::wheelEvent(QWheelEvent *event)
     int numTicks = numDegrees / 15;
     if(event->orientation() == Qt::Horizontal)
         zoomStack[curZoom].scroll(numTicks,0);
-    else 
+    else
         zoomStack[curZoom].scroll(0, numTicks);
     refreshPixmap();
 }
@@ -381,7 +381,7 @@ void Plotter::drawGrid(QPainter *painter)
     QPen quiteDark = palette().color(QPalette::Dark);
     QPen light = palette().color(QPalette::Light);
 //    settings.adjust();
-    for(int i = 0; i<=settings.numXTicks; ++i) 
+    for(int i = 0; i<=settings.numXTicks; ++i)
     {
         int x = rect.left() + (i*(rect.width()-1)/settings.numXTicks);
         double label = settings.minX + (i*settings.spanX()/settings.numXTicks);
@@ -403,7 +403,7 @@ void Plotter::drawGrid(QPainter *painter)
         painter->drawText(rect.left()-Margin, y-10, Margin-5, 20,
             Qt::AlignRight | Qt::AlignVCenter,
             QString::number(label));
-    } 
+    }
     painter->drawRect(rect);
 }
 
@@ -418,7 +418,7 @@ void Plotter::drawCurves(QPainter *painter)
 //    painter->backgroundMode(Qt::TransparentMode);
     PlotSettings settings = zoomStack[curZoom];
 //----------------------
-//    QRect rect(Margin, Margin, 
+//    QRect rect(Margin, Margin,
 //        width()-2*Margin, height()-2*Margin);
     painter->setClipRect(rect.x()+1, rect.y()+1, rect.width()-2, rect.height()-2);
     map<int, CurveData>::const_iterator it = curveMap.begin();
@@ -433,7 +433,7 @@ void Plotter::drawCurves(QPainter *painter)
 
         for (int i=0; i<maxPoints; ++i){
             double xd=data[2*i];
-            double yd=data[2*i+1]; 
+            double yd=data[2*i+1];
             if(yScale==1) yd=log10(yd);
  //           if(xScale==1) xd=1./xd;
 //            if(xScale==2) xd=log10(xd);
@@ -483,9 +483,9 @@ void PlotSettings::adjust()
 void PlotSettings::adjustAxis(double &min, double &max, int &numTicks)
 {
     const int MinTicks = 4;
-    double range = max-min; 
+    double range = max-min;
 ///    double step = range/(MinTicks-1);
-//    double range = nicenum(max-min,0); 
+//    double range = nicenum(max-min,0);
 //    double step = nicenum(range/(MinTicks-1),1);
     double grossStep = (max-min)/MinTicks;
     double step = pow(10.0, floor(log10(grossStep)));
@@ -536,7 +536,7 @@ bool Plotter::savePlotAs()
 {
     //QString fn = Q3FileDialog::getSaveFileName( QString::null, QString::null, this );
     QString fn = QFileDialog::getSaveFileName(this);
-    if ( !fn.isEmpty() ) 
+    if ( !fn.isEmpty() )
     {
         curFileCurve = fn;
         return this->savePlot();

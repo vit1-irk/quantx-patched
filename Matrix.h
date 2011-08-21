@@ -6,14 +6,14 @@ class Matrix
 {
 public:
     Matrix() : rl(0), ru(0), cl(0), cu(0) {}
-    Matrix(int _rl, int _ru, int _cl, int _cu) 
-        : rl(_rl), ru(_ru), cl(_cl), cu(_cu) 
+    Matrix(int _rl, int _ru, int _cl, int _cu)
+        : rl(_rl), ru(_ru), cl(_cl), cu(_cu)
     {
         v.resize((ru-rl+1)*(cu-cl+1));
     }
     ~Matrix() {}
-    void resize(int _rl, int _ru, int _cl, int _cu) 
-    { 
+    void resize(int _rl, int _ru, int _cl, int _cu)
+    {
         rl = _rl;
         ru = _ru;
         cl = _cl;

@@ -52,7 +52,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void enterEvent(QEvent *event);
-private: 
+private:
     void moveButtons();
     void updateRubberBandRegion();
     void refreshPixmap();
@@ -62,7 +62,7 @@ private:
 //    enum {BGMode=0};
     enum {Margin = 50};
 //    enum {Margin = 60};
-    QToolButton *zoomInButton; 
+    QToolButton *zoomInButton;
     QToolButton *zoomOutButton;
     QToolButton *zoomAllButton;
     QToolButton *eraseButton;
@@ -81,7 +81,7 @@ private:
 };
 
 class PlotSettings
-{ 
+{
 public:
     PlotSettings();
     void scroll(int dx, int dy);

@@ -88,7 +88,7 @@ private:
     QVector<QPolygonF> physCurvesI;
     QVector<QPolygonF> adjCurvesR;
     QVector<QPolygonF> physCurvesR;
-   
+
     int curve_number;
     double zmax, zmin, hz;
 //    double Umin, Umax;

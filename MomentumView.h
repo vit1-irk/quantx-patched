@@ -40,7 +40,7 @@ private:
     MomentumDistribution *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
     void contextMenuEvent(QContextMenuEvent *event);
- 
+
 public slots:
     void setViewportMapping();
     void resizePicture();
@@ -57,7 +57,7 @@ protected:
     void scaleView(qreal scaleFactor);
     void clearAll();
 
-public: 
+public:
     void showDialogScale();
 
 private:
@@ -66,10 +66,10 @@ private:
     double widthLineV;
     double widthLineH;
     double widthLineE;
-    double phiMax, phiMin; 
+    double phiMax, phiMin;
     double kmin,kmax,dk;
-    double  lineWidth; 
-//    MyParamD phiMax, phiMin; 
+    double  lineWidth;
+//    MyParamD phiMax, phiMin;
 //    MyParamD kmin,kmax;
     QGraphicsLineItem *lineh,*linev;
 

@@ -50,15 +50,15 @@ Zview::Zview(QWidget *parent, Qt::WindowFlags f)
         connect(this->leHz,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
     }
-/*      {   
-        QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z"); 
+/*      {
+        QGroupBox *gb = new QGroupBox("U(x,z)=U_1(x)*(1-z)+U_2(x)*z");
         QVBoxLayout *vlb = new QVBoxLayout;
         QHBoxLayout *hl = new QHBoxLayout;
-        bInit = new QPushButton(tr("U_1(x,z=0) = U(x)")); 
+        bInit = new QPushButton(tr("U_1(x,z=0) = U(x)"));
  //       connect(bInit, SIGNAL(clicked()), model, SLOT(slotU1()));
         hl->addWidget(bInit);
 
-        bFin = new QPushButton(tr("U_2(x,z=1) = U(x)")); 
+        bFin = new QPushButton(tr("U_2(x,z=1) = U(x)"));
 //        connect(bFin, SIGNAL(clicked()), model, SLOT(slotU2()));
         hl->addWidget(bFin);
 
@@ -100,7 +100,7 @@ void Zview::setModel(PhysicalModel *_model)
 void Zview::modelChanged()
 {
     if (!model)
-    { 
+    {
         this->leZ->setDisabled(true);
         this->leZmin->setDisabled(true);
         this->leZmax->setDisabled(true);

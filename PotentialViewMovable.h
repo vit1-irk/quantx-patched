@@ -17,7 +17,7 @@
 
 class EnergyDraggableLine;
 class HorDraggableLine;
-class VerDraggableLine; 
+class VerDraggableLine;
 class EnergyLevels;
 class PotentialViewMovable;
 
@@ -40,14 +40,14 @@ public:
 
     PotentialViewMovable(PhysicalModel *m, QWidget *parent = 0);
 //    virtual ~PotentialViewMovable();
-  
+
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     MyGraphicsPolylineItem *getCurve(int id) const { return curves[id]; }
 //    void mousePressEvent(QMouseEvent * event);
     void contextMenuEvent(QContextMenuEvent *event);
 
     void removeCurve(int id);
-     
+
 public slots:
 
     void slotEboundChanged();
@@ -79,7 +79,7 @@ private:
     double widthLineH;
     double widthLineE;
     double lineWidth;
-    double Umin,Umax, xmin, xmax, dx, psiMax, psiMin; 
+    double Umin,Umax, xmin, xmax, dx, psiMax, psiMin;
 
 //    PhysicalModel *model;
 
@@ -100,7 +100,7 @@ private:
     friend class EnergyLevels;
     friend class VerDraggableLine;
     friend class EnergyDraggableLine;
- 
+
     int whatToDraw;
 public slots:
     void setWhatToDraw(int);

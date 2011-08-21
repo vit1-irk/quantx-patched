@@ -28,7 +28,7 @@ ScalePsin::ScalePsin(QWidget *parent, Qt::WindowFlags f)
         this->leXmax->setToolTip(tr("High value of x-interval"));
         connect(this->leXmax,SIGNAL(editingFinished()),this,SLOT(updateModel()));
         vl->addWidget(line);
-    } 
+    }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
@@ -76,7 +76,7 @@ void ScalePsin::setModel(PhysicalModel *_model)
 }
 
 void ScalePsin::modelChanged()
-{  
+{
     if (!model)
     {
         this->leHx->setDisabled(true);

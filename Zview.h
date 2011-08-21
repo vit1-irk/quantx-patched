@@ -22,7 +22,7 @@ public slots:
 private:
     PhysicalModel *model;
     zParameters last;
-//  QPushButton *bInit, *bFin;  
+//  QPushButton *bInit, *bFin;
     QLineEdit *leZ;
     QLineEdit *leZmin;
     QLineEdit *leZmax;

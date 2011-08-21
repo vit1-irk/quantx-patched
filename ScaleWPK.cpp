@@ -76,7 +76,7 @@ void ScaleWPK::setModel(PhysicalModel *_model)
 }
 
 void ScaleWPK::modelChanged()
-{  
+{
     if (!model)
     {
         this->leHx->setDisabled(true);

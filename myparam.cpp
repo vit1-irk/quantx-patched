@@ -17,7 +17,7 @@ MyParamD::setDisplay(const QString& label, const QString& labelTip, QLayout *lay
     QHBoxLayout *hl = new QHBoxLayout(parent);
 //    hl->addWidget(new QLabel(label));
     QLabel *script= new QLabel(label);
-    script->setFont(QFont("Serif", 10, QFont::DemiBold )); 
+    script->setFont(QFont("Serif", 10, QFont::DemiBold ));
     hl->addWidget(script);
     parent->setToolTip(labelTip);
     hl->addWidget(this->ledit = new QLineEdit);
@@ -42,7 +42,7 @@ MyParamD::setDisplay(const QString& label, QLayout *parent)
 void MyParamD::textToValue()
 {
     if (!ledit) return;
-    double t = this->ledit->text().toDouble(); 
+    double t = this->ledit->text().toDouble();
     if (t != this->v)
     {
         this->v = t;
@@ -115,7 +115,7 @@ void MyParamUxN::updateDisplay()
     double y=0;
     data.push_back(x);
     data.push_back(y);
-    x=0; 
+    x=0;
     data.push_back(x);
     data.push_back(y);
     for(int n=1;n<=Nwb;n++)
@@ -153,8 +153,8 @@ MyParamI::setDisplay(const QString& label, const QString& labelTip, QLayout *lay
     QHBoxLayout *hl = new QHBoxLayout(parent);
     QLabel *script= new QLabel(label);
 //    script->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-//    script->setFont(QFont("Serif", 10, QFont::DemiBold )); 
-    parent->setFont(QFont("Serif", 10, QFont::DemiBold )); 
+//    script->setFont(QFont("Serif", 10, QFont::DemiBold ));
+    parent->setFont(QFont("Serif", 10, QFont::DemiBold ));
     hl->addWidget(script);
     parent->setToolTip(labelTip);
     hl->addWidget(this->ledit = new QLineEdit);

@@ -49,7 +49,7 @@ public slots:
     void updateScaleTZ();
 signals:
     void infoMouseMovedTo(QPointF);
-    void signalScaleTChanged();    
+    void signalScaleTChanged();
 protected:
     void resizeEvent(QResizeEvent *event);
     void keyPressEvent(QKeyEvent *event);
@@ -65,15 +65,15 @@ public:
     void showDialogZ();
 private:
     void initDialogScaleY();
-    double tMax, tMin; 
+    double tMax, tMin;
     double Zmin,Zmax,hZ;
-    double lineWidth; 
+    double lineWidth;
     QGraphicsLineItem *lineh,*linev;
     ZTDraggable *lineZ;
 
     QLineEdit *leTmin;
     QLineEdit *leTmax;
-    
+
     PhysicalModel *model;
     Zview *dialogZ;
     QGroupBox  *gbScaleXY;

@@ -79,7 +79,7 @@ void GView::setModel(PhysicalModel *_model)
 void GView::modelChanged()
 {
     if (!model)
-    { 
+    {
         this->leG->setDisabled(true);
         this->leGmin->setDisabled(true);
         this->leGmax->setDisabled(true);

@@ -39,7 +39,7 @@ public:
     void removeCurve(int id);
     void contextMenuEvent(QContextMenuEvent *event);
 
-     
+
 public slots:
     void setViewportMapping();
     void resizePicture();
@@ -61,8 +61,8 @@ public:
     void showDialogScaleY();
 
 private:
-    double  lineWidth; 
-    double phiMax, phiMin; 
+    double  lineWidth;
+    double phiMax, phiMin;
     double kmin,kmax,dk;
     QGraphicsLineItem *lineh,*linev;
 
@@ -78,7 +78,7 @@ public:
     WavePacketKWidget(PhysicalModel *model, QWidget * parent = 0);
 private:
     WavePacketKView *wavePacketKView;
-//    QPushButton *bRunPsiKT;	
+//    QPushButton *bRunPsiKT;
 
 //public slots:
 //    void slotRunWP();

@@ -98,4 +98,4 @@ void LevelNumber::updateModel()
         last = wp;
     }
 }
-  
+
