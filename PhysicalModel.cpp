@@ -358,7 +358,7 @@ QPair<double,double> PhysicalModel::getUminUmax()
         }
         if(this->U[0] > this->U[Nmax+1]) Umax=this->U[Nmax+1];
         else Umax=this->U[0];
-       if(Umax==0) Umax=-1e-8;
+       if(Umax==0||Umax==U[0]) Umax=Umax-1e-8;
     }
     if(this->typeOfU==PERIODIC)
     {
@@ -438,54 +438,55 @@ void PhysicalModel::findQuasiStates()
 {
     double dE=1e-5;
     double Eold=this->E0;
-    double E, emax;
+    double E, E1, br, bold;
     QPair<double,double> umin_umax = getUminUmax();
-    double Umin = umin_umax.first;
-//    double Umin = 1e-10;//umin_umax.first;
-    double Umax = Emax;//umin_umax.second;
-    GG=-0.0001;
-    set_Ecmplx(complex(Umin,GG));
-//    double bold=imag(b[N+1]);
-    double bold=real(b[N+1]);
+    E=0;
+    if(E>U[0]) E=U[0]+1.e-10;
+    else E=1e-10;
+    E1=E;
+    this->GG=-0.001;
+    set_Ecmplx(complex(E1,GG));
+    if(E1>this->U[0]) bold=imag(bN1);
+    else bold=real(bN1);
     int j=0;
-    double E1=Umin;
-    E=E1;
     complex Ecold=complex(0.,0.);
     if(this->hE<=0) hE=0.1;
     double he=this->hE;
-    QVector<double> Ereal;
-    QVector<double> Eimag;
-    Ereal.clear();
-    Eimag.clear();
-    while(E<=Emax)
+    Equasi.resize(0);
+    while(E<=this->Emax)
     {
         E=E+he;
-        GG=-0.0001;
-        set_Ecmplx(complex(E,GG));
-//        double br=imag(b[N+1]);
-        double br=real(b[N+1]);
+        this->GG=-0.001;
+        set_Ecmplx(complex(E,this->GG));
+        if(E>this->U[0]) br=imag(bN1);
+        else br=real(bN1);
         if(br>=0&&bold<=0||br<=0&&bold>=0)
         {
             complex Ec=findOneQuasiLevel(E1,E);
-            double EE=real(Ec);
-            if(abs(Ec-Ecold)>1.e-8&&abs(b[N+1])<1e-8)
+            if (abs(bN1)<1e-7)
             {
-                Ereal.push_back(real(Ec));
-                Eimag.push_back(imag(Ec));
-                Ecold=Ec;
-                j++;
+                bool accept_Ec = true;
+                for (int l = 0; l < Equasi.size(); l++)
+                {
+                    complex delta = Ec -  Equasi[l]; 
+                    if (abs(delta) < 1.e-4)
+                    {
+                        accept_Ec = false;
+                        break;
+                    }
+                }
+                if (accept_Ec)
+                {
+                    Equasi.push_back(Ec);
+                }
             }
         }
         E1=E;
         bold=br;
     }
-    Equasi.resize(j);
-        for (int i = 0; i < j; ++i)
-        {
-        Equasi[i]=complex(Ereal[i],Eimag[i]);
-        }
     this->E0=Eold;
 }
+
 double PhysicalModel::findZeroOfRealbN1(double E1, double b1, double E2, double b2)
 {
     double br=0.1;
@@ -533,25 +534,28 @@ double PhysicalModel::findZeroOfImagbN1(double E1, double b1, double E2, double 
 }
 complex PhysicalModel::findOneQuasiLevelG(complex Ec0, complex Ec1)
 {
+    double Ulow;
+    if(U[0]>U[N+1]) Ulow=U[N+1];
+    else Ulow=U[0];
     complex Ec2;
     this->set_Ecmplx(Ec1);
-    complex y1=b[this->N+1];
+    complex y1=bN1;
     this->set_Ecmplx(Ec0);
-    complex y0=b[this->N+1];
+    complex y0=bN1;
     int j=0;
-    while(abs(y1)>1.e-12)
+    while(abs(y1)>1.e-10)
     {
         Ec2=Ec1-(Ec1-Ec0)*y1/(y1-y0);
         y0=y1;
         Ec0=Ec1;
         Ec1=Ec2;
         this->set_Ecmplx(Ec1);
-        complex y2=b[this->N+1];
+        complex y2=bN1;
         y1=y2;
         j++;
         if(j>1000) break;
     }
-    if(abs(imag(Ec2))<1.e-7&&real(Ec2)<0)
+    if(abs(imag(Ec2))<1.e-6&&real(Ec2)<Ulow)
     {
      Ec2=complex(real(Ec2),0.);
     }
@@ -601,11 +605,46 @@ complex PhysicalModel::findOneQuasiLevelG(complex Ec0, complex Ec1)
 }*/
 typedef QVector<QPoint> MyLine;//Region;
 typedef QVector<QPoint> MyRegion;
+
+static void clusterThem(QVector<complex>& v, double releps)
+{
+    double diam = 0;
+    for (int i = 0; i < v.size(); ++i)
+    {
+        for (int j = i; j < v.size(); ++j)
+        {
+            if (abs(v[i] - v[j]) > diam)
+            {
+                diam = abs(v[i] - v[j]);
+            }
+        }
+    }
+    double eps = diam * releps;
+    QVector<complex> res;
+    for (int i = 0; i < v.size(); ++i)
+    {
+        bool accept_vi = true;
+        for (int j = 0; j < res.size(); ++j)
+        {
+            if (abs(v[i] - res[j]) < eps)
+            {
+                accept_vi = false;
+                break;
+            }
+        }
+        if (accept_vi)
+        {
+            res.push_back(v[i]);
+        }
+    }
+    v = res;
+}
+
 void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, double Gmax, double dG)
 {
     QVector<MyLine> redLines, greenLines, blueLines, yellowLines;
-//    MyLine redBoundary;
-//    QVector<QPoint> redBoundary;
+    //    MyLine redBoundary;
+    //    QVector<QPoint> redBoundary;
     MyRegion red, green, blue, yellow;
     //QVector<MyRegion> redRegions, greenRegions, blueRegions, yellowRegions;
     QVector<int> colorEG;
@@ -615,7 +654,7 @@ void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, 
     yellowBoundary.resize(0);
     Equasi.resize(0);
     double Er=Emin;
-    if(Gmax>=0) Gmax=-0.01;
+    //    if(Gmax>=0) Gmax=-0.01;
     double gi=Gmax;
     complex Ecnew;
     complex Ecold;
@@ -707,9 +746,10 @@ void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, 
         }
         else blueBoundary.push_back(pf);
     }
-/*        int j0=p0.x();
-        int j0=p0.y();
-        nr=0;
+#if 0
+    int j0=p0.x();
+    int j0=p0.y();
+    nr=0;
     for (int n = 1; n < redBoundary.size(); ++n)
     {
         p=redBoundary[n];
@@ -726,10 +766,9 @@ void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, 
             redLines[nr].push_back(p);
         }
         else nr++;//number of the next line
-
     }
-    */
-/*
+#endif    
+#if 0
     int nr=0;
     int ny=0;
     int ng=0;
@@ -770,83 +809,89 @@ restartIm:           i--;
                         if(1!=colorEG[jG*i+j])
                         {
 restartJp:                     j++;
-                        //проверка цвета
-                        if(1!=colorEG[jG*i+j])
-                        {
+                            //проверка цвета
+                            if(1!=colorEG[jG*i+j])
+                            {
 
-                        }
-                        else
-                        {
-                            p = QPoint(j,i);
-                            redLines[n].push_back(p);
-                            goto restartJp;
+                            }
+                            else
+                            {
+                                p = QPoint(j,i);
+                                redLines[n].push_back(p);
+                                goto restartJp;
 
-                        }
+                            }
                         else
                         {
                             p = QPoint(j,i);
                             redLines[n].push_back(p);
                             goto restartJm;
                         }
+                        }
+                        if(1!=colorEG[jG*i+j]) goto restartm;
+                        else
+                        {
+                            p = QPoint(j,i);
+                            redLines[n].push_back(p);
+                            goto restartj;
+                        }
                     }
-                    if(1!=colorEG[jG*i+j]) goto restartm;
                     else
                     {
-                        p = QPoint(j,i);
-                        redLines[n].push_back(p);
-                        goto restartj;
-                    }
-                }
-                else
-                {
 restartIp:            i++;
-                    if(i==iE-1) goto restartj;
-                    if(1==colorEG[jG*i+j]) goto restartIp;
-                    else
-                    {
-                        i=i-1;
-                        p = QPoint(j,i);
-                        redLines[n].push_back(p);
-                        goto restartj ;
+                        if(i==iE-1) goto restartj;
+                        if(1==colorEG[jG*i+j]) goto restartIp;
+                        else
+                        {
+                            i=i-1;
+                            p = QPoint(j,i);
+                            redLines[n].push_back(p);
+                            goto restartj ;
+                        }
                     }
                 }
         }
-    }
-        */
-//    complex Ec;
-//    QPolygonF redL, yellowL, greenL, blueL;
+#endif
+    //    complex Ec;
+    //    QPolygonF redL, yellowL, greenL, blueL;
 
-        for (int i = 1; i < iE-1; ++i)
+    for (int i = 1; i < iE-1; ++i)
     {
         Er=Emin+i*dE;
         for (int j = 1; j < jG-1; ++j)
         {
             gi=Gmin+j*dG;
-           bool c4=colorEG[jG*(i+1)+j]!=colorEG[jG*(i-1)+j]&&colorEG[jG*i+j-1]!=colorEG[jG*i+j+1]&&
-               (colorEG[jG*(i-1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*(i-1)+j]!=colorEG[jG*i+j-1]||
-           colorEG[jG*(i+1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*(i+1)+j]!=colorEG[jG*i+j-1]);
-           bool c5=colorEG[jG*(i+1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*i+j+1]!=colorEG[jG*(i-1)+j]&&colorEG[jG*(i-1)+j]!=colorEG[jG*(i-1)+j-1]&&colorEG[jG*i+j-1]!=colorEG[jG*(i+1)+j];
-            if(c4)
+            bool c4=colorEG[jG*(i+1)+j]!=colorEG[jG*(i-1)+j]&&colorEG[jG*i+j-1]!=colorEG[jG*i+j+1]&&
+                (colorEG[jG*(i-1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*(i-1)+j]!=colorEG[jG*i+j-1]||
+                colorEG[jG*(i+1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*(i+1)+j]!=colorEG[jG*i+j-1]);
+            bool c5=colorEG[jG*(i+1)+j]!=colorEG[jG*(i)+j+1]&&colorEG[jG*i+j+1]!=colorEG[jG*(i-1)+j]&&colorEG[jG*(i-1)+j]!=colorEG[jG*(i-1)+j-1]&&colorEG[jG*i+j-1]!=colorEG[jG*(i+1)+j];
+            if (c4)
             {
-                complex E1= complex(Er-dE,gi);
-                complex E2= complex(Er+dE,gi);
-                complex Ec=findOneQuasiLevelG(E1,E2);
-                if(Equasi.size()==0&&abs(b[N+1])<1e-8&&imag(Ec)<0)
+                complex E1 = complex(Er-dE,gi);
+                complex E2 = complex(Er+dE,gi);
+                complex Ec = findOneQuasiLevelG(E1,E2);
+                double ff = abs(bN1);
+                if (abs(bN1)<1e-7)
                 {
-                    Equasi.push_back(Ec);
-                    Ecold=Ec;
-                }
-                else
-                if(abs(Ec-Ecold)>1e-8&&abs(b[N+1])<1e-8&&imag(Ec)<0)
-                {
-                    Equasi.push_back(Ec);
-                    Ecold=Ec;
+                    bool accept_Ec = true;
+                    for (int l = 0; l < Equasi.size(); l++)
+                    {
+                        complex delta = Ec -  Equasi[l]; 
+                        if (abs(delta) < 1.e-4)
+                        {
+                            accept_Ec = false;
+                            break;
+                        }
+                    }
+                    if (accept_Ec)
+                    {
+                        Equasi.push_back(Ec);
+                    }
                 }
             }
-
         }
     }
-
+    clusterThem(Equasi, 1e-5);
     emit(signalEboundChanged());
 }
 
@@ -927,7 +972,7 @@ void PhysicalModel::findZerosOfReImbN1(bool first)
             complex Ec=findOneQuasiLevel(E,E1);
             for (int i = 0; i < Equasi.size(); ++i)
             {
-                if(abs(Ec-Equasi[i])<1e-7) return;
+                if(abs(Ec-Equasi[i])<1e-4) return;
             }
             Equasi.push_back(Ec);
         }
@@ -1089,42 +1134,72 @@ restart:
 -------------------------------------------------*/
 void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
 {
-    double aa = real(k[0])==0 ? 0 : m[N+1]/m[0];
-    complex r = this->a[N+1];
-    complex t = this->b[0];
-    double rr,tt;
-    rr=squaremod(r);
-    tt=squaremod(t);
-
     // k's are:
     // k0 - incident wave vector
-    // kl - reflected vector (going to the left)
-    // kr - transmitted vector (going to the right)
+    // kl - reflected vector (going to the left if E>U[N+1])
+    // kr - transmitted vector (going to the right if E>U[N+1])
     double k0,kr;
-    RR=rr;
-    TT=tt;
-    if(this->E0 <= this->U[0])
+    if(U[0]>=U[N+1])
     {
-        RR=1;
-        TT=0;
-    }
-    else
-    {
-        k0=real(k[0]);
-        if(this->E0 <= this->U[this->N+1])
+        if(this->E0 <= this->U[0])
         {
+            RR=1;
             TT=0;
-            RR=1.;
         }
         else
         {
-            kr=real(this->k[this->N+1]);
-            TT=tt*k0/kr*aa;
-            RR=rr;
+            double aa = real(k[0])==0 ? 0 : m[N+1]/m[0];
+            complex r = this->a[N+1];
+            complex t = this->b[0];
+            double rr,tt;
+            rr=squaremod(r);
+            tt=squaremod(t);
+            k0=real(k[0]);
+            if(this->E0 <= this->U[this->N+1])
+            {
+                TT=0;
+                RR=1.;
+            }
+            else
+            {
+                kr=real(this->k[this->N+1]);
+                TT=tt*k0/kr*aa;
+                RR=rr;
+            }
         }
     }
+    else
+    {
+        if(this->E0 <= this->U[N+1])
+        {
+            RR=1;
+            TT=0;
+        }
+        else
+        {
+            double aa = real(k[N+1])==0 ? 0 : m[0]/m[N+1];
+            complex at=this->a[0];
+            complex t = this->a[N+1]/at;
+            complex r = this->b[0]/this->a[0];
+            double rr,tt;
+            rr=squaremod(r);
+            tt=squaremod(t);
+            k0=real(k[0]);
+            if(this->E0 <= this->U[0])
+            {
+                TT=0;
+                RR=1.;
+            }
+            else
+            {
+                kr=real(this->k[this->N+1]);
+                TT=tt*kr/k0*aa;
+                RR=rr;
+            }
 
-    totalRT = RR + TT;
+        }
+    }
+        totalRT = RR + TT;
 }
 
 //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
@@ -1200,15 +1275,26 @@ This function calculates the coefficients a & b.
     {
         build_k();
         Smatrix();
-        this->funEn=real(b[N+1]);
-        if(this->E0 > 0)
+        this->funEn=real(bN1);
+        if(this->E0 > U[N+1]&&U[0]>=U[N+1])
         {
+            complex bb=b[N+1];
             for(int i=0; i<=N+1; i++)
             {
-                a[i]=a[i]/b[N+1];
-                b[i]=b[i]/b[N+1];
+                a[i]=a[i]/bb;
+                b[i]=b[i]/bb;
             }
             double aa=real(b[N+1]);
+        }
+        if(this->E0 > U[0]&&U[0]<U[N+1])
+        {
+            complex aa=a[0];
+            for(int i=N+1; i>=0; i--)
+            {
+                a[i]=a[i]/aa;
+                b[i]=b[i]/aa;
+            }
+ 
         }
     }
     if(typeOfU==PERIODIC)
@@ -1220,7 +1306,7 @@ This function calculates the coefficients a & b.
     {
         build_kcmplx();
         Smatrix();
-        this->funEn=real(b[N+1]);
+        this->funEn=real(bN1);
 //        Smatrix_quasi();
     }
  }
@@ -1351,9 +1437,6 @@ void PhysicalModel::Smatrix()
     double d0=d[0];
 
     complex p11,p12,p22,p21;
-    int Na=a.size();
-    int Nb=b.size();
-    int Nk=k.size();
     for(int i=0; i<=N; i++)
     {
         complex Im = complex(0.,1.);
@@ -1373,37 +1456,86 @@ void PhysicalModel::Smatrix()
         s21[i]=KPa-KMa*KMb*ss;
         s22[i]=KMa*ss;
     }
-    p11=s11[0];
-    p12=s12[0];
-    p21=s21[0];
-    p22=s22[0];
-    for(int i=1; i<=N; i++)
-    {
-       complex com=1./(1.-p12*s21[i]);
-       complex com1=p11*com;
-       p11=s11[i]* com1;
-       p21=p21+p22*s21[i]*com1;
-       p22=p22*(1.+s21[i]*com*p12)*s22[i];
-       p12=s12[i]+s11[i]*com*p12*s22[i];
-    }
+        p11=s11[0];
+        p12=s12[0];
+        p21=s21[0];
+        p22=s22[0];
+        for(int i=1; i<=N; i++)
+        {
+            complex com=1./(1.-p12*s21[i]);
+            complex com1=p11*com;
+            p11=s11[i]* com1;
+            p21=p21+p22*s21[i]*com1;
+            p22=p22*(1.+s21[i]*com*p12)*s22[i];
+            p12=s12[i]+s11[i]*com*p12*s22[i];
+        }
     complex Ec;
-    double deltaE0=-19.9;
     if(this->typeOfU==QUASISTATIONARY)
     {
         Ec=this->get_Ecmplx();
         double Er=real(Ec);
         double Ei=imag(Ec);
-//        delta_E0=2*abs(Ei);
-        if(U[0]>0&&Er<U[0]-deltaE0)
+        if(Er>U[0]&&Er<=U[N+1])
         {
-            /*        b[0]=0;
-            a[0]=p12;
-            a[N+1]=p21*p12-p22*p11;
-            b[N+1]=-p11;*/
-            b[0]=0;
-            a[0]=-1./p11;
-             a[N+1]=-p21/p11+p22/p12;
-            b[N+1]=1./p12;
+/*            a[0]=1.;
+            b[0]=p11;
+            a[N+1]=p21;
+            b[N+1]=0.;
+            for(int i=N; i>=0; i--)
+            {
+                a[i]=(a[i+1]-s22[i]*b[i+1])/s21[i];
+                b[i] =s11[i]*a[i]+s12[i]*b[i+1];
+            }
+            */
+                a[0]=0;
+                b[0]=p12;
+                a[N+1]=p22;
+                b[N+1]=1.;
+            for(int i=0; i<=N; i++)
+            {
+                b[i+1]=(b[i]-s11[i]*a[i])/s12[i];
+                a[i+1] =s21[i]*a[i]+s22[i]*b[i+1];
+            }
+        }
+        else
+        {
+            if(Er>U[N+1]&&Er<=U[0])
+            {
+                //       b[0]=0;    a[0]=p12; a[N+1]=p21*p12-p22*p11; b[N+1]=-p11;
+                b[0]=0;
+                a[0]=-1./p11;
+                a[N+1]=-p21/p11+p22/p12;
+                b[N+1]=1./p12;
+            } 
+            else 
+            {
+                a[0]=0;
+                b[0]=p12;
+                a[N+1]=p22;
+                b[N+1]=1.;
+            }
+            for(int i=0; i<=N; i++)
+            {
+                b[i+1]=(b[i]-s11[i]*a[i])/s12[i];
+                a[i+1] =s21[i]*a[i]+s22[i]*b[i+1];
+            }
+        }
+    }
+    if(this->typeOfU==FINITE)
+    {
+        double E=this->get_E0();
+        if(this->E0>U[0]&&this->E0<U[N+1]) 
+//        if(E>U[0]&&U[0]<U[N+1])
+        {
+            a[0]=1.;
+            b[0]=p11;
+            a[N+1]=p21;
+            b[N+1]=0.;
+         for(int i=N; i>=0; i--)
+            {
+                a[i]=(a[i+1]-s22[i]*b[i+1])/s21[i];
+                b[i] =s11[i]*a[i]+s12[i]*b[i+1];
+            }
         }
         else
         {
@@ -1411,65 +1543,77 @@ void PhysicalModel::Smatrix()
             b[0]=p12;
             a[N+1]=p22;
             b[N+1]=1.;
+            for(int i=0; i<=N; i++)
+            {
+                b[i+1]=(b[i]-s11[i]*a[i])/s12[i];
+                a[i+1] =s21[i]*a[i]+s22[i]*b[i+1];
+            }
         }
+    }
+    if(this->typeOfU==QUASISTATIONARY)
+    {
+        double Er=real(Ec);
+ //       if((Er>U[0]&&Er<U[N+1]))
+        if(U[0]>U[N+1]&&Er<=U[0]&&Er>U[N+1])
+            //        if((U[0]>0&&Er>0&&Er<=U[0])||(Er>U[0]&&U[0]<U[N+1]))
+        {
+            complex aa=a[0];
+            for(int i=N+1; i>=0; i--)
+            {
+                b[i]=b[i]/aa;
+                a[i]=a[i]/aa;
+            }
+        }
+        else
+        {
+            complex bb=b[0];
+            for(int i=N+1; i>=0; i--)
+            {
+                a[i]=a[i]/bb;
+                b[i]=b[i]/bb;
+            }
+        }
+        if(Er>U[0]&&Er<U[N+1]) this->bN1=this->a[N+1];
+//        if(Er>U[0]&&Er<U[N+1]) this->bN1=this->a[0];
+        else this->bN1=b[N+1];
+        if(real(bN1)>0&&imag(bN1)>0) colorB=1;
+        if(real(bN1)<0&&imag(bN1)>0) colorB=2;
+        if(real(bN1)<0&&imag(bN1)<0) colorB=3;
+        if(real(bN1)>0&&imag(bN1)<0) colorB=4;
+        if(real(bN1)>0&&imag(bN1)==0) colorB=5;
+        if(real(bN1)<0&&imag(bN1)==0) colorB=6;
     }
     if(this->typeOfU==FINITE)
     {
-        a[0]=0;
-        b[0]=p12;
-        a[N+1]=p22;
-        b[N+1]=1.;
+        if(this->E0>U[0]&&this->E0<U[N+1]) 
+        {
+            for(int i=N+1; i>=0; i--)
+            {
+                b[i]=b[i]/a[0];
+                a[i]=a[i]/a[0];
+            }
+            bN1=a[N+1];
+        }
+        else
+        {
+            for(int i=N+1; i>=0; i--)
+            {
+                a[i]=a[i]/b[0];
+                b[i]=b[i]/b[0];
+            }
+            bN1=b[N+1];
+        }
+
     }
-/*    for(int i=N; i>=1; i--)
-    {
-        a[i]=(a[i+1]-s22[i]*b[i+1])/s21[i];
-        b[i] =s11[i]*a[i]+s12[i]*b[i+1];
-    }
-*/
-      for(int i=0; i<=N; i++)
-    {
-        b[i+1]=(b[i]-s11[i]*a[i])/s12[i];
-        a[i+1] =s21[i]*a[i]+s22[i]*b[i+1];
-    }
-      if(this->typeOfU==QUASISTATIONARY)
-      {
-/*          if(Er<=U[0])
-          {
-              for(int i=N+1; i>=0; i--)
-              {
-                  a[i]=a[i]/a[0];
-                  b[i]=b[i]/a[0];
-              }
-          }*/
-          double Er=real(this->get_Ecmplx());
-          if(Er>U[0]-deltaE0)
-          {
-              for(int i=N+1; i>=0; i--)
-              {
-                  a[i]=a[i]/b[0];
-                  b[i]=b[i]/b[0];
-              }
-          }
-      }
-      if(this->typeOfU==FINITE)
-      {
-              for(int i=N+1; i>=0; i--)
-              {
-                  a[i]=a[i]/b[0];
-                  b[i]=b[i]/b[0];
-              }
-      }
-    complex aa0=a[0];
-    complex bb0=b[0];
-    complex aa1=a[1];
-    complex bb1=b[1];
     complex aa2=a[2];
     complex bb2=b[2];
-    this->bN1=b[N+1];
-    if(real(bN1)>0&&imag(bN1)>0) colorB=1;
-    if(real(bN1)<0&&imag(bN1)>0) colorB=2;
-    if(real(bN1)<0&&imag(bN1)<0) colorB=3;
-    if(real(bN1)>0&&imag(bN1)<0) colorB=4;
+    complex aa0=a[0];
+    double aa=abs(aa0);
+    complex bb0=b[0];
+    double bb=abs(bb0);
+    complex aa1=a[1];
+    complex bb1=b[1];
+   
 }
 
 /*void PhysicalModel::Smatrix_quasi()
@@ -1872,31 +2016,34 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
     }
     if (typeOfU==FINITE||typeOfU==PERIODIC)
     {
-    if ((this->E0 < 0 && this->E0 - this->U[0] < 0)||typeOfU==PERIODIC)  norm();
+        double Umin=U[0];
+        if(Umin>U[N+1]) Umin=U[N+1];
+        if ((this->E0 < Umin )||typeOfU==PERIODIC)  norm();
+        //    if ((this->E0 < U[0] && this->U[0] <= 0)||typeOfU==PERIODIC)  norm();
     }
     else norm();
 
     for (n = 0; n <= N; n++)
     {
         xt -= d[n];
-      if(xt<0)
+        if(xt<0)
         {
             xt += d[n];
             break;
         }
     }
-   // obtain Psi2 at x
+    // obtain Psi2 at x
     complex ec=get_Ecmplx();
     double ed=get_E0();
     complex kk=k[n];
-        complex up=exp( complex(0,1)*(  k[n]*xt ) );
-        complex dn=exp( complex(0,1)*( -k[n]*xt  ) );
-        complex an=a[n];
-        complex bn=b[n];
-        this->psi = a[n]*up + b[n]*dn;
-         Psi2 = squaremod(psi);
-        psi_real=real(psi);
-        psi_imag=imag(psi);
+    complex up=exp( complex(0,1)*(  k[n]*xt ) );
+    complex dn=exp( complex(0,1)*( -k[n]*xt  ) );
+    complex an=a[n];
+    complex bn=b[n];
+    this->psi = a[n]*up + b[n]*dn;
+    Psi2 = squaremod(psi);
+    psi_real=real(psi);
+    psi_imag=imag(psi);
 }
 void PhysicalModel::build_Psi_per() /* input:a,b,x,k,d ------ result:Psi2 */
 {
@@ -2194,7 +2341,7 @@ int PhysicalModel::findNumberOfLevels(double E)
     Nmax = getN ();
     this->set_E0(E);
     nzero=zeroPsi(); //number of zeros of wave function inside (0, x_Nmax) at E near zero
-    if(typeOfU==FINITE||(typeOfU==QUASISTATIONARY&&E<0))
+    if(typeOfU==FINITE||(typeOfU==QUASISTATIONARY&&E<U[0]))
     {
         double psi1=real(a[Nmax+1]+b[Nmax+1]);
         double psi2=real(b[Nmax+1]);
@@ -2220,31 +2367,21 @@ int PhysicalModel::findNumberOfQuasiLevels(double E)
 }
 double PhysicalModel::findOneLevel(double emin, double emax)
 {
-//        double E =(emin +emax)*.5;
-//        this->set_E0(E);
-    double E = emax;
-    this->set_E0(E);
-//        this->build_k();
-//        this->build_ab();
+        double E = emax;
+        this->set_E0(E);
         double y=this->funEn;
         this->set_E0(emin);
-//        this->build_k();
-//        this->build_ab();
         double y1=this->funEn;
         double E1=emin;
         if(y>0&&y1>0||y<0&&y1<0)
         {
          this->set_E0(emax);
-//         this->build_k();
-//         this->build_ab();
          y1=this->funEn;
          E1=emax;
          }
         while(fabs(E-E1)>1.e-12)
         {
          this->set_E0((E +E1)*.5);;
-//         this->build_k();
-//         this->build_ab();
          double y=this->funEn;
         if(y>0&&y1>0||y<0&&y1<0)
         { E1=this->E0;
@@ -2265,10 +2402,10 @@ complex PhysicalModel::findOneQuasiLevel(double emin, double emax)
         complex Ec0, Ec1, Ec2;
         Ec1=complex(emax, GG);
         this->set_Ecmplx(Ec1);
-        complex y1=b[this->N+1];
+        complex y1=bN1;
         Ec0=complex(emin, GG);
         this->set_Ecmplx(Ec0);
-        complex y0=b[this->N+1];
+        complex y0=bN1;
         int j=0;
         while(abs(y1)>1.e-10)
         {
@@ -2277,7 +2414,7 @@ complex PhysicalModel::findOneQuasiLevel(double emin, double emax)
             Ec0=Ec1;
             Ec1=Ec2;
             this->set_Ecmplx(Ec1);
-            complex y2=b[this->N+1];
+            complex y2=bN1;
             y1=y2;
             j++;
             if(j>1000) break;
@@ -3360,19 +3497,10 @@ void PhysicalModel::markUchanged()
 {
     need_build_U = true;
     build_U();
-    if(this->typeOfU==FINITE)
-    {
     need_build_En = true;
     need_build_WP = true;
     emit(signalPotentialChanged());
     emit(signalEboundChanged());
-    }
-    else
-    {
-    need_build_En = true;
-    emit(signalPotentialChanged());
-    emit(signalEboundChanged());
-    }
 }
 QVector<complex> PhysicalModel::getEquasi()
 {
@@ -3533,10 +3661,8 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     tt=0;
     double Eold=this->E0;
     set_E0(E);
-    if(E>0)
+    if(E>U[0])
     {
-//!!        build_k();
-//!!        build_ab();
         build_RT();
         tt = this->TT;
     }
@@ -3551,7 +3677,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
-        if(tail) this->b[N+1]=0.;
+//        if(tail) this->b[N+1]=0.;
         build_Psi();
         y = psi_real;
         if(viewWF==1) y = psi_imag;
@@ -3689,17 +3815,21 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
         if(typeOfU==FINITE)
         {
             set_E0(Emin+i*dE);
-            if(Emin+i*dE>0)
+            build_RT();
+            transmission[i] = this->TT;
+ /*           if(Emin+i*dE>U[0]&&U[0]>0)
             {
-                build_RT();
                 transmission[i] = this->TT;
             }
             else
             {
-                if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(Emin+i*dE);
-                else y=0;
-                transmission[i] = y;
-            }
+                if(Emin+i*dE<U[0]&&U[0]<0)
+                {
+                    if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(Emin+i*dE);
+                    else y=0;
+                    transmission[i] = y;
+                }
+            }*/
         }
         if(typeOfU==PERIODIC)
         {

@@ -164,7 +164,7 @@ QVariant gDraggable::itemChange(GraphicsItemChange change, const QVariant & valu
 }
 EGView::EGView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),lineG(0), rectEG(0), rectFirst(0),
-Emin(0.001), Emax(20), hE(0.05), Gmax(-0.0001), Gmin(-5.), dG(0.05), dialogG(0),gbScaleXY(0),numberOfCurves(0)
+Emin(0.001), Emax(20), hE(0.05), Gmax(0.1), Gmin(-3.), dG(0.05), dialogG(0),gbScaleXY(0),numberOfCurves(0)
 {
     curve_number=-1;
     Erase = true; // this must initially be true
@@ -383,6 +383,7 @@ void EGView::slot_drawEc_n()
     }
    Gmin=-5.;//1.2*Gmin;
    */
+    int a=10;
     for (int i=0; i < Equasi.size(); i++)
     {
         double gg = imag(Equasi[i]);
