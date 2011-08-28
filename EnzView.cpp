@@ -253,24 +253,10 @@ void EnzView::resizePicture()
         zmin=tp.zmin;
         zmax=tp.zmax;
         hz=tp.hz;
-/*        if(this->dialogZ) dialogZ->modelChanged();
-        else
-        {
-            dialogZ=new Zview(this);
-            dialogZ->setModel(model);
-        }*/
     }
     setViewportMapping();
-    PotentialType type = model->getPotentialType();
-    if(type==QUASISTATIONARY)
-    {
-    slot_Ec_n();
-    }
-    else
-    {
     slot_En_of_z();
     slotZline();
-    }
 }
 void EnzView::setViewportMapping()
 {
@@ -295,17 +281,9 @@ void EnzView::setViewportMapping()
 
 void EnzView::resizeEvent(QResizeEvent*)
 {
-    PotentialType type = model->getPotentialType();
     setViewportMapping();
-    if(type==QUASISTATIONARY)
-    {
-    return;
-    }
-    else
-    {
     redrawCurves();
     slotZline();
-    }
 }
 
 void EnzView::mouseMoveEvent(QMouseEvent *e)
@@ -378,7 +356,6 @@ void EnzView::slot_En_of_z()
     PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY)
     {
-    slot_Ec_n();
     return;
     }
     QRectF vp = scene()->sceneRect();
@@ -387,8 +364,6 @@ void EnzView::slot_En_of_z()
     SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-//    if(lineWidth==0)lineWidth=1;
-
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
@@ -548,277 +523,13 @@ void EnzView::slot_drawEc_n()
     update();
 
 }
-void EnzView::slot_Ec_n()
-{
-    if (! isVisible()) return;
-    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
-    QRectF vp = scene()->sceneRect();
-    QRectF vp_old=vp;
-    QPen p;
-    SettingParameters ts;
-    ts=model->getSettingParameters();
-    lineWidth=ts.lineWidth;
-    p.setWidthF(lineWidth);
-    p.setJoinStyle(Qt::BevelJoin);
-    p.setCapStyle(Qt::RoundCap);
-    p.setColor(Qt::black);
-    double Gmin=-5;//model->get_Gmin();
-    double Gmax=-0.0001;
-    double dG=0.01;
-    double g0=Gmax;
-    int npoints=1+(g0-Gmin)/dG;
-    int nmxold=-1;
-    double Er=Enzmin;
-    double hE=0.01;
-    if (1)
-    {
-        scene()->clear();
-    }
-    else
-    {
-        QList<QGraphicsItem *> list = scene()->items();
-        QList<QGraphicsItem *>::Iterator it = list.begin();
-        for ( ; it != list.end(); ++it )
-        {
-            if ( *it )
-            {
-                scene()->removeItem(*it);
-                delete *it;
-            }
-        }
-    }
-    QVector<complex> Equasi;
-    QBrush b(Qt::SolidPattern);
-    model->getColors(Enzmin, Enzmax, hE, Gmin, Gmax, dG);
-    Equasi = model->getEnquasi();
-/*    while(Er < Enzmax)
-    {
-        for (int i=0; i < npoints; i++)
-        {
-            double gg = g0 - dG*i;
-            model->set_G(gg);
-            model->set_Ecmplx(complex(Er, gg));
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            int c = model->colorB;
-            if(model->colorB==1) b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            if(model->colorB==2) b.setColor(Qt::yellow);//colorForIds[2 % size_colorForIds]);
-            if(model->colorB==3) b.setColor(Qt::green);//colorForIds[3 % size_colorForIds]);
-            if(model->colorB==4) b.setColor(Qt::blue);//colorForIds[5 % size_colorForIds]);
-            if(model->colorB==1) p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            if(model->colorB==2) p.setColor(Qt::yellow);//colorForIds[2 % size_colorForIds]);
-            if(model->colorB==3) p.setColor(Qt::green);//colorForIds[3 % size_colorForIds]);
-            if(model->colorB==4) p.setColor(Qt::blue);//colorForIds[5 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            int ix=vp.width()*(gg-Gmin)/(Gmax-Gmin);
-            int iy=vp.height()*(Er-Enzmin)/(Enzmax-Enzmin);
-            int ia=vp.width()*(dG)/(Gmax-Gmin);
-            int ib=vp.height()*(hE)/(Enzmax-Enzmin);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Enzmin)/(Enzmax-Enzmin), vp.width()*(dG)/(Gmax-Gmin), vp.height()*(hE)/(Enzmax-Enzmin) );
-            //scene()->addItem(r);
-        }
-        Er = Er + hE;
-    }
-*/
-    int nR=model->redBoundary.size();
-        for (int i=0; i < nR; i++)
-        {
-            QPointF pp=model->redBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Enzmin)/(Enzmax-Enzmin), 2, 2 );
-        }
-        for (int i=0; i < model->yellowBoundary.size(); i++)
-        {
-            QPointF pp=model->yellowBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Enzmin)/(Enzmax-Enzmin), 2, 2 );
-        }
-        for (int i=0; i < model->greenBoundary.size(); i++)
-        {
-            QPointF pp=model->greenBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Enzmin)/(Enzmax-Enzmin), 2, 2 );
-        }
-        for (int i=0; i < model->blueBoundary.size(); i++)
-        {
-            QPointF pp=model->blueBoundary[i];
-            double gg=pp.x();
-            Er=pp.y();
-            QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-            b.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
-            p.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
-            r->setBrush(b);
-            r->setPen(p);
-            r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Enzmin)/(Enzmax-Enzmin), 2, 2 );
-        }
-        double a=10;
-    for (int i=0; i < Equasi.size(); i++)
-    {
-        double gg = imag(Equasi[i]);
-        Er = real(Equasi[i]);
-//        b.setColor(Qt::darkRed);
-        QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
-        p.setColor(Qt::black);
-        r->setPen(p);
-        r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Enzmin)/(Enzmax-Enzmin)-a/2, a,a );
-    }
-
-        update();
-}
-/*
-void EnzView::slot_Ec_n()
-{
-    if (! isVisible()) return;
-    QRectF vp = scene()->sceneRect();
-    QRectF vp_old=vp;
-    QPen p;
-    SettingParameters ts;
-    ts=model->getSettingParameters();
-    lineWidth=ts.lineWidth;
-    p.setWidthF(lineWidth);
-    p.setJoinStyle(Qt::BevelJoin);
-    p.setCapStyle(Qt::RoundCap);
-    p.setColor(Qt::black);
-    double Gmin=-10.001;//model->get_Gmin();
-    double Gmax=0.2;
-    double dG=0.2;
-    if(!linev)
-    {
-        lineh = new QGraphicsLineItem();
-        linev = new QGraphicsLineItem();
-    linev->setPen(p);
-    lineh->setPen(p);
-    linev->setLine(vp.width()*(-Gmin)/(Gmax-Gmin), 0, vp.width()*(-Gmin)/(Gmax-Gmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-        scene()->addItem(lineh);
-        scene()->addItem(linev);
-    }
-    linev->setPen(p);
-    lineh->setPen(p);
-    linev->setLine(vp.width()*(-Gmin)/(Gmax-Gmin), 0, vp.width()*(-Gmin)/(Gmax-Gmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-Enzmin)/(Enzmax-Enzmin),vp.width(),vp.height()*(-Enzmin)/(Enzmax-Enzmin));
-    int n=0;//numberOfCurves;
-    numberOfCurves=0;
-    double g0=-0.1;
-    int npoints=1+(g0-Gmin)/dG;
-    int nmxold=-1;
-        adjCurves.resize(0);
-        physCurves.resize(0);
-//        adjCurvesR.resize(0);
-//        physCurvesR.resize(0);
-        bool first=true;
-        int numberOfRealCurves=0;
-        int numberOfImagCurves=0;
-    for (int i=0; i < npoints; i++)
-    {
-        double gg=g0 - dG*i;
-        model->set_G(gg);
-        QVector<double> Ere;
-        QVector<double> Eim;
-        Ere = model->getEgn(first);
-        int nmx=Ere.size()-1;//this->nmaxLevel;
-        int nmn=0;//this->nminLevel;
-//begin
-        QVector<double> adjEbound = Ere;//
-        for(int m=0; m<=nmx; m++)
-        {
-            double EE=Ere[m];
-            adjEbound[m]=vp.height()*(Ere[m]-Enzmin)/(Enzmax-Enzmin);
-        }
-        double gi = vp.width()*(-Gmin)/(Gmax-Gmin)+gg*vp.width()/(Gmax-Gmin);
-        {
-            for (int i=0; i < Ere.size(); i++)
-            {
-                int ic=i;
-                if (ic >= numberOfRealCurves)//adjCurves.size())
-                {
-                    adjCurves.push_back( QPolygonF() );
-                    physCurves.push_back( QPolygonF() );
-                    if(first) numberOfRealCurves=adjCurves.size();
-                    else numberOfRealCurves++;
-                }
-                adjCurves[ic].push_back(QPointF(gi, adjEbound[i]));
-                physCurves[ic].push_back(QPointF(gg, Ere[i]));
-            }
-        }
-//        for(int j=0; j<adjCurves.size(); j++)
-//        if(first) p.setColor(colorForIds[1 % size_colorForIds]);
-        p.setColor(colorForIds[2 % size_colorForIds]);
-
-        for(int j=0; j<numberOfRealCurves; j++)
-        {
-             setCurve(j,physCurves[j],adjCurves[j],p);
-        }
-//        goto restart;
-//imagB
-        numberOfCurves=Ere.size();//numberOfRealCurves;
-        Eim.resize(model->EnOfImagB.size());
-        Eim = model->EnOfImagB;
-        nmx=Eim.size()-1;//this->nmaxLevel;
-        nmn=0;//this->nminLevel;
-        adjEbound.clear();
-        adjEbound.resize(model->EnOfImagB.size());
-        adjEbound = Eim;
-        for(int m=0; m<=nmx; m++)
-        {
-            double Ei= Eim[m];
-            adjEbound[m]=vp.height()*(Eim[m]-Enzmin)/(Enzmax-Enzmin);
-        }
-        {
-            for (int i=0; i < Eim.size(); i++)
-            {
-                int ic=i+numberOfCurves;
-                if (ic >= adjCurves.size())
-                {
-                    adjCurves.push_back( QPolygonF() );
-                    physCurves.push_back( QPolygonF() );
-                }
-                adjCurves[ic].push_back(QPointF(gi, adjEbound[i]));
-                physCurves[ic].push_back(QPointF(gg, Eim[i]));
-            }
-        }
-        p.setColor(colorForIds[1 % size_colorForIds]);
-
-        for(int j=Ere.size(); j<Ere.size()+Eim.size(); j++)
-//        for(int j=numberOfCurves; j<adjCurves.size(); j++)
-        {
-             setCurve(j,physCurves[j],adjCurves[j],p);
-        }
-        first = false;
-    }
-        numberOfCurves=physCurves.size();
-    update();
-}
-*/
 void EnzView::redrawCurves()
 {
-    PotentialType type = model->getPotentialType();
-    if(type==QUASISTATIONARY) return;
-    if(type==FINITE&&curves.size()==0) return;
+    if(curves.size()==0) return;
     QPen p;
     SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-//    if(lineWidth==0)lineWidth=1;
-
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
@@ -904,7 +615,7 @@ void EnzView::contextMenuEvent(QContextMenuEvent *event)
     QFont font( "Serif", 10, QFont::DemiBold );
     m.setFont(font);
     QAction *scaleZ = m.addAction(tr("Z-scale"));
-    QAction *scaleY = m.addAction(tr("Y-scale"));
+    QAction *scaleY = m.addAction(tr("E-scale"));
     QAction *what = m.exec(event->globalPos());
     if (what == scaleZ)
     {
@@ -1056,7 +767,7 @@ void EnzView::updateScaleEnz()
 void EnzWidget::readFromXml(QXmlStreamReader *r)
 {
     Q_ASSERT(this);
-    Q_ASSERT(r->isStartElement() && r->name() == "EnzView");
+    Q_ASSERT(r->isStartElement() && r->name() == "Enz");
     double enzmin = 0, enzmax = 0;
     while (!r->atEnd())
     {
@@ -1065,12 +776,12 @@ void EnzWidget::readFromXml(QXmlStreamReader *r)
             break;
         if (!r->isStartElement())
             continue;
-        if (r->name() == "enzmin")
+        if (r->name() == "Emin")
         {
             QString s = r->readElementText();
             enzmin = s.toDouble();
         }
-        else if (r->name() == "enzmax")
+        else if (r->name() == "Emax")
         {
             QString s = r->readElementText();
             enzmax = s.toDouble();
@@ -1087,14 +798,14 @@ void EnzWidget::readFromXml(QXmlStreamReader *r)
 
 void EnzWidget::writeToXml(QXmlStreamWriter *w)
 {
-    w->writeStartElement("EnzView");
+    w->writeStartElement("Enz");
     {
         QPair<double,double> t = enzView->getEnzMinMax();
         QString s;
         s.sprintf("%lg",t.first);
-        w->writeTextElement("enzmin",s);
+        w->writeTextElement("Emin",s);
         s.sprintf("%lg",t.second);
-        w->writeTextElement("enzmax",s);
+        w->writeTextElement("Emax",s);
     }
     w->writeEndElement();
 }

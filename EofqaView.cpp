@@ -151,7 +151,7 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
         setResizeAnchor(AnchorViewCenter);///
     }
     setMinimumSize(300, 150);
-    model->set_EmaxEmin(Emax,Emin);
+    model->set_EmaxEmin(Emax,Emin,hE);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     //rubberBandIsShown = false;
@@ -364,7 +364,7 @@ void EofqaView::slot_Eofqa()
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     if(type==PERIODIC)
     {
-        model->set_EmaxEmin(Emax,Emin);
+        model->set_EmaxEmin(Emax,Emin,hE);
         QVector<double> Ebound = model->getEn();
         int number_of_levels = Ebound.size();
         QPolygonF curveTE;
@@ -463,7 +463,7 @@ void EofqaView::initDialogScaleY()
     gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
 
     QVBoxLayout *vl = new QVBoxLayout;
-/*    {
+    {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
         h->addWidget(new QLabel("hE",this));
@@ -474,7 +474,7 @@ void EofqaView::initDialogScaleY()
         this->leHE->setText(x);
         connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
         vl->addWidget(line);
-    }*/
+    }
     {
         QWidget *line = new QWidget(this);
         QHBoxLayout *h = new QHBoxLayout(line);
@@ -535,8 +535,8 @@ void EofqaView::showDialogScaleY()
 void EofqaView::setScaleTE()
 {
     QString x;
-//    x.sprintf("%lg",this->hE);
-//    this->leHE->setText(x);
+    x.sprintf("%lg",this->hE);
+    this->leHE->setText(x);
     x.sprintf("%lg",this->Emin);
     this->leEmin->setText(x);
     x.sprintf("%lg",this->Emax);
@@ -548,18 +548,18 @@ void EofqaView::setScaleTE()
 }
 void EofqaView::updateScaleTE()
 {
-//    double hENew = this->leHE->text().toDouble();
+    double hENew = this->leHE->text().toDouble();
     double EminNew = this->leEmin->text().toDouble();
     double EmaxNew = this->leEmax->text().toDouble();
     double TminNew = this->leTmin->text().toDouble();
     double TmaxNew = this->leTmax->text().toDouble();
     bool changed = false;
-/*    if (hE != hENew)
+    if (hE != hENew)
     {
         hE=hENew;
         changed = true;
     }
-*/    if (Emin != EminNew)
+    if (Emin != EminNew)
     {
         changed = true;
         Emin=EminNew;
@@ -581,7 +581,7 @@ void EofqaView::updateScaleTE()
     }
     if(changed)
     {
-        model->set_EmaxEmin(Emax,Emin);
+        model->set_EmaxEmin(Emax,Emin, hE);
         emit(signalScaleTEChanged());
     }
 }

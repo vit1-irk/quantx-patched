@@ -468,7 +468,7 @@ void PhysicalModel::findQuasiStates()
                 bool accept_Ec = true;
                 for (int l = 0; l < Equasi.size(); l++)
                 {
-                    complex delta = Ec -  Equasi[l]; 
+                    complex delta = Ec -  Equasi[l];
                     if (abs(delta) < 1.e-4)
                     {
                         accept_Ec = false;
@@ -767,7 +767,7 @@ void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, 
         }
         else nr++;//number of the next line
     }
-#endif    
+#endif
 #if 0
     int nr=0;
     int ny=0;
@@ -876,7 +876,7 @@ restartIp:            i++;
                     bool accept_Ec = true;
                     for (int l = 0; l < Equasi.size(); l++)
                     {
-                        complex delta = Ec -  Equasi[l]; 
+                        complex delta = Ec -  Equasi[l];
                         if (abs(delta) < 1.e-4)
                         {
                             accept_Ec = false;
@@ -1139,7 +1139,33 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
     // kl - reflected vector (going to the left if E>U[N+1])
     // kr - transmitted vector (going to the right if E>U[N+1])
     double k0,kr;
-    if(U[0]>=U[N+1])
+    double Umax,Umin;
+    if(U[0]>U[N+1])
+    {
+        Umax=U[0];
+        Umin=U[N+1];
+    }
+    else
+    {
+        Umax=U[N+1];
+        Umin=U[0];
+    }
+    if(E0>Umax)
+    {
+            complex r = this->a[N+1];
+            complex t = this->b[0];
+            double rr=squaremod(r);
+            RR=rr;
+            TT=1-RR;
+    }
+    else
+    {
+            RR=1;
+            TT=1-RR;
+    }
+        totalRT = RR + TT;
+}
+/*    if(U[0]>=U[N+1])
     {
         if(this->E0 <= this->U[0])
         {
@@ -1163,8 +1189,9 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
             else
             {
                 kr=real(this->k[this->N+1]);
-                TT=tt*k0/kr*aa;
+//                TT=tt*k0/kr*aa;
                 RR=rr;
+                TT=1-RR;//tt*k0/kr*aa;
             }
         }
     }
@@ -1180,33 +1207,57 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
             double aa = real(k[N+1])==0 ? 0 : m[0]/m[N+1];
             complex at=this->a[0];
             complex t = this->a[N+1]/at;
+            if(Left)
             complex r = this->b[0]/this->a[0];
             double rr,tt;
             rr=squaremod(r);
-            tt=squaremod(t);
-            k0=real(k[0]);
-            if(this->E0 <= this->U[0])
-            {
-                TT=0;
-                RR=1.;
-            }
-            else
-            {
-                kr=real(this->k[this->N+1]);
-                TT=tt*kr/k0*aa;
-                RR=rr;
+     RR=rr;
+                TT=1-RR;
             }
 
-        }
-    }
-        totalRT = RR + TT;
-}
+        }*/
 
 //#define fix(a,l,u) {if(a<(l))a=(l);if((u)<a)a=(u);}
 void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
     if (! need_build_U)
         return;
+/*    for(int n=1; n<d.size()-1; n++)
+    {
+        if(d[n]==0)
+        {
+            for(int i=d.size()-1; i > n+1; i--)
+            {
+                U[i-1] = Ui[i];
+                m[i-1]=m[i];
+                d[i-1]=d[i];
+            }
+            m.resize(m.size()-1);
+            d.resize(d.size()-1);
+            Ui.resize(Ui.size()-1);
+            U.resize(U.size()-1);
+        }
+    }
+    for(int n=0; n<d.size()-1; n++)
+    {
+        if((Ui[n]==Ui[n+1]&&m[n]==m[n+1]))
+        {
+            d[n]=d[n]+d[n+1];
+            for(int i=d.size()-1; i > n+1; i--)
+            {
+                U[i-1] = Ui[i];
+                m[i-1]=m[i];
+                d[i-1]=d[i];
+            }
+            m.resize(m.size()-1);
+            d.resize(d.size()-1);
+            Ui.resize(Ui.size()-1);
+            U.resize(U.size()-1);
+        }
+    }
+    int sizeD=d.size();
+    */
+//this->set_N(d.size()-2);
     U[0] = Ui[0];
     for(int n=d.size()-1; n >= 0; n--)
     {
@@ -1274,27 +1325,39 @@ This function calculates the coefficients a & b.
     if(typeOfU==FINITE)
     {
         build_k();
-        Smatrix();
-        this->funEn=real(bN1);
-        if(this->E0 > U[N+1]&&U[0]>=U[N+1])
+        bool cond=(U[0]==U[1]&&m[0]==m[1]);
+        if(this->N==0&&cond)
         {
-            complex bb=b[N+1];
-            for(int i=0; i<=N+1; i++)
-            {
-                a[i]=a[i]/bb;
-                b[i]=b[i]/bb;
-            }
-            double aa=real(b[N+1]);
+         a[0]=1; b[0]=0; a[1]=1; b[1]=0;
         }
-        if(this->E0 > U[0]&&U[0]<U[N+1])
+        else
         {
-            complex aa=a[0];
-            for(int i=N+1; i>=0; i--)
+            Smatrix();
+            this->funEn=real(bN1);
+            if((this->E0 > U[N+1]&&E0<=U[0])||(U[N+1]>U[0]&&E0>U[N+1]))
+//            if(this->E0 > U[N+1]&&E0>=U[0])
             {
-                a[i]=a[i]/aa;
-                b[i]=b[i]/aa;
+                complex bb=b[N+1];
+                for(int i=0; i<=N+1; i++)
+                {
+                    a[i]=a[i]/bb;
+                    b[i]=b[i]/bb;
+                }
+                double aa=real(b[N+1]);
             }
- 
+            if(this->E0 > U[0]&& this->E0<U[N+1])
+            {
+                complex aa=a[0];
+                if(abs(aa)>0)
+                {
+                    for(int i=N+1; i>=0; i--)
+                    {
+                        a[i]=a[i]/aa;
+                        b[i]=b[i]/aa;
+                    }
+                }
+
+            }
         }
     }
     if(typeOfU==PERIODIC)
@@ -1506,8 +1569,8 @@ void PhysicalModel::Smatrix()
                 a[0]=-1./p11;
                 a[N+1]=-p21/p11+p22/p12;
                 b[N+1]=1./p12;
-            } 
-            else 
+            }
+            else
             {
                 a[0]=0;
                 b[0]=p12;
@@ -1524,8 +1587,7 @@ void PhysicalModel::Smatrix()
     if(this->typeOfU==FINITE)
     {
         double E=this->get_E0();
-        if(this->E0>U[0]&&this->E0<U[N+1]) 
-//        if(E>U[0]&&U[0]<U[N+1])
+        if(this->E0>U[0]&&this->E0<U[N+1])
         {
             a[0]=1.;
             b[0]=p11;
@@ -1585,12 +1647,19 @@ void PhysicalModel::Smatrix()
     }
     if(this->typeOfU==FINITE)
     {
-        if(this->E0>U[0]&&this->E0<U[N+1]) 
+        if(this->E0>U[0]&&this->E0<U[N+1])
         {
+            if(abs(a[0])>0)
+            {
             for(int i=N+1; i>=0; i--)
             {
                 b[i]=b[i]/a[0];
                 a[i]=a[i]/a[0];
+            }
+            }
+            else
+            {
+                complex aa=a[0];
             }
             bN1=a[N+1];
         }
@@ -1613,7 +1682,7 @@ void PhysicalModel::Smatrix()
     double bb=abs(bb0);
     complex aa1=a[1];
     complex bb1=b[1];
-   
+
 }
 
 /*void PhysicalModel::Smatrix_quasi()
@@ -2019,6 +2088,10 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
         double Umin=U[0];
         if(Umin>U[N+1]) Umin=U[N+1];
         if ((this->E0 < Umin )||typeOfU==PERIODIC)  norm();
+        if(U[0]<U[N+1]&&E0>U[N+1])
+        {
+            double u=U[0];
+        }
         //    if ((this->E0 < U[0] && this->U[0] <= 0)||typeOfU==PERIODIC)  norm();
     }
     else norm();
@@ -2570,13 +2643,10 @@ return tp;
 ScalesUParameters PhysicalModel::getScalesUParam() const
 {
 ScalesUParameters tp;
-tp.Hx=this->Hx;
 tp.Xmin=this->Xmin;
 tp.Xmax=this->Xmax;
 tp.Umin=this->Umin;
 tp.Umax=this->Umax;
-//tp.Psimin=this->Psimin;
-//tp.Psimax=this->Psimax;
 return tp;
 }
 ScalePsinParameters PhysicalModel::getScalePsinParam() const
@@ -2725,7 +2795,7 @@ void  PhysicalModel::setGParam(const gParameters& u)
 
 }
 
-void  PhysicalModel::set_EmaxEmin(double E1, double E2)
+void  PhysicalModel::set_EmaxEmin(double E1, double E2, double he)
 {
  bool changed = false;
  if(this->Emax!=E1)
@@ -2737,6 +2807,11 @@ void  PhysicalModel::set_EmaxEmin(double E1, double E2)
  {
      changed = true;
      this->Emin=E2;
+ }
+ if(this->hE!=he)
+ {
+     changed = true;
+     this->hE=he;
  }
     if (changed&&(typeOfU==PERIODIC||typeOfU==QUASISTATIONARY))
     {
@@ -2814,25 +2889,6 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
      changed_y = true;
      this->Umin=v;
  }
-/* v=u.Psimax;
- if(v!=this->Psimax)
- {
-     this->Psimax=v;
-     changed_y = true;
- }
-
- v=u.Psimin;
- if(v!=this->Psimin)
- {
-     changed_y = true;
-     this->Psimin=v;
- }*/
-
- if(this->Hx!=u.Hx)
- {
-     changed_x = true;
-     this->Hx=u.Hx;
- }
     if (changed_x||changed_y)
     {
     emit(signalScalesUChanged());
@@ -2842,14 +2898,10 @@ void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
     ScalePsinParameters t;
     t.Xmax=Xmax;
     t.Xmin=Xmin;
-    t.Hx=Hx;
-  //  t.Psinmax=Psinmax;
-  //  t.Psinmin=this->Psinmin;
     emit(signalScalePsinChanged());
     ScaleWPXParameters twp;
     twp.Xmax=Xmax;
     twp.Xmin=Xmin;
-    twp.Hx=Hx;
     twp.WPXmax=WPXmax;
     twp.WPXmin=this->WPXmin;
     emit(signalScaleWPXChanged());
@@ -3071,33 +3123,33 @@ void  PhysicalModel::setEpWP(const EpWP& u)
 }
 void  PhysicalModel::setEmWP(const EmWP& u)
 {
-  bool changed = false;
-  int n = u.nmin;
- if(n!=this->nminWP)
- {
-    this->nminWP = n;
- changed = true;
- }
-  n = u.nmax;
- if(n!=this->nmaxWP)
- {
-    this->nmaxWP = n;
- changed = true;
- }
-  n = u.hn;
- if(n!=this->hnWP)
- {
-    this->hnWP = n;
- changed = true;
- }
- if(type_of_WP!=2)
- {
-      changed = true;
-      type_of_WP=2;
- }
+    bool changed = false;
+    int n = u.nmin;
+    if(n!=this->nminWP)
+    {
+        this->nminWP = n;
+        changed = true;
+    }
+    n = u.nmax;
+    if(n!=this->nmaxWP)
+    {
+        this->nmaxWP = n;
+        changed = true;
+    }
+    n = u.hn;
+    if(n!=this->hnWP)
+    {
+        this->hnWP = n;
+        changed = true;
+    }
+    if(type_of_WP!=2)
+    {
+        changed = true;
+        type_of_WP=2;
+    }
     if (changed)
     {
-    need_build_WP = true;
+        need_build_WP = true;
     }
 }
 
@@ -3250,7 +3302,6 @@ Hk(0.025), Kmax(5.), Kmin(-5),
  need_build_WP(true),
  LevelNmax(10),LevelNmin(0),LevelHn(1),numberOfLevels(0),Nperiod(1),
  nminWP(0), nmaxWP(10), hnWP(1), wpE_lo(5.),wpE_hi(15.), wpN(30), type_of_WP(2)
-// xmin(-1.),xmax(15.)
 
 {
 }
@@ -3373,9 +3424,10 @@ void PhysicalModel::setPotentialType(PotentialType t)
             m[N+1]=m[1];
         }
         typeOfU = t;
-        build_k();
+//        emit(signalTypeOfUChanged());
         markUchanged();
     }
+        emit(signalTypeOfUChanged());
 }
 void PhysicalModel::set_d(int n1, double v1,int n2, double v2)
 {
@@ -3471,7 +3523,6 @@ void PhysicalModel::set_E0(double v)
 //   if (this->E0 != v)
     {
         this->E0 = v;
-//        this->build_k();
         this->build_ab();
     }
 }
@@ -3492,6 +3543,10 @@ void PhysicalModel::set_Time(double v)
         this->time = v;
         emit(signalTimeChanged(v));
     }
+}
+void PhysicalModel::change_Time(double v)
+{
+    emit(signalTimeChanged(v));
 }
 void PhysicalModel::markUchanged()
 {
@@ -3540,10 +3595,10 @@ QVector<double> PhysicalModel::getEn()
         {
             findQuasiStates();
             Ebound.resize(Equasi.size());
-    for (int n = 0; n < Equasi.size(); ++n)
-    {
-    Ebound[n]=real(Equasi[n]);
-    }
+            for (int n = 0; n < Equasi.size(); ++n)
+            {
+                Ebound[n]=real(Equasi[n]);
+            }
         }
         if(this->typeOfU==PERIODIC) findBands();
         this->E0=Eold;
@@ -3657,19 +3712,32 @@ QVector<double> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax,
 }
 QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
-    double y,tt,num;
+    double y,tt,num, Umax, Umin;
     tt=0;
     double Eold=this->E0;
     set_E0(E);
-    if(E>U[0])
+//    getTatE();
+ /*   if(U[0]>U[N+1])
+    {
+        Umax=U[0];
+        Umin=U[N+1];
+    }
+    else
+    {
+        Umax=U[N+1];
+        Umin=U[0];
+    }
+    if(E>Umax)
     {
         build_RT();
         tt = this->TT;
     }
     else
     {
-        num = findNumberOfLevels(E);
+        if(Umin<E<Umax) tt=0;
+        if(E<Umin)  num = findNumberOfLevels(E);
     }
+    */
     QVector<double> waveFunction(npoints);
     double dx = (xmax-xmin)/(npoints-1);
     //   double fmin=1e-6;
@@ -3707,18 +3775,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
 
     //---------------
     this->E0=Eold;
-        if(E0>0)
-    {
-//        build_k();
-        build_ab();
-        build_RT();
-    }
-    else
-    {
-        num = findNumberOfLevels(E0);
-    }
-    if(E0>0) emit(signalTransmissionChanged(TT));
-    else  emit(signalTransmissionChanged(num));
+    getTatE();
     return waveFunction;
 }
 QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF,bool tail)
@@ -3763,19 +3820,37 @@ QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xma
 }
 void PhysicalModel::getTatE()//(double E)
 {
-    double num;
-    if(this->E0>0)
-        {
-//        build_k();
+    double num,Umax,Umin;
+    if(U[0]>U[N+1])
+    {
+        Umax=U[0];
+        Umin=U[N+1];
+    }
+    else
+    {
+        Umax=U[N+1];
+        Umin=U[0];
+    }
+    if(E0>Umax)
+    {
         build_ab();
         build_RT();
+        emit(signalTransmissionChanged(TT));
+    }
+    else
+    {
+        if(Umin<E0&&E0<Umax)
+        {
+            TT=0;
+            emit(signalTransmissionChanged(TT));
         }
-        else
+        if(E0<Umin)
         {
             num = findNumberOfLevels(E0);
+            emit(signalTransmissionChanged(num));
         }
-        if(E0>0) emit(signalTransmissionChanged(TT));
-        else  emit(signalTransmissionChanged(num));
+    }
+
 }
 void PhysicalModel::getTnatE()//(double E)
 {
@@ -3803,6 +3878,9 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
 {
     QVector<double> transmission(npoints);
     double dE = (Emax-Emin)/(npoints-1);
+    double Umax,Umin;
+    if(U[0]>U[N+1]) Umax=U[0];
+    else Umax=U[N+1];
     double y;
     double Eold=this->E0;
     double z=this->zz;
@@ -3814,10 +3892,14 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
     {
         if(typeOfU==FINITE)
         {
-            set_E0(Emin+i*dE);
+            double E=Emin+i*dE;
+            set_E0(E);
+            if(E>Umax)
+            {
             build_RT();
             transmission[i] = this->TT;
- /*           if(Emin+i*dE>U[0]&&U[0]>0)
+            }
+            /*           if(Emin+i*dE>U[0]&&U[0]>0)
             {
                 transmission[i] = this->TT;
             }
@@ -4406,10 +4488,14 @@ public:
         : model(_m), r(_r), w(_w) {}
     void read();
     void write();
+    void readTypeOfU();
+    void writeTypeOfU();
     void readWidthOfLine();
     void writeWidthOfLine();
     void readTime();
     void writeTime();
+    void readGParam();
+    void writeGParam();
     void readLevelNumber();
     void writeLevelNumber();
     void readZdef();
@@ -4457,6 +4543,10 @@ void ModelXML::read()
         {
             readE0();
         }
+        else if (r->name() == "typeOfU")
+        {
+            readTypeOfU();
+        }
         else if (r->name() == "TypeWP")
         {
             readTypeWP();
@@ -4481,11 +4571,15 @@ void ModelXML::read()
         {
             readTime();
         }
+        else if (r->name() == "GParameters")
+        {
+            readGParam();
+        }
         else if (r->name() == "LevelNumber")
         {
             readLevelNumber();
         }
-        else if (r->name() == "Zdef")
+        else if (r->name() == "ZParameters")
         {
             readZdef();
         }
@@ -4528,7 +4622,8 @@ void ModelXML::read()
 void ModelXML::write()
 {
     w->writeStartElement("model");
-    writeWidthOfLine();
+    writeTypeOfU();
+    writeGParam();
     writeE0();
     writeUbias();
     writeUdm();
@@ -4580,6 +4675,18 @@ void ModelXML::writeTypeWP()
     QString s;
     s.sprintf("%i",model->get_type_of_WP());
     w->writeTextElement("TypeWP",s);
+}
+void ModelXML::writeTypeOfU()
+{
+    QString s;
+    PotentialType t;
+
+    t=model->getPotentialType();
+    if(t==FINITE) s="FINITE";
+    if(t==QUASISTATIONARY) s="QUASISTATIONARY";
+    if(t==PERIODIC) s="PERIODIC";
+    if(t==SEMIPERIODIC) s="SEMIPERIODIC";
+    w->writeTextElement("typeOfU",s);
 }
 void ModelXML::writeUbias()
 {
@@ -4716,6 +4823,17 @@ void ModelXML::writeUdm2()
     }
     w->writeEndElement();
 }
+void ModelXML::writeGParam()
+{
+    QString s;
+    gParameters tp=model->getGParam();
+    double g=tp.g;
+    double hg=tp.hg;
+    double gmin=tp.gmin;
+    double gmax=tp.gmax;
+    s.sprintf("%lg %lg %lg %lg",g,hg,gmin,gmax);
+    w->writeTextElement("GParameters",s);
+}
 void ModelXML::writeTime()
 {
     QString s;
@@ -4736,7 +4854,7 @@ void ModelXML::writeZdef()
     double zmin=tp.zmin;
     double zmax=tp.zmax;
     s.sprintf("%lg %lg %lg %lg",z,hz,zmin,zmax);
-    w->writeTextElement("Zdef",s);
+    w->writeTextElement("ZParameters",s);
 }
 void ModelXML::writeLevelNumber()
 {
@@ -4781,12 +4899,11 @@ void ModelXML::writeScalesUx()
     QString s;
     ScalesUParameters tp = model->getScalesUParam();
 
-    double hx=tp.Hx;
     double xmin=tp.Xmin;
     double xmax=tp.Xmax;
     double Umin=tp.Umin;
     double Umax=tp.Umax;
-    s.sprintf("%lg %lg %lg %lg %lg",hx,xmin,xmax,Umin,Umax);
+    s.sprintf("%lg %lg %lg %lg",xmin,xmax,Umin,Umax);
     w->writeTextElement("ScalesUx",s);
 }
 void ModelXML::writeScalesPsi()
@@ -4842,6 +4959,19 @@ void ModelXML::writeScalesPhi()
     w->writeTextElement("ScalesPhi",s);
 }
 
+void ModelXML::readGParam()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "GParameters");
+    double g,hg,gmin,gmax;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&g,&hg,&gmin,&gmax);
+    gParameters tp;
+    tp.g=g;
+    tp.hg=hg;
+    tp.gmin=gmin;
+    tp.gmax=gmax;
+    model->setGParam(tp);
+}
 void ModelXML::readTime()
 {
     Q_ASSERT(r->isStartElement() && r->name() == "time");
@@ -4858,6 +4988,17 @@ void ModelXML::readTime()
     tp.tmin=tmin;
     tp.tmax=tmax;
     model->setTimeParam(tp);
+}
+void ModelXML::readTypeOfU()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "typeOfU");
+    QString s = r->readElementText();
+    PotentialType t;
+    if(s=="FINITE") t=FINITE;
+    if(s=="QUASISTATIONARY") t=QUASISTATIONARY;
+    if(s=="PERIODIC") t=PERIODIC;
+    if(s=="SEMIPERIODIC") t=SEMIPERIODIC;
+    model->setPotentialType(t);
 }
 void ModelXML::readWidthOfLine()
 {
@@ -4911,7 +5052,7 @@ void ModelXML::readWPp()
 
 void ModelXML::readZdef()
 {
-    Q_ASSERT(r->isStartElement() && r->name() == "Zdef");
+    Q_ASSERT(r->isStartElement() && r->name() == "ZParameters");
     double z,hz,zmin,zmax;
     QString s = r->readElementText();
     sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&z,&hz,&zmin,&zmax);
@@ -4925,11 +5066,10 @@ void ModelXML::readZdef()
 void ModelXML::readScalesUx()
 {
     Q_ASSERT(r->isStartElement() && r->name() == "ScalesUx");
-    double hx,xmin,xmax,Umin,Umax;
+    double xmin,xmax,Umin,Umax;
     ScalesUParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Umin,&Umax);
-    tp.Hx=hx;
+    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&xmin,&xmax,&Umin,&Umax);
     tp.Xmin=xmin;
     tp.Xmax=xmax;
     tp.Umax=Umax;

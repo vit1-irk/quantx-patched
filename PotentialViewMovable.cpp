@@ -125,46 +125,6 @@ public:
     }
 
 };
-/*void  PotentialViewMovable::scaleE()
-{
-    if (!gbScaleE)
-    {
-        gbScaleE = new QGroupBox(this);
-        gbScaleE->setWindowTitle(tr("Energy interval"));
-        gbScaleE->setWindowFlags(Qt::Window);
-        gbScaleE->setFont(QFont("Serif", 12, QFont::Bold ));
-        QVBoxLayout *vl = new QVBoxLayout;
-        this->Emin.setDisplay(tr("Emin"),tr("lower limit of energy"),vl);
-        this->Emax.setDisplay(tr("Emax"),tr("upper limit of energy"),vl);
-        this->hE.setDisplay(tr("hE"),tr("energy step"),vl);
-        gbScaleE->setLayout(vl);
-    }
-    gbScaleE->show();
-    gbScaleE->raise();//->raactivateWindow();
-    gbScaleE->setFocus();
-}*/
-/*
-void  PotentialViewMovable::scaleXY()
-{
-    if (!gbScaleXY)
-    {
-        gbScaleXY = new QGroupBox(this);
-        gbScaleXY->setWindowTitle("Scales for plots Psi(x) and U(x)");
-        gbScaleXY->setWindowFlags(Qt::Window);
-        gbScaleXY->setFont(QFont("Serif", 12, QFont::Bold ));
-        QVBoxLayout *vl = new QVBoxLayout;
-        this->Umin.setDisplay(("Umin"),("lower bond of potential"),vl);
-        this->Umax.setDisplay(("Umax"),("upper bond of potential"),vl);
-        this->xmin.setDisplay(("xmin"),("lower bond of x-interval"),vl);
-        this->xmax.setDisplay(("xmax"),("upper bond of x-interval"),vl);
-        gbScaleXY->setLayout(vl);
-    }
-    gbScaleXY->show();
-    gbScaleXY->raise();//->raactivateWindow();
-    gbScaleXY->setFocus();
-}
-*/
-//-------------------------
 class EnergyLevels : public QGraphicsItem
 {
     PotentialViewMovable *view;
@@ -395,11 +355,13 @@ public:
 PotentialViewMovable::PotentialViewMovable(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),  lineEnergy(0),
 Umin(-15.), Umax(10.), xmin(-1.), xmax(10.),
-dialogScalesU(0),
+dialogScalesU(0),gbRangeE(0),
 widthLineE(0.02),widthLineH(0.02),widthLineV(0.02),
-psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
+//psiMax(4), psiMin(-1), whatToDraw(2),
+Emin(-10.),Emax(20.),hE(0.01)
 {
     lineWidth = 2;
+    this->initDialogRangeE();
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
     if (1)
@@ -417,6 +379,7 @@ psiMax(4), psiMin(-1), dx(0.01), whatToDraw(2)
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slotUChanged()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
+//    connect(this,SIGNAL(signalRangeE()),this,SLOT(slotEboundChanged()));
     connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
@@ -444,7 +407,6 @@ void PotentialViewMovable::setScalesFromModel()
     xmin = xmin_xmax.first;
     xmax = xmin_xmax.second;
     ScalesUParameters tp;
-    tp.Hx = this->dx;
     tp.Xmin = xmin;
     tp.Xmax = xmax;
     tp.Umin = Umin;
@@ -454,10 +416,9 @@ void PotentialViewMovable::setScalesFromModel()
 void PotentialViewMovable::resizePicture()
 {
     ScalesUParameters tp = model->getScalesUParam();
-    if(this->dx!=tp.Hx||xmin!=tp.Xmin||xmax!=tp.Xmax||
+    if(xmin!=tp.Xmin||xmax!=tp.Xmax||
         Umin!=tp.Umin||Umax!=tp.Umax)
     {
-        dx=tp.Hx;
         xmin=tp.Xmin;
         xmax=tp.Xmax;
         Umin=tp.Umin;
@@ -558,7 +519,6 @@ void PotentialViewMovable::keyPressEvent(QKeyEvent *event)
 void PotentialViewMovable::scrollView(int hx, int hy)
 {
     ScalesUParameters tp = model->getScalesUParam();
-    dx=tp.Hx;
     xmin=tp.Xmin;
     xmax=tp.Xmax;
     Umin=tp.Umin;
@@ -571,7 +531,6 @@ void PotentialViewMovable::scrollView(int hx, int hy)
     Umin +=hy*stepY;
     Umax +=hy*stepY;
     ScalesUParameters tt;
-    tt.Hx = this->dx;
     tt.Xmin = xmin;
     tt.Xmax = xmax;
     tt.Umin = Umin;
@@ -1019,9 +978,26 @@ void PotentialViewMovable::slotEboundChanged()
     update();
 }
 
+void PotentialViewMovable::changeE()
+{
+//    double E=Emin;
+    double E=model->get_E0();
+    if(E+hE>Emax&&hE>0) E=Emin;
+    if(E-hE<Emin&&hE<0) E=Emax;
+    while(E>=Emin&&E<=Emax)
+    {
+        model->set_Energy(E);
+        E=E+hE;
+        if (getBreakStatus(0))
+        {
+            return;
+        }
+
+    }
+}
 void PotentialViewMovable::slotEnergyChanged()
 {
-    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
+//    double scalePsi = (Umax-Umin)/(psiMax-psiMin);
     double E=model->get_E0();
     //    model->set_Energy(E);
     if (!lineEnergy)
@@ -1253,6 +1229,100 @@ void PotentialViewMovable::showDialogScaleY()
     dialogScalesU->activateWindow();
     dialogScalesU->setFocus();
 }
+//---------
+void PotentialViewMovable::initDialogRangeE()
+{
+    gbRangeE = new QGroupBox(this);
+    gbRangeE->setWindowTitle("Energy range");
+    gbRangeE->setWindowFlags(Qt::Window);
+    gbRangeE->setFont(QFont("Serif", 12, QFont::Bold ));
+
+    QVBoxLayout *vl = new QVBoxLayout;
+    {
+        QWidget *line = new QWidget(this);
+        QHBoxLayout *h = new QHBoxLayout(line);
+        h->addWidget(new QLabel("hE",this));
+        h->addWidget(this->leHE = new QLineEdit(this));
+        this->leHE->setToolTip("E-increment");
+        QString x;
+        x.sprintf("%lg",this->hE);
+        this->leHE->setText(x);
+        connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateRangeE()));
+        vl->addWidget(line);
+    }
+    {
+        QWidget *line = new QWidget(this);
+        QHBoxLayout *h = new QHBoxLayout(line);
+        h->addWidget(new QLabel("Emin",this));
+        h->addWidget(this->leEmin= new QLineEdit(this));
+        QString x;
+        x.sprintf("%lg",this->Emin);
+        this->leEmin->setText(x);
+        this->leEmin->setToolTip("Lower value of E-interval");
+        connect(this->leEmin,SIGNAL(editingFinished()),this,SLOT(updateRangeE()));
+        vl->addWidget(line);
+    }
+    {
+        QWidget *line = new QWidget(this);
+        QHBoxLayout *h = new QHBoxLayout(line);
+        h->addWidget(new QLabel("Emax",this));
+        h->addWidget(this->leEmax= new QLineEdit(this));
+        QString x;
+        x.sprintf("%lg",this->Emax);
+        this->leEmax->setText(x);
+        this->leEmax->setToolTip("High value of E-interval");
+        connect(this->leEmax,SIGNAL(editingFinished()),this,SLOT(updateRangeE()));
+        vl->addWidget(line);
+    }
+    gbRangeE->setLayout(vl);
+}
+
+void PotentialViewMovable::showDialogRangeE()
+{
+    gbRangeE->show();
+    gbRangeE->raise();
+    gbRangeE->setFocus();
+}
+void PotentialViewMovable::setRangeE()
+{
+    QString x;
+    x.sprintf("%lg",this->hE);
+    this->leHE->setText(x);
+    x.sprintf("%lg",this->Emin);
+    this->leEmin->setText(x);
+    x.sprintf("%lg",this->Emax);
+    this->leEmax->setText(x);
+}
+void PotentialViewMovable::updateRangeE()
+{
+    double hENew = this->leHE->text().toDouble();
+    double EminNew = this->leEmin->text().toDouble();
+    double EmaxNew = this->leEmax->text().toDouble();
+    bool changed = false;
+    if (hE != hENew)
+    {
+        hE=hENew;
+        changed = true;
+    }
+    if (Emin != EminNew)
+    {
+        changed = true;
+        Emin=EminNew;
+    }
+    if (Emax != EmaxNew)
+    {
+        changed = true;
+        Emax=EmaxNew;
+    }
+    if(changed)
+    {
+        model->set_EmaxEmin(Emax,Emin,hE);
+//        emit(signalRangeEChanged());
+
+    }
+}
+
+//-------
 void PotentialViewMovable::setWhatToDraw(int w)
 {
     if (whatToDraw != w)
@@ -1270,6 +1340,7 @@ void PotentialViewMovable::contextMenuEvent(QContextMenuEvent *event)
         QFont font( "Serif", 10, QFont::DemiBold );
         m.setFont(font);
         QAction *scalePsi = m.addAction(tr("Scales"));
+        QAction *rangeE = m.addAction(tr("Energy range"));
         QAction *U1Action = m.addAction(tr("Set U(x) as initial"));
         QAction *U2Action = m.addAction(tr("Set U(x) as final"));
         QPoint poscur = event->globalPos();
@@ -1277,6 +1348,11 @@ void PotentialViewMovable::contextMenuEvent(QContextMenuEvent *event)
         if (what == scalePsi)
         {
             this->showDialogScaleY();
+            update();
+        }
+        if (what == rangeE)
+        {
+            this->showDialogRangeE();
             update();
         }
         if (what == U1Action)
@@ -1374,20 +1450,37 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
     hl->addWidget(lTtext);
     hl->addWidget(lT);
 
-    hl->addStretch();
+//    hl->addStretch();
 
+    bRun = new QToolButton(this);
+    bRun->setIcon(QIcon(":/images/player_play.png"));
+    bRun->adjustSize();
+    hl->addWidget(bRun);
+    connect(bRun,SIGNAL(clicked()),this,SLOT(slotRunE()));
+
+    hl->addStretch();
     QToolButton *buttonClose = new QToolButton(this);
     buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
-    hl->addStretch();
     hl->addWidget(buttonClose);
 
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
-//    QPushButton *buttonClose = new QPushButton(tr("Close"));
-//    hl->addWidget(buttonClose);
     vl->addLayout(hl);
     setLayout(vl);
 }
+void PotentialMovableWidget::slotRunE()
+{
+    bRun->setIcon(QIcon(":/images/player_pause.png"));
+    bRun->adjustSize();
+    disconnect(bRun, SIGNAL(clicked()), this, SLOT(slotRunE()));
+    breakStatus.onButton(bRun);
+    potentialViewMovable->changeE();
+    breakStatus.noButton(bRun);
+    bRun->setIcon(QIcon(":/images/player_play.png"));
+    bRun->adjustSize();
+    connect(bRun, SIGNAL(clicked()), this, SLOT(slotRunE()));
+}
+
 void PotentialMovableWidget::updateLevelNumber()
 {
     int levelNumber = this->lN->text().toDouble();

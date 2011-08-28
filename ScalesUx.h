@@ -15,17 +15,12 @@ public:
 public slots:
     void updateModel();
     void modelChanged();
-//    void setCurrentTime(double);
 
 private:
     PhysicalModel *model;
     ScalesUParameters last;
-
-//    QLineEdit *lePsimin;
-//    QLineEdit *lePsimax;
     QLineEdit *leUmin;
     QLineEdit *leUmax;
     QLineEdit *leXmin;
     QLineEdit *leXmax;
-    QLineEdit *leHx;
 };

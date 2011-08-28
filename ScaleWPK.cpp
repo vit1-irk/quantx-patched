@@ -8,7 +8,7 @@
 ScaleWPK::ScaleWPK(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-    this->setWindowTitle(tr("Scales:"));
+    this->setWindowTitle(tr("Scales for wavepacket(k,t)"));
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
     {

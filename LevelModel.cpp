@@ -94,8 +94,8 @@ LevelModel::headerData(int section, Qt::Orientation orientation, int role) const
 Qt::ItemFlags LevelModel::flags (const QModelIndex & index ) const
 {
     (void)index;
-    return Qt::NoItemFlags
-        //| Qt::ItemIsSelectable
+//    return Qt::NoItemFlags
+    return Qt::ItemIsSelectable
         //| Qt::ItemIsEditable
         ;
 }

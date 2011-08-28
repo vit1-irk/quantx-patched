@@ -151,7 +151,7 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
         setResizeAnchor(AnchorViewCenter);///
     }
     setMinimumSize(300, 150);
-    model->set_EmaxEmin(Emax,Emin);
+//    model->set_EmaxEmin(Emax,Emin,hE);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewportMapping();
@@ -681,7 +681,7 @@ void TransmissionView::updateScaleTE()
     }
     if(changed)
     {
-        model->set_EmaxEmin(Emax,Emin);
+//        model->set_EmaxEmin(Emax,Emin);
         emit(signalScaleTEChanged());
     }
 }
@@ -887,11 +887,68 @@ void TransmissionWidget::slotErase(int j)
 }
 void TransmissionWidget::slotRunTE()
 {
- //   bRunTE->setText("STOP");
- //   disconnect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunTE()));
- //   breakStatus.onButton(bRunTE);
     transmissionView->resizePicture();
- //   breakStatus.noButton(bRunTE);
- //   bRunTE->setText("RUN ");
- //   connect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunTE()));
+
+}
+void TransmissionWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "TE");
+    double Emin = 0, Emax = 0, he=0;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "Emin")
+        {
+            QString s = r->readElementText();
+            transmissionView->Emin = s.toDouble();
+        }
+        else if (r->name() == "Emax")
+        {
+            QString s = r->readElementText();
+            transmissionView->Emax = s.toDouble();
+        }
+        else if (r->name() == "hE")
+        {
+            QString s = r->readElementText();
+            transmissionView->hE = s.toDouble();
+        }
+        else if (r->name() == "Tmax")
+        {
+            QString s = r->readElementText();
+            transmissionView->tMax = s.toDouble();
+        }
+        else if (r->name() == "Tmin")
+        {
+            QString s = r->readElementText();
+            transmissionView->tMin = s.toDouble();
+        }
+        else
+            skipUnknownElement(r);
+    }
+    transmissionView->setScaleTE();
+}
+
+
+void TransmissionWidget::writeToXml(QXmlStreamWriter *w)
+{
+    w->writeStartElement("TE");
+    {
+        QString s;
+        s.sprintf("%lg",transmissionView->Emin);
+        w->writeTextElement("Emin",s);
+        s.sprintf("%lg",transmissionView->Emax);
+        w->writeTextElement("Emax",s);
+        s.sprintf("%lg",transmissionView->hE);
+        w->writeTextElement("hE",s);
+        s.sprintf("%lg",transmissionView->tMin);
+        w->writeTextElement("Tmin",s);
+        s.sprintf("%lg",transmissionView->tMax);
+        w->writeTextElement("Tmax",s);
+    }
+    w->writeEndElement();
 }

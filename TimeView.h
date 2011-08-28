@@ -16,6 +16,7 @@ public slots:
     void updateModel();
     void modelChanged();
     void setCurrentTime(double);
+    void change_Time();
 
 private:
     PhysicalModel *model;

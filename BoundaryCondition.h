@@ -12,6 +12,8 @@ public:
     ~BoundaryCondition(void);
 
     void setModel(PhysicalModel*);
+//    void readFromXml(QXmlStreamReader *r);
+//    void writeToXml(QXmlStreamWriter *w);
 
 public slots:
     void updateModel();

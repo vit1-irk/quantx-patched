@@ -182,13 +182,13 @@ void WaveFunctionView::resizePicture()
         }*/
     }
     setViewportMapping();
-    slot_Psi_n_of_x();
+//    slot_Psi_n_of_x();
     LevelNumberParameters wp = model->getLevelNumberParameters();
     nMin=wp.nmin;
     nMax=wp.nmax;
     hn=wp.hn;
-//    if(nMin<0||nMax<0||hn<0) slotEnergyChanged();
-//    else  slot_Psi_n_of_x();
+    if(nMin<0||nMax<0||hn<0) slotEnergyChanged();
+    else  slot_Psi_n_of_x();
 }
 
 void WaveFunctionView::setScalesFromModel()
@@ -478,7 +478,6 @@ void WaveFunctionView::removeCurve(int id)
         curves[id] = 0; //this is dangerous: curves.remove(id);
     }
     update();
-//    repaint();
 }
 
 void CoordinateDistribution::paint(QPainter * painter, const QStyleOptionGraphicsItem *, QWidget *)

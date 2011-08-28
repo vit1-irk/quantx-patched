@@ -57,17 +57,21 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void setScalesFromModel();
-
+    void updateRangeE();
+    void changeE();
 signals:
     void infoMouseMovedTo(QPointF);
-
+//    void signalRangeEChanged();
 protected:
+    void initDialogRangeE();
+    void showDialogRangeE();
     void scrollView(int dx, int dy);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void resizeEvent(QResizeEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void scaleView(qreal scaleFactor);
+    void setRangeE();
 
 public:
     void showDialogScaleY();
@@ -78,8 +82,13 @@ private:
     double widthLineV;
     double widthLineH;
     double widthLineE;
+    QLineEdit *leEmin;
+    QLineEdit *leEmax;
+    QLineEdit *leHE;
     double lineWidth;
-    double Umin,Umax, xmin, xmax, dx, psiMax, psiMin;
+    double Umin,Umax, xmin, xmax,Emax,Emin,hE;
+//        dx, psiMax, psiMin;
+    QGroupBox  *gbRangeE;
 
 //    PhysicalModel *model;
 
@@ -117,6 +126,7 @@ public:
     PotentialMovableWidget(PhysicalModel *model, QWidget * parent = 0);
     PotentialViewMovable *potentialViewMovable;
 public slots:
+    void slotRunE();
     void updateEnergy();
     void updateLevelNumber();
     void printEnergy();
@@ -125,5 +135,7 @@ private:
     QLineEdit *lE;
     QLineEdit *lN;
     QButtonGroup *bgR;
+    QToolButton *bRun;
+
 };
 

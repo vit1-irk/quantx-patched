@@ -221,7 +221,7 @@ void MainWindow::initMenuBar()
      QAction *uMulti = new QAction(tr("Un"), uTool);
      uTool->addAction(uMulti);
      uTool->addSeparator();
-     uMulti->setToolTip(tr("Система одинаковых ям/барьеров"));
+     uMulti->setToolTip(tr("Потенциал из одинаковых ям/барьеров"));
 //     uMulti->setToolTip("Multi-well/barrier potential");
      connect(uMulti, SIGNAL(triggered()), this, SLOT(slotSetUmwb()));
 
@@ -237,7 +237,7 @@ void MainWindow::initMenuBar()
      addToolBar(EquasiTool);
      QAction *EquasiAction = new QAction(tr("(E+iG)n"), EquasiTool);
      EquasiTool->addAction(EquasiAction);
-     EquasiAction->setToolTip(tr("Таблица квазиуровней"));
+     EquasiAction->setToolTip(tr("Таблица энергий квазистац. состояний"));
 //   EnAction->setToolTip("Values of energy levels En");
      connect(EquasiAction, SIGNAL(triggered()), this, SLOT(slotSetEquasi()));
 
@@ -261,7 +261,7 @@ void MainWindow::initMenuBar()
      addToolBar(ubiasTool);
      QAction *ubiasAc = new QAction(tr("Ubias"), ubiasTool);
      ubiasTool->addAction(ubiasAc);
-     ubiasAc->setToolTip(tr("Структура в электрическом поле"));
+     ubiasAc->setToolTip(tr("Падение напряжения"));
      connect(ubiasAc, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
 
      QToolBar *widthLineTool = new QToolBar;
@@ -532,12 +532,12 @@ void MainWindow::windowDownLeft()
 
     void MainWindow::window_TE()
 {
-    if(!gbTEview)
+    if(!teWidget)
     {
-    gbTEview = new TransmissionWidget(model);
+    teWidget = new TransmissionWidget(model);
     }
-    splitterL->addWidget(gbTEview);
-    gbTEview->show();
+    splitterL->addWidget(teWidget);
+    teWidget->show();
 }
     void MainWindow::window_QE()
 {
@@ -1975,7 +1975,7 @@ tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
 dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-gbTEview(0),gbQEview(0),gbTZview(0),enzWidget(0),egWidget(0),
+teWidget(0),gbQEview(0),gbTZview(0),enzWidget(0),egWidget(0),
 gbviewMT(0),gbviewM(0),
 gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
 {
@@ -2018,24 +2018,42 @@ bool MainWindow::save()
         QXmlStreamWriter writer(&f);
         writer.setAutoFormatting(true);
         writer.writeStartDocument();
+        writer.writeStartElement("kvant");
+
         if (model)
         {
             model->writeToXml(&writer);
         }
-        if (enzWidget)
+        //       if (enzWidget)
+        //       {
+        if(!enzWidget)
         {
-            enzWidget->writeToXml(&writer);
+            enzWidget = new EnzWidget(model);
         }
-        if (egWidget)
-        {
-            egWidget->writeToXml(&writer);
-        }
-        writer.writeEndDocument();
 
-        f.close();
-        statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
-        return true;
+        if (enzWidget) enzWidget->writeToXml(&writer);
+        //       }
+        if(!egWidget)
+        {
+            egWidget = new EGWidget(model);
+        }
+
+        if(egWidget) egWidget->writeToXml(&writer);
+        if(!teWidget)
+        {
+            teWidget = new TransmissionWidget(model);
+
+        }
+        if ( teWidget)
+        {
+            teWidget->writeToXml(&writer);
+        }
+        writer.writeEndElement();
+        writer.writeEndDocument();
     }
+    f.close();
+    statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
+    return true;
 }
 
 bool MainWindow::openFile()
@@ -2057,24 +2075,56 @@ bool MainWindow::openFile()
         {
             reader.readNext();
             if (! reader.isStartElement()) continue;
-            if (reader.name() == "model")
+            if (reader.name() == "kvant")
             {
-                model->readFromXml(&reader);
+                while (!reader.atEnd())
+                {
+                    reader.readNext();
+                    if (reader.name() == "model")
+                    {
+                        model->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "TE")
+                    {
+                         if(!teWidget)
+                         {
+                                 teWidget = new TransmissionWidget(model);
+
+                         }
+                         teWidget->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "Enz")
+                    {
+                        if(!enzWidget)
+                        {
+                            enzWidget = new EnzWidget(model);
+                        }
+                        enzWidget->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "EGplane")
+                    {
+                        if(!egWidget)
+                        {
+                            egWidget = new EGWidget(model);
+                        }
+                        egWidget->readFromXml(&reader);
+                    }
+                }
             }
-            else if (reader.name() == "EnzView")
-            {
-                window_Enz();
-                enzWidget->readFromXml(&reader);
-            }
-            else if (reader.name() == "EGView")
-            {
-                window_EG();
-                egWidget->readFromXml(&reader);
-            }
+        }
+        if (reader.hasError())
+        {
+            QMessageBox::warning(0,
+                tr("Warning"),
+                reader.errorString(),
+                "Ok",
+                QString::null,
+                0,
+                1);
         }
         f.close();
         update();
-        statusBar()->showMessage(tr("Saved %1").arg(curFile), 20000);
+//        statusBar()->showMessage(tr("Saved %1").arg(curFile), 20000);
         return true;
     }
 }

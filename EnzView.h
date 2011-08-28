@@ -51,7 +51,6 @@ public slots:
     void setViewportMapping();
     void resizePicture();
     void slot_En_of_z();
-    void slot_Ec_n();
     void slotZline();
     void updateScaleEnz();
     void slot_drawEc_n();

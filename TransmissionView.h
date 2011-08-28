@@ -56,19 +56,23 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void scrollView(int dx, int dy);
-    void setScaleTE();
+//    void setScaleTE();
     void scaleView(qreal scaleFactor);
     void setScalesFromModel();
     void contextMenuEvent(QContextMenuEvent *event);
 
 public:
     void showDialogScaleY();
+    double tMax, tMin;
+    double Emin,Emax,hE;
+    void setScaleTE();
+
 
 private:
     void initDialogScaleY();
     void updateRubberBandRegion();
-    double tMax, tMin;
-    double Emin,Emax,hE;
+//    double tMax, tMin;
+//    double Emin,Emax,hE;
     QGraphicsLineItem *lineh,*linev;
     EnergyDraggable *lineE;
 
@@ -93,6 +97,8 @@ class TransmissionWidget : public QGroupBox
     Q_OBJECT
 public:
     TransmissionWidget(PhysicalModel *model, QWidget * parent = 0);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
 private:
     TransmissionView *transmissionView;
     QPushButton *bRunTE;

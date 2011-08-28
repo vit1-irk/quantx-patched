@@ -250,11 +250,11 @@ void WavePacketXView::slot_WavePacket_of_t()
         this->time=tt;
     }
     p.setColor(Qt::darkCyan);
-
-        for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
+    for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
     {
         tp.time=t;
         tp.ht=htime;
+        model->setTimeParam(tp);
         ScaleWPXParameters sc = model->getScaleWPXParam();
         vp = scene()->sceneRect();
         ts=model->getSettingParameters();
@@ -271,15 +271,8 @@ void WavePacketXView::slot_WavePacket_of_t()
             psi.resize(npoints);
             waveFunction.resize(npoints);
             setViewportMapping();
-            //            vp = scene()->sceneRect();
-  //          QRect a = QRect(this->viewport()->rect());
-//            p.setColor(Qt::black);
-//            linev->setPen(p);
-//            lineh->setPen(p);
             linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
             lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-//            p.setColor(Qt::darkCyan);
-//            p.setWidthF(widthLineWP);
             vp_old=vp;
         }
         waveFunction = model->getPsiOfXT(t, xmin, xmax, npoints, whatToDraw);
@@ -290,17 +283,18 @@ void WavePacketXView::slot_WavePacket_of_t()
             psi[i]  = QPointF(x, y);
         }
         setCurve(0, psi, p);
-        tp=model->getTimeParam();
-        if(t!=tp.time||htime!=tp.ht)
-        {
-            this->time=tp.time;
-            htime=tp.ht;
-        }
         if (getBreakStatus(0))
         {
             return;
         }
+/*        tp=model->getTimeParam();
+        if(t!=tp.time||htime!=tp.ht)
+        {
+            this->time=tp.time;
+            htime=tp.ht;
+        }*/
     }
+    model->setTimeParam(tp);
 }
 
 void WavePacketXView::setCurve(int id,const QPolygonF & curve, const QPen& pen)

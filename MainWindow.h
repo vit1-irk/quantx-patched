@@ -228,7 +228,7 @@ private:
     WaveFunctionWidget *waveFunctionWidget;
     EnzWidget *enzWidget;
     EGWidget *egWidget;
-    TransmissionWidget *gbTEview;
+    TransmissionWidget *teWidget;
     EofqaWidget *gbQEview;
     TofzViewWidget *gbTZview;
     QGroupBox *grrb;

@@ -209,12 +209,12 @@ Emin(0.001), Emax(20), hE(0.05), Gmax(0.1), Gmin(-3.), dG(0.05), dialogG(0),gbSc
 */
 QPair<double,double> EGView::getEGScale()
 {
-    return QPair<double,double>(Emin,Emax);
+    return QPair<double,double>(Emax,Emin);
 }
 void EGView::setEGScale(const QPair<double,double> &s)
 {
-    Emin = s.first;
-    Emax = s.second;
+    Emax = s.first;
+    Emin = s.second;
 }
 void EGView::slotGLine()
 {
@@ -237,9 +237,9 @@ void EGView::slotGLine()
 
 void EGView::setScalesFromModel()
 {
-    QPair<double,double> Emin_Emax = this->getEGScale();
-    Emin = Emin_Emax.first;
-    Emax = Emin_Emax.second;
+    QPair<double,double> Emax_Emin = this->getEGScale();
+    Emax = Emax_Emin.first;
+    Emin = Emax_Emin.second;
 }
 
 void EGView::resizePicture()
@@ -413,9 +413,6 @@ void EGView::slot_Ec_n()
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
     gParameters tp = model->getGParam();
-//    double g=tp.g;
-//    if(g>tp.gmax) g=tp.gmax;
-//    if(g<tp.gmin) g=tp.gmin;
     double Gmin=tp.gmin;//-5;//model->get_Gmin();
     double Gmax=tp.gmax;//-0.0001;
     double dG=tp.hg;//0.01;
@@ -445,7 +442,7 @@ void EGView::slot_Ec_n()
 
     QVector<complex> Equasi;
     QBrush b(Qt::SolidPattern);
-    model->set_EmaxEmin(Emax,Emin);
+//    model->set_EmaxEmin(Emax,Emin);
     model->getColors(Emin, Emax, hE, Gmin, Gmax, dG);
     Equasi = model->getEnquasi();
     int nR=model->redBoundary.size();
@@ -459,7 +456,6 @@ void EGView::slot_Ec_n()
     p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
     rectFirst->setBrush(b);
     rectFirst->setPen(p);
-    // rectFirst->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
     rectFirst->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
     for (int i=1; i < nR; i++)
     {
@@ -467,13 +463,11 @@ void EGView::slot_Ec_n()
         double gg=pp.x();
         Er=pp.y();
         QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
-        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
         p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
         r->setBrush(b);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
-        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
     }
     for (int i=0; i < model->yellowBoundary.size(); i++)
     {
@@ -481,41 +475,35 @@ void EGView::slot_Ec_n()
         double gg=pp.x();
         Er=pp.y();
         QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
-        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         b.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
         p.setColor(Qt::darkYellow);//colorForIds[1 % size_colorForIds]);
         r->setBrush(b);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
-        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
     }
     for (int i=0; i < model->greenBoundary.size(); i++)
     {
         QPointF pp=model->greenBoundary[i];
         double gg=pp.x();
         Er=pp.y();
-        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
         b.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
         p.setColor(Qt::green);//colorForIds[1 % size_colorForIds]);
         r->setBrush(b);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
-        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
     }
     for (int i=0; i < model->blueBoundary.size(); i++)
     {
         QPointF pp=model->blueBoundary[i];
         double gg=pp.x();
         Er=pp.y();
-        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
         b.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
         p.setColor(Qt::blue);//colorForIds[1 % size_colorForIds]);
         r->setBrush(b);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
-        // r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin),vp.height()*(Er-Emin)/(Emax-Emin), 2, 2 );
     }
     a=10;
     for (int i=0; i < Equasi.size(); i++)
@@ -523,12 +511,10 @@ void EGView::slot_Ec_n()
         double gg = imag(Equasi[i]);
         Er = real(Equasi[i]);
         b.setColor(Qt::darkRed);
-        // QGraphicsRectItem *r = new QGraphicsRectItem(NULL,scene());
         QGraphicsRectItem *r = new QGraphicsRectItem(rectFirst);
         p.setColor(Qt::black);
         r->setPen(p);
         r->setRect(vp.width()*(gg-Gmin)/(Gmax-Gmin)-a/2,vp.height()*(Er-Emin)/(Emax-Emin)-a/2, a,a );
-        // r->setRect(vp.width()*(gg-a/2-Gmin)/(Gmax-Gmin),vp.height()*(Er-a/2-Emin)/(Emax-Emin), 5, 5 );
     }
 
         update();
@@ -795,8 +781,9 @@ void EGView::updateScaleEG()
 void EGWidget::readFromXml(QXmlStreamReader *r)
 {
     Q_ASSERT(this);
-    Q_ASSERT(r->isStartElement() && r->name() == "EGView");
+    Q_ASSERT(r->isStartElement() && r->name() == "EGplane");
     double Emin = 0, Emax = 0, he=0;
+    double Gmin = 0, Gmax = 0, hG=0, G=0;
     while (!r->atEnd())
     {
         r->readNext();
@@ -823,27 +810,29 @@ void EGWidget::readFromXml(QXmlStreamReader *r)
             skipUnknownElement(r);
     }
     QPair<double,double> t;
-    t.first=Emin;
-    t.second=Emax;
+    t.first=Emax;
+    t.second=Emin;
     egView->Emax=Emax;
     egView->Emin=Emin;
     egView->hE=he;
     egView->setEGScale(t);
-    egView->model->set_EmaxEmin(Emax,Emin);
+//    egView->model->set_EmaxEmin(Emax,Emin);
+
 }
 
 
 void EGWidget::writeToXml(QXmlStreamWriter *w)
 {
-    w->writeStartElement("EGView");
+    w->writeStartElement("EGplane");
     {
-//        QPair<double,double> t = model->get_EminEmax();
         QPair<double,double> t = egView->getEGScale();
         QString s;
         s.sprintf("%lg",t.first);
-        w->writeTextElement("Emin",s);
+        w->writeTextElement("Emax",s);
         s.sprintf("%lg",t.second);
         w->writeTextElement("Emin",s);
+        s.sprintf("%lg",egView->hE);
+        w->writeTextElement("hE",s);
     }
     w->writeEndElement();
 }

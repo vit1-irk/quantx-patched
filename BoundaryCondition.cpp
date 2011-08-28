@@ -36,20 +36,21 @@ BoundaryCondition::~BoundaryCondition(void)
 
 void BoundaryCondition::setModel(PhysicalModel *_model)
 {
-    model = _model;
-    modelChanged();
+    if (model != _model)
+    {
+        disconnect(model,0,this,0);
+        model = _model;
+        modelChanged();
+    }
+        connect(model,SIGNAL(signalTypeOfUChanged()),this,SLOT(modelChanged()));
+
 }
 
 void BoundaryCondition::modelChanged()
 {
     if (!model)
     {
-//        this->bgR->setDisabled(true);
         return;
-    }
-    else
-    {
-//        this->bgR->setEnabled(true);
     }
     int index;
     PotentialType u = model->getPotentialType();
@@ -57,7 +58,8 @@ void BoundaryCondition::modelChanged()
     if(u==PERIODIC) index=1;
     if(u==QUASISTATIONARY) index=2;
     if(u==SEMIPERIODIC) index=3;
-    bgR->setId(bgR->button(index),index);
+    bgR->button(index)->setChecked(true);
+//    bgR->setId(bgR->button(index),index);
 }
 
 //void BoundaryCondition::newModel()
@@ -76,3 +78,51 @@ void BoundaryCondition::updateModel()
         last = u;
     }
 }
+/*void BoundaryCondition::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "BoundaryCondition");
+    int index;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "typeOfPotential")
+        {
+            QString s = r->readElementText();
+            if(s=="FINITE") index=0;
+            if(s=="PERIODIC") index=1;
+            if(s=="QUASISTATIONARY") index=2;
+            if(s=="SEMIPERIODIC") index=3;
+            PotentialType u;
+            if(index==0) u=FINITE;
+            if(index==1) u=PERIODIC;
+            if(index==2) u=QUASISTATIONARY;
+            if(index==3) u=SEMIPERIODIC;
+            model->setPotentialType(u);
+            bgR->setId(bgR->button(index),index);
+        }
+        else
+            skipUnknownElement(r);
+    }
+}
+*/
+/*void BoundaryCondition::writeToXml(QXmlStreamWriter *w)
+{
+    w->writeStartElement("BoundaryCondition");
+    {
+        int index = bgR->checkedId();
+
+        QString s;
+        if(index==0) s="FINITE";
+        if(index==1) s="PERIODIC";
+        if(index==2) s="QUASISTATIONARY";
+        if(index==3) s="SEMIPERIODIC";
+        w->writeTextElement("typeOfPotential",s);
+    }
+    w->writeEndElement();
+}
+*/

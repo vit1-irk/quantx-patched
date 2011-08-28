@@ -75,7 +75,7 @@ private:
     QLineEdit *leTmax;
     QLineEdit *leEmin;
     QLineEdit *leEmax;
-//    QLineEdit *leHE;
+    QLineEdit *leHE;
     double lineWidth;
 
     PhysicalModel *model;

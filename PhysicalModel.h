@@ -211,7 +211,7 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
-    void set_EmaxEmin(double E1, double E2);
+    void set_EmaxEmin(double E1, double E2, double he);
 //    double get_Gmin const { return Gmin; };
 
     LevelNumberParameters getLevelNumberParameters() const;
@@ -229,6 +229,7 @@ public:
     Uparab getUparab() const;
     void set_z(double v);
     void set_G(double v);
+    void change_Time(double v);
 
     void setUparab(const Uparab&);
 //    zParameters getzParam();
@@ -261,6 +262,7 @@ signals:
     void signalScalePhinChanged();
     void signalLevelParametersChanged();
     void signalTimeChanged(double);
+    void signalTypeOfUChanged();
     void signalZChanged(double);
     void signalGChanged(double);
     void signalScaleZChanged();
@@ -270,7 +272,6 @@ signals:
 public slots:
     void slotU1();
     void slotU2();
-
 private:
     complex lambda;
 
