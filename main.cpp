@@ -5,6 +5,7 @@
 
 void installEnglishTranslation(QApplication *app)
 {
+    Q_UNUSED(app);
     QTranslator *trr = new QTranslator;
     if (trr->load("kvant_en")) goto itr;
     if (trr->load("kvant_en","..")) goto itr;

@@ -1378,6 +1378,22 @@ public:
         setMinimumWidth(width());
     }
 };
+
+void PotentialMovableWidget::runHelp(const char *s)
+{
+    QStringList args;
+    args.push_back("/A");
+    QString dest;
+    dest.sprintf("nameddest=%s",s);
+    args.push_back(dest);
+    args.push_back("kvant.pdf");
+    int i = QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args);
+}
+void PotentialMovableWidget::runHelp_ctx()
+{
+    runHelp("ctx");
+}
+
 PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
@@ -1385,7 +1401,14 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
 
     QVBoxLayout *vl = new QVBoxLayout();
     potentialViewMovable = new PotentialViewMovable(model,this);
+    potentialViewMovable->setWhatsThis(tr("В этом окне вы можете редактировать потенциал и видеть уровни энергии. "
+                                           "Вы можете задавать масштабы потенциала, а так же интервал по энергии, "
+                                           "в котором энергия будет изменяться с заданным шагом при нажатии на кнопку "
+                                           "запуска счета"));
     vl->addWidget(potentialViewMovable);
+    QPushButton *help = new QPushButton("Help");
+    vl->addWidget(help);
+    connect(help,SIGNAL(clicked()),this,SLOT(runHelp_ctx()));
 
 
     QHBoxLayout *hl = new QHBoxLayout();

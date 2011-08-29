@@ -881,6 +881,7 @@ TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
 }
 void TransmissionWidget::slotErase(int j)
 {
+    Q_UNUSED(j);
     if(transmissionView->Erase==true)
         transmissionView->Erase=false;
     else transmissionView->Erase=true;
