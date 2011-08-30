@@ -5,4 +5,4 @@ kvant.pdf: kvant.tex
 	-pdflatex -interaction=batchmode $<
 
 ../%/kvant.pdf: kvant.pdf
-	cp $< $@
+	if [ -d $(@D) ] ; then cp $< $@ ; fi
