@@ -1222,64 +1222,71 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
     if (! need_build_U)
         return;
-/*    for(int n=1; n<d.size()-1; n++)
+    
+    QVector<double> newd, newm, newUi;
+    int do_replace = 0;
+
+    newd.push_back(d[0]);
+    newm.push_back(m[0]);
+    newUi.push_back(Ui[0]);
+    int n;
+    for (n = 1; n < d.size()-1; n++)
     {
-        if(d[n]==0)
+        if (d[n]==0)
         {
-            for(int i=d.size()-1; i > n+1; i--)
-            {
-                U[i-1] = Ui[i];
-                m[i-1]=m[i];
-                d[i-1]=d[i];
-            }
-            m.resize(m.size()-1);
-            d.resize(d.size()-1);
-            Ui.resize(Ui.size()-1);
-            U.resize(U.size()-1);
+            /* skip this interval and flag do_replace */
+            do_replace = 1;
+        }
+        else if (Ui[n]==Ui[n+1] && m[n]==m[n+1])
+        {
+            /* merge these intervals and flag do_replace */
+            newd.push_back(d[n] + d[n+1]);
+            newm.push_back(m[n]);
+            newUi.push_back(Ui[n]);
+            do_replace = 1;
+            n = n+1;
+        }
+        else
+        {
+            newd.push_back(d[n]);
+            newm.push_back(m[n]);
+            newUi.push_back(Ui[n]);
         }
     }
-    for(int n=0; n<d.size()-1; n++)
+    if (n < d.size())
     {
-        if((Ui[n]==Ui[n+1]&&m[n]==m[n+1]))
-        {
-            d[n]=d[n]+d[n+1];
-            for(int i=d.size()-1; i > n+1; i--)
-            {
-                U[i-1] = Ui[i];
-                m[i-1]=m[i];
-                d[i-1]=d[i];
-            }
-            m.resize(m.size()-1);
-            d.resize(d.size()-1);
-            Ui.resize(Ui.size()-1);
-            U.resize(U.size()-1);
-        }
+        newd.push_back(d[n]);
+        newm.push_back(m[n]);
+        newUi.push_back(Ui[n]);
     }
-    int sizeD=d.size();
-    */
-//this->set_N(d.size()-2);
+    if (do_replace)
+    {
+        this->set_Ui_d_m(newUi,newd,newm);
+    }
+
     U[0] = Ui[0];
     for(int n=d.size()-1; n >= 0; n--)
     {
+        double uu=Ui[n];
         U[n] = Ui[n];
     }
-        if(this->typeOfU==PERIODIC)
-{
-    U[0]=U[N];
-    d[0]=d[N];
-    m[0]=0.5;//m[N];
-    U[N+1]=U[1];
-    d[N+1]=d[1];
-    m[N+1]=0.5;//m[1];
-}
+    if(this->typeOfU==PERIODIC)
+    {
+        U[0]=U[N];
+        d[0]=d[N];
+        m[0]=0.5;//m[N];
+        U[N+1]=U[1];
+        d[N+1]=d[1];
+        m[N+1]=0.5;//m[1];
+    }
     if(this->typeOfU==FINITE)
-{
-    d[0]=0;
-    m[0]=0.5;
-    U[N+1]=0;
-    double dd=d[N+1];
-    m[N+1]=m[0];
-}
+    {
+        d[0]=0;
+        m[0]=0.5;
+        U[N+1]=0;
+        double dd=d[N+1];
+        m[N+1]=m[0];
+    }
 
     need_build_U = false;
 }
@@ -1674,14 +1681,6 @@ void PhysicalModel::Smatrix()
         }
 
     }
-    complex aa2=a[2];
-    complex bb2=b[2];
-    complex aa0=a[0];
-    double aa=abs(aa0);
-    complex bb0=b[0];
-    double bb=abs(bb0);
-    complex aa1=a[1];
-    complex bb1=b[1];
 
 }
 
@@ -4963,6 +4962,10 @@ void ModelXML::readGParam()
 {
     Q_ASSERT(r->isStartElement() && r->name() == "GParameters");
     double g,hg,gmin,gmax;
+    g=0.;
+    hg=0.05;
+    gmin=-5;
+    gmax=0.1;
     QString s = r->readElementText();
     sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&g,&hg,&gmin,&gmax);
     gParameters tp;

@@ -41,7 +41,16 @@ public:
 } thePosIntValidator(0);
 
 
-
+void MainWindow::helpStart()
+{
+    QStringList args;
+    args.push_back("/A");
+//    QString dest;
+//    dest.sprintf("nameddest=%s",s);
+    args.push_back("start");
+    args.push_back("kvant.pdf");
+    int i = QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args);
+}
 
 void MainWindow::initMenuBar()
 {
@@ -70,6 +79,11 @@ void MainWindow::initMenuBar()
      saveAsAction->setShortcut(tr("Ctrl+S"));
      connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
      fileMenu->addAction(saveAsAction);
+
+     QAction *helpAction = fileMenu->addAction(tr("&Help"));
+     helpAction->setShortcut(tr("Ctrl+H"));
+     connect(helpAction, SIGNAL(triggered()), this, SLOT(helpStart()));
+     fileMenu->addAction(helpAction);
 
      aboutAction = new QAction(tr("&О программе"),this);
 //     aboutAction->setStatuslTip(tr("Сведения о программе"));
