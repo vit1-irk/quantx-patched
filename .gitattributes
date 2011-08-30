@@ -1,4 +1,8 @@
-*.vcproj	eol=crlf
-*.sln		eol=crlf
-* eol=lf
+*.vcproj eol=crlf
+*.sln eol=crlf
+*.cpp eol=crlf
+*.h eol=crlf
+*.tex eol=crlf
+Makefile eol=crlf
+*.png -text
 
