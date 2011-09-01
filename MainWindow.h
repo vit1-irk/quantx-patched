@@ -64,6 +64,8 @@ signals:
 
 private slots:
     void about();
+    void helpStart();
+
     void window_TE();
     void window_QE();
     void window_TZ();
