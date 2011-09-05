@@ -349,12 +349,15 @@ void MainWindow::slotSetEn()
         LevelModel *lm = new LevelModel(tableViewEn);
         lm->setLevels(model);
         tableViewEn->setModel(lm);
+
+        connect(lm,SIGNAL(modelReset()),tableViewEn,SLOT(resizeColumnsToContents()));
     }
 
-    tableViewEn->reset();
+    ///?tableViewEn->reset();
     tableViewEn->show();
     tableViewEn->activateWindow();
     tableViewEn->setFocus();
+    tableViewEn->resizeColumnsToContents();
 }
 void MainWindow::slotSetEquasi()
 {
