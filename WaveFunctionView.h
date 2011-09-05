@@ -80,7 +80,7 @@ private:
     double lineWidth;
     double psiMax, psiMin,xmin,xmax,dx;
     int   nMax, nMin, hn;
-    QGraphicsLineItem *lineh,*linev;
+    QGraphicsLineItem *lineh,*linev,*vectorFirst,*linez;
     PhysicalModel *model;
     QMap<int,CoordinateDistribution*> curves;
 

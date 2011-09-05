@@ -13,6 +13,7 @@
 #include "WPparametersP.h"
 #include "WPparametersM.h"
 #include "Uparabolic.h"
+#include "Uch2x.h"
 #include "Ulinear.h"
 #include "PotentialModel.h"
 #include "PhysicalModel.h"
@@ -107,6 +108,7 @@ private slots:
 //    void slotSetWPEm();
     void slotSetTime();
     void slotSetUs();
+    void slotSetUCh2x();
     void slotSetUlinear();
     void  slotSetZ();
 
@@ -177,6 +179,7 @@ private:
     void resizeEvent(QResizeEvent * event);
     PotentialViewMultiWell *dialogUAsMW;
     Uparabolic *dialogUparab;
+    Uch2x *dialogUch2x;
     Ulinear *dialogUlinear;
     ProgramSetting *dialogSetting;
 

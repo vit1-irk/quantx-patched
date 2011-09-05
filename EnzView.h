@@ -53,7 +53,7 @@ public slots:
     void slot_En_of_z();
     void slotZline();
     void updateScaleEnz();
-    void slot_drawEc_n();
+//    void slot_drawEc_n();
 signals:
     void infoMouseMovedTo(QPointF);
     void signalScaleEnzChanged();

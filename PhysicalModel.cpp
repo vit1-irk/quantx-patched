@@ -306,6 +306,14 @@ void PhysicalModel::findBands()
 {
     double E;
     double Eold=this->E0;
+    if(this->N==0||U[1]==U[2])
+    {
+        int n=this->N;
+        double u0=U[0];
+        double u1=U[1];
+        double u2=U[2];
+        return;
+    }
     QPair<double,double> umin_umax = getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
@@ -1152,7 +1160,7 @@ void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,to
     }
     if(E0>Umax)
     {
-            complex r = this->a[N+1];
+            complex r = this->a[N+1]/this->b[N+1];
             complex t = this->b[0];
             double rr=squaremod(r);
             RR=rr;
@@ -1223,9 +1231,8 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     if (! need_build_U)
         return;
     
-    QVector<double> newd, newm, newUi;
+/*    QVector<double> newd, newm, newUi;
     int do_replace = 0;
-
     newd.push_back(d[0]);
     newm.push_back(m[0]);
     newUi.push_back(Ui[0]);
@@ -1234,17 +1241,27 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     {
         if (d[n]==0)
         {
-            /* skip this interval and flag do_replace */
+// skip this interval and flag do_replace 
             do_replace = 1;
         }
         else if (Ui[n]==Ui[n+1] && m[n]==m[n+1])
         {
-            /* merge these intervals and flag do_replace */
-            newd.push_back(d[n] + d[n+1]);
-            newm.push_back(m[n]);
-            newUi.push_back(Ui[n]);
-            do_replace = 1;
-            n = n+1;
+            // merge these intervals and flag do_replace 
+            if(this->typeOfU==PERIODIC)
+            {
+                Ui[n]=Ui[n+1]+1e-8;
+                newd.push_back(d[n]);
+                newm.push_back(m[n]);
+                newUi.push_back(Ui[n]);
+            }
+            else 
+            {
+                newd.push_back(d[n] + d[n+1]);
+                newm.push_back(m[n]);
+                newUi.push_back(Ui[n]);
+                do_replace = 1;
+                n = n+1;
+            }
         }
         else
         {
@@ -1259,18 +1276,37 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         newm.push_back(m[n]);
         newUi.push_back(Ui[n]);
     }
+    */
+    if(this->typeOfU==PERIODIC&&N<2) 
+    {
+            set_N(2);
+        if(Ui[0]==Ui[1])
+        {
+            Ui[1]=Ui[1]+1e-9;
+            U[1]=Ui[1];
+            Ui[2]=Ui[0];
+            U[2]=Ui[0];
+            m[1]=m[2]=0.5;
+            double d1=d[1];
+            double d2=d[2];
+
+            if(d[1]==0) d[1]=1e-8;
+            if(d[2]==0) d[2]=1e-8;
+        }
+            goto label;   
+    }
+    /*
     if (do_replace)
     {
         this->set_Ui_d_m(newUi,newd,newm);
-    }
+    }*/
 
     U[0] = Ui[0];
     for(int n=d.size()-1; n >= 0; n--)
     {
-        double uu=Ui[n];
         U[n] = Ui[n];
     }
-    if(this->typeOfU==PERIODIC)
+label:    if(this->typeOfU==PERIODIC)
     {
         U[0]=U[N];
         d[0]=d[N];
@@ -1369,8 +1405,17 @@ This function calculates the coefficients a & b.
     }
     if(typeOfU==PERIODIC)
     {
+        bool cond=(U[0]==U[1]&&m[0]==m[1]);
         build_k();
-        Smatrix_per();
+        if(this->N==0&&cond)
+        {
+            a[0]=1; b[0]=0; a[1]=1; b[1]=0;
+            return;
+        }
+        else
+        {
+            Smatrix_per();
+        }
     }
     if(typeOfU==QUASISTATIONARY)
     {
@@ -1763,7 +1808,7 @@ void PhysicalModel::Smatrix_per()
     d[0]=d[2];
     m[0]=m[2];
     }
-    else
+/*    else
     {
     U[N+1]=U[1];
     d[N+1]=d[1];
@@ -1776,10 +1821,11 @@ void PhysicalModel::Smatrix_per()
     double U0=U[N];
     double d0=d[N];
     }
-    complex p11,p12,p22,p21;
     int Na=a.size();
     int Nb=b.size();
     int Nk=k.size();
+*/   
+    complex p11,p12,p22,p21;
     for(int i=1; i<=N; i++)
     {
         complex Im = complex(0.,1.);
@@ -1878,8 +1924,6 @@ complex cb=b[i]/a[1];
 a[i]=a[i]/a[1];
 b[i]=b[i]/a[1];
 }
-complex aa0=a[1];
-complex aa1=a[2];
         complex alpha = a[N+1];
         complex beta = b[N+1];
 //        complex gamma = a[N+1];
@@ -2087,8 +2131,14 @@ void PhysicalModel::build_Psi() /* input:a,b,x,k,d ------ result:Psi2 */
         double Umin=U[0];
         if(Umin>U[N+1]) Umin=U[N+1];
         if ((this->E0 < Umin )||typeOfU==PERIODIC)  norm();
-        if(U[0]<U[N+1]&&E0>U[N+1])
+        if(U[0]<=U[N+1]&&E0>U[N+1])
         {
+            complex bN=b[N+1];
+            for (n = 0; n <= N+1; n++)
+            {
+                a[n]=a[n]/bN;
+                b[n]=b[n]/bN;
+            }
             double u=U[0];
         }
         //    if ((this->E0 < U[0] && this->U[0] <= 0)||typeOfU==PERIODIC)  norm();
@@ -2558,13 +2608,21 @@ void PhysicalModel::setUbias(double u)
 Uparab PhysicalModel::getUparab() const
 {
     Uparab u;
-    u.numberOfIntervals = 30;
+    u.numberOfIntervals = 15;
     u.U0 = 10;
     u.Width = 6;
     return u;
 }
+U_ch2x PhysicalModel::getU_ch2x() const
+{
+    U_ch2x u;
+    u.numberOfIntervals = 20;
+    u.U0 = -2.;
+    u.Width = 6;
+    return u;
+}
 
-void PhysicalModel::setUparab(const Uparab& u)
+/*void PhysicalModel::setU_ch2x(const U_ch2x& u)
 {
     int nn=u.numberOfIntervals;
     this->set_N(nn);
@@ -2581,8 +2639,6 @@ void PhysicalModel::setUparab(const Uparab& u)
     {
         this->d[n] = dd;
         xx=(L/2*u.Width-x_i)/u.Width;
-//        if(x_i<2*u.Width) xx=(2*u.Width-x_i)/u.Width;
-//        else xx=(x_i-2*u.Width)/u.Width;
         double ch=0.5*(exp(xx)+exp(-xx));
         ch=ch*ch;
         y_i=u0/ch;
@@ -2595,11 +2651,11 @@ void PhysicalModel::setUparab(const Uparab& u)
     this->m[nn+1] = 0.5;
     this->d[nn+1] = 0;
     markUchanged();
-}
-/*void PhysicalModel::setUparab(const Uparab& u)
+}*/
+void PhysicalModel::setUparab(const Uparab& u)
 {
     int nn=u.numberOfIntervals;
-    this->set_N(nn-1);
+    this->set_N(nn);
     int NN=this->N;
     double dd=u.Width/nn;
     double u0=u.U0;
@@ -2607,7 +2663,7 @@ void PhysicalModel::setUparab(const Uparab& u)
     this->d[0] = 0;
     this->Ui[0] = 0;
     double y_i,uu;
-    for (int n = 1; n < nn; n++)
+    for (int n = 1; n <= nn; n++)
     {
         this->d[n] = dd;
         y_i=(2.*n/nn-1.);
@@ -2615,11 +2671,41 @@ void PhysicalModel::setUparab(const Uparab& u)
         this->Ui[n] = uu;
         this->m[n] = 0.5;
     }
-    this->Ui[nn]=0;
-    this->m[nn] = 0.5;
-    this->d[nn] = 0;
+    this->Ui[nn+1]=0;
+    this->m[nn+1] = 0.5;
+    this->d[nn+1] = 0;
     markUchanged();
-}*/
+}
+void PhysicalModel::setU_ch2x(const U_ch2x& u)
+{
+    int nn=u.numberOfIntervals;
+    this->set_N(nn);
+    int NN=this->N;
+    int L=4;
+    double dd=L*u.Width/nn;
+    double u0=u.U0;
+    this->m[0] = 0.5;
+    this->d[0] = 0;
+    this->Ui[0] = 0;
+    double y_i,uu,xx,y0;
+    double x_i=dd/2.;
+    for (int n = 1; n <= nn; n++)
+    {
+        this->d[n] = dd;
+        xx=(L/2*u.Width-x_i)/u.Width;
+        double ch=0.5*(exp(xx)+exp(-xx));
+        ch=ch*ch;
+        y_i=u0/ch; 
+        if(n==1) y0=0.9*y_i;
+        this->Ui[n] = y_i-y0;
+        this->m[n] = 0.5;
+        x_i=x_i+dd;
+     }
+    this->Ui[nn+1]=0;
+    this->m[nn+1] = 0.5;
+    this->d[nn+1] = 0;
+    markUchanged();
+}
 zParameters PhysicalModel::getzParam() const
 {
 zParameters tp;
@@ -2843,22 +2929,23 @@ void  PhysicalModel::setSettingParameters(const SettingParameters &u)
 }
 void  PhysicalModel::set_LevelNumber(int n)
 {
- if(levelNumber!=n)
- {
-     this->levelNumber=n;
-     if((this->typeOfU==FINITE)&&n>=0&&n<Ebound.size())
-     {
-     this->set_Energy(this->Ebound[n]);
-     emit(signalLevelNumberChanged(n));
-     }
-     if((this->typeOfU==QUASISTATIONARY)&&n>=0&&n<Equasi.size())
-     {
-         complex EE=Equasi[n];
-         this->set_Ecmplx(this->Equasi[n]);
+    if(levelNumber!=n)
+    {
+        this->levelNumber=n;
+        if((this->typeOfU==FINITE||typeOfU==PERIODIC)&&n>=0&&n<Ebound.size())
+        {
+            this->set_Energy(this->Ebound[n]);
+            emit(signalLevelNumberChanged(n));
+        }
+        if((this->typeOfU==QUASISTATIONARY)&&n>=0&&n<Equasi.size())
+        {
+            complex EE=Equasi[n];
+            this->set_Energy(real(EE));
+            this->set_Ecmplx(this->Equasi[n]);
 
-         emit(signalLevelNumberChanged(n));
-     }
- }
+            emit(signalLevelNumberChanged(n));
+        }
+    }
 }
 void  PhysicalModel::setScalesUParam(const ScalesUParameters& u)
 {
@@ -3077,13 +3164,10 @@ void  PhysicalModel::setScalePsinParam(const ScalePsinParameters& u)
     if (changed_x)
     {
         ScalesUParameters tp;
-        tp.Hx=this->Hx;
         tp.Xmin=this->Xmin;
         tp.Xmax=this->Xmax;
         tp.Umin=this->Umin;
         tp.Umax=this->Umax;
-//        tp.Psimin=this->Psimin;
-//        tp.Psimax=this->Psimax;
         emit(signalScalesUChanged());
     }
 }
@@ -3405,28 +3489,44 @@ void PhysicalModel::setPotentialType(PotentialType t)
 {
     if (t != typeOfU)
     {
-        if(typeOfU==QUASISTATIONARY || t==FINITE)
+        if(t==QUASISTATIONARY || t==FINITE)
         {
             d[0]=0;
             m[0]=m[N];
-            U[N+1]=0;
+            Ui[N+1]=0;
             d[N+1]=1;//d[1];???
             m[N+1]=m[1];
         }
-        if(typeOfU==PERIODIC)
+        if(t==PERIODIC)
         {
-            U[0]=U[N];
-            d[0]=d[N];  //????
-            m[0]=m[N];
-            U[N+1]=U[1];
-            d[N+1]=d[1];
-            m[N+1]=m[1];
+            if(N==1)
+            {
+                this->set_N(2);
+                Ui[2]=0;
+                d[2]=1;
+                m[2]=m[1];
+                Ui[3]=Ui[1];
+                d[3]=d[1];
+                m[3]=m[1];
+                Ui[0]=Ui[2];
+                d[0]=d[2];
+                m[0]=m[2];
+            }
+            else
+            {
+                Ui[N+1]=Ui[1];
+                d[N+1]=d[1];
+                m[N+1]=m[1];
+                Ui[0]=Ui[N];
+                d[0]=d[N];
+                m[0]=m[N];
+            }
         }
         typeOfU = t;
-//        emit(signalTypeOfUChanged());
+        //        emit(signalTypeOfUChanged());
         markUchanged();
     }
-        emit(signalTypeOfUChanged());
+    emit(signalTypeOfUChanged());
 }
 void PhysicalModel::set_d(int n1, double v1,int n2, double v2)
 {
@@ -3711,42 +3811,16 @@ QVector<double> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax,
 }
 QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
-    double y,tt,num, Umax, Umin;
-    tt=0;
     double Eold=this->E0;
     set_E0(E);
-//    getTatE();
- /*   if(U[0]>U[N+1])
-    {
-        Umax=U[0];
-        Umin=U[N+1];
-    }
-    else
-    {
-        Umax=U[N+1];
-        Umin=U[0];
-    }
-    if(E>Umax)
-    {
-        build_RT();
-        tt = this->TT;
-    }
-    else
-    {
-        if(Umin<E<Umax) tt=0;
-        if(E<Umin)  num = findNumberOfLevels(E);
-    }
-    */
     QVector<double> waveFunction(npoints);
     double dx = (xmax-xmin)/(npoints-1);
-    //   double fmin=1e-6;
-    //   double fmax=1e2;
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
 //        if(tail) this->b[N+1]=0.;
         build_Psi();
-        y = psi_real;
+        double y = psi_real;
         if(viewWF==1) y = psi_imag;
         else if(viewWF>1) y = Psi2;
         if (fabs(y) > 1e6)
@@ -3759,16 +3833,6 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
             if(y>0) y = 1e-8;
             if(y<0) y = -1e-8;
         }
-        /*        if (fabs(y)<fmin)
-        {
-        y=0.;
-        }
-        if (fabs(y)>fmax)
-        {
-        if(y>fmax) y = fmax;
-        else y=-fmax;
-        }
-        */
         waveFunction[i] = y;
     }
 
@@ -3776,6 +3840,23 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     this->E0=Eold;
     getTatE();
     return waveFunction;
+}
+QVector<complex> PhysicalModel::getPsi3DOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
+{
+    double Eold=this->E0;
+    set_E0(E);
+    QVector<complex> waveFunctionC(npoints);
+    double dx = (xmax-xmin)/(npoints-1);
+    for (int i=0; i < npoints; i++)
+    {
+        x = xmin + dx*i;
+        build_Psi();
+        waveFunctionC[i] = psi;
+    }
+
+    this->E0=Eold;
+    getTatE();
+    return waveFunctionC;
 }
 QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
@@ -3878,8 +3959,16 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
     QVector<double> transmission(npoints);
     double dE = (Emax-Emin)/(npoints-1);
     double Umax,Umin;
-    if(U[0]>U[N+1]) Umax=U[0];
-    else Umax=U[N+1];
+    if(U[0]>U[N+1]) 
+    {
+        Umax=U[0];
+        Umin=U[N+1];
+    }
+    else 
+    {
+        Umax=U[N+1];
+        Umin=U[0];
+    }
     double y;
     double Eold=this->E0;
     double z=this->zz;
@@ -3897,6 +3986,12 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
             {
             build_RT();
             transmission[i] = this->TT;
+            }
+            else if(E<Umin)
+            {
+                    if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(E);
+                    else y=0;
+                    transmission[i] = y;
             }
             /*           if(Emin+i*dE>U[0]&&U[0]>0)
             {
@@ -4075,7 +4170,7 @@ QVector<double> PhysicalModel::getPhiOfk(double E, double kmin, double kmax, int
 }
 void PhysicalModel::set_Uxz(double z)
 {
-    if(U1.size()==U2.size())
+   if(U1.size()==U2.size())
     {
         int N = U1.size()-2;
         set_N(U1.size()-2);
@@ -4084,10 +4179,12 @@ void PhysicalModel::set_Uxz(double z)
         QVector<double> Uz(1+N+1);
         QVector<double> dz(1+N+1);
         QVector<double> mz(1+N+1);
-         double UU,mm,dd;
+         double UU,mm,dd, uu1,uu2;
         for(int n=0; n<=N+1; n++)
         {
             UU = U1[n] + z*(U2[n]-U1[ n]);
+            uu1=U1[n];
+            uu2=U2[n];
             dd = d1[n] + z*(d2[n]-d1[n]);
             mm = m1[n] + z*(m2[n]-m1[n]);
             Ui[n] = U1[n] + z*(U2[n]-U1[n]);
@@ -4334,7 +4431,14 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
             if(typeOfU==FINITE||typeOfU==PERIODIC)
             {
                 c = exp(-complex(0, EWofWP[p].E*this->time));
-                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0) c = c*exp(complex(0,real(kp(p,N+1))*xmax) );
+                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0) 
+                {
+                    c = c*exp(complex(0,real(kp(p,N+1))*xmax) );
+                }
+                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0) 
+                {
+                    c = c*exp(complex(0,-real(kp(p,0))*xmin) );
+                }
             }
             if(typeOfU==QUASISTATIONARY)
             {

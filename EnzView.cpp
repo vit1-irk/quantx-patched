@@ -191,8 +191,8 @@ Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0),numberOfCurves(0)
     setScalesFromModel();
     initDialogScaleY();
     connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
-    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(redrawCurves()));
-//    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
+//    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(redrawCurves()));
+    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_drawEc_n()));
 }
 /*EnzView::~EnzView()
@@ -414,6 +414,7 @@ void EnzView::slot_En_of_z()
     double Eold=model->get_E0();
     if(Erase)
     {
+        clearAll();
         curve_number=0;
         adjCurves.resize(0);
         physCurves.resize(0);
@@ -487,7 +488,7 @@ void EnzView::slot_En_of_z()
 }
 //zeros on the complex plane
 
-void EnzView::slot_drawEc_n()
+/*void EnzView::slot_drawEc_n()
 {
     PotentialType type = model->getPotentialType();
     if(type!=QUASISTATIONARY) return;
@@ -523,6 +524,7 @@ void EnzView::slot_drawEc_n()
     update();
 
 }
+*/
 void EnzView::redrawCurves()
 {
     if(curves.size()==0) return;

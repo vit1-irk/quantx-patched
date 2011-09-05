@@ -73,6 +73,7 @@ void ScalePhin::setModel(PhysicalModel *_model)
         model = _model;
         modelChanged();
     }
+        connect(model,SIGNAL(signalScalePhinChanged()),this,SLOT(modelChanged()));
 }
 
 void ScalePhin::modelChanged()

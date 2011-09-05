@@ -101,6 +101,7 @@ void MainWindow::initMenuBar()
      QAction *uTable = new QAction(tr("Табличный"), uMenu);
      QAction *uLinear = new QAction(tr("Линейный"),uMenu);
      QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
+     QAction *uCh2x = new QAction(tr("U_0/ch^2(x/a)"),uMenu);
      uMenu->addAction(uTable);
      uMenu->addSeparator();
      uMenu->addSeparator();
@@ -108,9 +109,12 @@ void MainWindow::initMenuBar()
      uMenu->addSeparator();
      uMenu->addAction(uParabolic);
      uMenu->addSeparator();
+     uMenu->addAction(uCh2x);
+     uMenu->addSeparator();
      connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
      connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
      connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
+     connect(uCh2x, SIGNAL(triggered()), this, SLOT(slotSetUCh2x()));
 
      QMenu *wMenu = menuBar()->addMenu(tr("Зависимости"));
      wMenu->setWhatsThis(tr("Основные варианты счета"));
@@ -289,14 +293,15 @@ void MainWindow::about()
 {
 //    QMessageBox *mb = new QMessageBox(this);
     QMessageBox::about(this, tr("О программе Кванте"),
-        tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
+        tr("Это новая версия программы QUANTX, написанная на Qt. Авторы: Ткаченко О.А., Ткаченко В.А., Коткин Г.Л., Бакшеев Д.Г."));
+/*        tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
         "окно, которое при желании можно закрыть. Масштабы и дополнительные параметры,\n"
         "такие как номера уровней, параметры волнового пакета, можно задать в\n"
         "контекстно-зависящем меню, которое открывается при нажатии на правую кнопку\n"
         "мышки в поле графика. Потенциал меняется мышкой в окне <<Потенциала>> или\n"
         "задается численно в меню <<U(x)>> или на панели инструментов кнопкой <<Un>>,\n"
         "которая запрашивает потенциал из одинаковых ям или барьеров. Таблица уровней\n"
-        "открывается при нажатии кнопки <<En>>"));
+        "открывается при нажатии кнопки <<En>>"));*/
 }
 
 void MainWindow::chooseFont()
@@ -328,6 +333,7 @@ void MainWindow::slotSetEn()
     if (!tableViewEn)
     {
         tableViewEn = new QTableView(this);
+
         tableViewEn->setWindowFlags(Qt::Window);
         tableViewEn->setFont(QFont("Serif", 12, QFont::Bold ));
         tableViewEn->setWindowTitle("Energy Levels");
@@ -437,6 +443,17 @@ void  MainWindow::slotSetUs()
     dialogUparab->show();
     dialogUparab->activateWindow();
     dialogUparab->setFocus();
+}
+void  MainWindow::slotSetUCh2x()
+{
+    if (!dialogUch2x)
+    {
+        dialogUch2x = new Uch2x(this);
+        dialogUch2x->setModel(model);
+    }
+    dialogUch2x->show();
+    dialogUch2x->activateWindow();
+    dialogUch2x->setFocus();
 }
 void  MainWindow::slotSetUlinear()
 {
@@ -1990,7 +2007,7 @@ psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0),
 wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
-dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
+dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUch2x(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
 teWidget(0),gbQEview(0),gbTZview(0),enzWidget(0),egWidget(0),

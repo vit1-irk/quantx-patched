@@ -187,6 +187,7 @@ public:
     double widthLineH;
     HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent = 0);
     void set_n(int _n) { n = _n; }
+//    void setAcceptHoverEvents ( bool enabled );
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
     void setPen(QPen _pen) { penForPainter = pen = _pen; }
     void setLine(double x1,double y1,double width)
@@ -202,8 +203,13 @@ public:
     }
     void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
     {
-        penForPainter = penHover;
-        update();//repaint();
+     QGraphicsItem::GraphicsItemFlags f;
+     f=this->flags();
+      if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
+      {
+      penForPainter = penHover;
+            update();//repaint();
+      }
     }
     void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
     {
@@ -305,9 +311,14 @@ public:
     }
     void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
     {
-        penForPainter = penHover;
-        penForPainter.setWidthF(view->widthLineV);
-        update();//repaint();
+        QGraphicsItem::GraphicsItemFlags f;
+        f=this->flags();
+        if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
+        {
+            penForPainter = penHover;
+            penForPainter.setWidthF(view->widthLineV);
+            update();//repaint();
+        }
     }
     void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
     {
@@ -619,6 +630,7 @@ void PotentialViewMovable::slotUChanged()
             linesU[n]->setFlag(QGraphicsItem::ItemIsMovable,true);
             linesU[n]->setFlag(QGraphicsItem::ItemIsSelectable,true);
             linesU[n]->setZValue(1000);
+//            linesU[n]->setAcceptHoverEvent(true);
             linesU[n]->set_n(n);
             qreal y = Ui[n];
             (void)y;
@@ -647,6 +659,7 @@ void PotentialViewMovable::slotUChanged()
         linesU.last()->setFlag(QGraphicsItem::ItemIsMovable,false);
         linesU.last()->setFlag(QGraphicsItem::ItemIsSelectable,false);
         linesU.last()->setZValue(1000);
+//        linesU.last()->setAcceptHoverEvent(false);
 
         for (int n = 0; n < linesV.size(); ++n)
         {
@@ -655,6 +668,8 @@ void PotentialViewMovable::slotUChanged()
                 linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
                 linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true  );
                 linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true  );
+//                if(n==0)linesV[n]->setAcceptHoverEvent(false);
+//                else linesV[n]->setAcceptHoverEvent(true);
                 linesV[n]->setZValue(1000);
                 linesV[n]->set_n(n);
                 QLineF left  = linesU[n]->line();
@@ -774,6 +789,8 @@ void PotentialViewMovable::slotUperChanged()
     int ivn=linesVmin.size();
     int ivx=linesVmax.size();
 //    for (int n = 1; n < linesU.size(); ++n)
+        QPen p;
+        p.setColor(Qt::darkRed);
     for (int n = 1; n < Ui.size()-1; ++n)
     {
         linesU[n-1]->setFlag(QGraphicsItem::ItemIsMovable,true);
@@ -785,6 +802,7 @@ void PotentialViewMovable::slotUperChanged()
         double w=d[n];
         linesU[n-1]->setLine(xlast,Ui[n],w);
         linesU[n-1]->setZValue(1000);
+        linesU[n-1]->setPen(p);
         xlast += w;
     }
     for (int n = 0; n < linesU.size(); ++n)
@@ -812,6 +830,7 @@ void PotentialViewMovable::slotUperChanged()
             double ud = right.y1()-left.y2();
             linesV[n]->setLine(left.x2(),left.y2(),ud);
         }
+    linesV[n]->setPen(p);
     }
     xlast=-np*xN;
     if(xmin<0)
@@ -829,6 +848,7 @@ void PotentialViewMovable::slotUperChanged()
                 linesUmin[jj]->setZValue(0);
                 linesUmin[jj]->setLine(xlast,Ui[n],w);
                 linesUmin[jj]->setZValue(0);
+//                linesUmin[jj]->setAcceptHoverEvent(false);
                 xlast += w;
             }
         }
@@ -839,6 +859,7 @@ void PotentialViewMovable::slotUperChanged()
             linesVmin[n]->setFlag(QGraphicsItem::ItemIsSelectable,false);
             linesVmin[n]->setZValue(0);
             linesVmin[n]->set_n(n);
+//            linesVmin[n]->setAcceptHoverEvent(false);
         if(n==linesUmin.size()-1)
         {
             QLineF left  = linesUmin[n]->line();
@@ -877,6 +898,7 @@ void PotentialViewMovable::slotUperChanged()
                 linesUmax[jj]->setFlag(QGraphicsItem::ItemIsMovable,false);
                 linesUmax[jj]->setFlag(QGraphicsItem::ItemIsSelectable,false);
                 linesUmax[jj]->setZValue(0);
+//                linesUmax[jj]->setAcceptHoverEvent(false);
                 linesUmax[jj]->setLine(xlast,Ui[n],w);
                 linesUmax[jj]->setZValue(0);
                 xlast += w;
@@ -888,6 +910,7 @@ void PotentialViewMovable::slotUperChanged()
             linesVmax[n]->setFlag(QGraphicsItem::ItemIsMovable,false );
             linesVmax[n]->setFlag(QGraphicsItem::ItemIsSelectable,false);
             linesVmax[n]->setZValue(0);
+//            linesVmax[n]->setAcceptHoverEvent(false);
             linesVmax[n]->set_n(n);
         if(n==linesUmax.size()-1)
         {
@@ -1379,7 +1402,7 @@ public:
     }
 };
 
-void PotentialMovableWidget::runHelp(const char *s)
+/*void PotentialMovableWidget::runHelp(const char *s)
 {
     QStringList args;
     args.push_back("/A");
@@ -1392,7 +1415,7 @@ void PotentialMovableWidget::runHelp(const char *s)
 void PotentialMovableWidget::runHelp_ctx()
 {
     runHelp("ctx");
-}
+}*/
 
 PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
@@ -1401,15 +1424,12 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
 
     QVBoxLayout *vl = new QVBoxLayout();
     potentialViewMovable = new PotentialViewMovable(model,this);
-    potentialViewMovable->setWhatsThis(tr("В этом окне вы можете редактировать потенциал и видеть уровни энергии. "
-                                           "Вы можете задавать масштабы потенциала, а так же интервал по энергии, "
-                                           "в котором энергия будет изменяться с заданным шагом при нажатии на кнопку "
-                                           "запуска счета"));
+    potentialViewMovable->setWhatsThis(tr("В этом окне вы можете редактировать потенциал и видеть уровни энергии. "));
     vl->addWidget(potentialViewMovable);
-    QPushButton *help = new QPushButton("Help");
+/*    QPushButton *help = new QPushButton("Help");
     vl->addWidget(help);
     connect(help,SIGNAL(clicked()),this,SLOT(runHelp_ctx()));
-
+*/
 
     QHBoxLayout *hl = new QHBoxLayout();
     /*

@@ -63,12 +63,13 @@ protected:
 
 public:
     void showDialogScaleY();
-    double tMax, tMin;
-    double Emin,Emax,hE;
     void setScaleTE();
 
+    double tMax, tMin;
+    double Emin,Emax,hE;
 
 private:
+
     void initDialogScaleY();
     void updateRubberBandRegion();
 //    double tMax, tMin;

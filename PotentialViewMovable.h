@@ -131,7 +131,7 @@ public slots:
     void updateLevelNumber();
     void printEnergy();
     void printLevelNumber();
-    void runHelp_ctx();
+//    void runHelp_ctx();
 private:
     void runHelp(const char *);
     QLineEdit *lE;

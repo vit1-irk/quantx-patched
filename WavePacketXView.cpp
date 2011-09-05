@@ -501,14 +501,17 @@ WavePacketXWidget::WavePacketXWidget(PhysicalModel *model, QWidget *parent)
     QRadioButton *rad1= new QRadioButton("Re "+psi);
     QRadioButton *rad2= new QRadioButton("Im "+psi);
     QRadioButton *rad3= new QRadioButton(mod_psiofx);
+    QRadioButton *rad4= new QRadioButton("3D");
     hl->addWidget(rad1);
     hl->addWidget(rad2);
     hl->addWidget(rad3);
+    hl->addWidget(rad4);
     bgR = new QButtonGroup(this);
     bgR->setExclusive(true);
     bgR->addButton(rad1,0);
     bgR->addButton(rad2,1);
     bgR->addButton(rad3,2);
+    bgR->addButton(rad4,3);
     bgR->button(2)->setChecked(true);
     connect(bgR,SIGNAL(buttonClicked(int)),wavePacketXView,SLOT(setWhatToDraw(int)));
     //---------------
