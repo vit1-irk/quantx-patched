@@ -13,3 +13,10 @@ Makefile*
 /-*
 *.dat
 *.xml
+*.dvi
+*.aux
+*.log
+*.toc
+*.out
+tmp
+
