@@ -337,6 +337,7 @@ void MainWindow::slotSetEn()
         tableViewEn->setWordWrap(false);
 
         tableViewEn->setItemDelegate(new LineEditDelegate(this));
+        tableViewEn->setTextElideMode(Qt::ElideNone);
 #if 0
         tableViewEn->setSelectionMode(QAbstractItemView::SingleSelection);
         tableViewEn->setSelectionBehavior(QAbstractItemView::SelectItems);
