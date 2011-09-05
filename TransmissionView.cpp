@@ -896,6 +896,7 @@ void TransmissionWidget::readFromXml(QXmlStreamReader *r)
     Q_ASSERT(this);
     Q_ASSERT(r->isStartElement() && r->name() == "TE");
     double Emin = 0, Emax = 0, he=0;
+    int _visible = 0;
     while (!r->atEnd())
     {
         r->readNext();
@@ -907,6 +908,17 @@ void TransmissionWidget::readFromXml(QXmlStreamReader *r)
         {
             QString s = r->readElementText();
             transmissionView->Emin = s.toDouble();
+        }
+        else if (r->name() == "TEisVisible")
+        {
+            _visible = r->readElementText().toInt();
+        }
+        else if (r->name() == "geometry")
+        {
+            QString s = r->readElementText();
+            int l,t,w,h;
+            sscanf_s(s.toAscii(),"%i %i %i %i",&l,&t,&w,&h);
+            transmissionView->setGeometry(QRect(l,t,w,h));
         }
         else if (r->name() == "Emax")
         {
@@ -932,6 +944,8 @@ void TransmissionWidget::readFromXml(QXmlStreamReader *r)
             skipUnknownElement(r);
     }
     transmissionView->setScaleTE();
+    if (_visible) show();
+    else hide();
 }
 
 
@@ -940,6 +954,11 @@ void TransmissionWidget::writeToXml(QXmlStreamWriter *w)
     w->writeStartElement("TE");
     {
         QString s;
+        QRect g = this->transmissionView->geometry();
+        s.sprintf("%i %i %i %i",g.left(),g.top(),g.width(),g.height());
+        w->writeTextElement("geometry",s);
+        s.sprintf("%i",transmissionView->isVisible() ? 1 : 0);
+        w->writeTextElement("TEisVisible",s);
         s.sprintf("%lg",transmissionView->Emin);
         w->writeTextElement("Emin",s);
         s.sprintf("%lg",transmissionView->Emax);
