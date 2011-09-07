@@ -1,8 +1,7 @@
 *.vcproj eol=crlf
 *.sln eol=crlf
-*.cpp eol=crlf
-*.h eol=crlf
-*.tex eol=crlf
-Makefile eol=crlf
+*.cpp eol=lf
+*.h eol=lf
+*.tex text eol=lf encoding=cp1251
+Makefile eol=lf
 *.png -text
-

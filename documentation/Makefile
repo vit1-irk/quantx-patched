@@ -1,6 +1,8 @@
-all: kvant.pdf ../debug/kvant.pdf ../release/kvant.pdf
+all: zkvant.pdf ../debug/zkvant.pdf ../release/zkvant.pdf
 
-kvant.pdf: kvant.tex
+kvant.pdf: zkvant.tex
+
+%kvant.pdf: kvant.tex
 	-pdflatex -interaction=batchmode $<
 	-pdflatex -interaction=batchmode $<
 
