@@ -256,6 +256,7 @@ public:
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
+    QVector<complex>  getPsi3DOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
     QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
     void readFromXml(QXmlStreamReader *r);
     void writeToXml(QXmlStreamWriter *w);

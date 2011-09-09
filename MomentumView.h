@@ -80,9 +80,9 @@ private:
 
 };
 
-class MomentumViewWidget : public QGroupBox
+class MomentumDistibutionWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    MomentumViewWidget(PhysicalModel *model, QWidget * parent = 0);
+    MomentumDistibutionWidget(PhysicalModel *model, QWidget * parent = 0);
 };

@@ -50,9 +50,9 @@ public:
 
 public slots:
     void help();
-    void windowTopRight();
-    void windowDownRight();
-    void windowDownLeft();
+//    void windowTopRight();
+//    void windowDownRight();
+//    void windowDownLeft();
 //    void windowTopLeft();
 //    void slotScaleX();
 //    void slotScaleZ();
@@ -72,7 +72,7 @@ private slots:
     void window_TZ();
     void window_Enz();
     void window_EG();
-    void window_Ux_Psix();
+    void window_Ux();
     void window_psi_x();
     void window_psi_xt();
     void window_phi_k();
@@ -153,7 +153,8 @@ private slots:
 protected:
     void keyPressEvent(QKeyEvent *event);
     void closeEvent(QCloseEvent *event);
-
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
 private:
     QSplitter *splitterR;
     QSplitter *splitterL;
@@ -225,17 +226,17 @@ private:
 //    QVector<double> m2; //!< Final potential step masses for z-animations
 //    double Ubias;
 //    double Ub1,Ub2;
-//    QGroupBox *gbviewPsixT,*gbPview,*gbviewMT,*gbTEview;
-    WavePacketXWidget *gbviewPsixT;
-    WavePacketKWidget *gbviewMT;
-    PotentialMovableWidget *gbPview;
-    MomentumViewWidget *gbviewM;
+//    QGroupBox *wavePacketXWidget,*uxWidget,*wavePacketKWidget,*gbTEview;
+    WavePacketXWidget *wavePacketXWidget;
+    WavePacketKWidget *wavePacketKWidget;
+    PotentialMovableWidget *uxWidget;
+    MomentumDistibutionWidget *momentumDistibutionWidget;
     WaveFunctionWidget *waveFunctionWidget;
     EnzWidget *enzWidget;
     EGWidget *egWidget;
-    TransmissionWidget *teWidget;
-    EofqaWidget *gbQEview;
-    TofzViewWidget *gbTZview;
+    TEWidget *teWidget;
+    QEWidget *qeWidget;
+    TZWidget *tzWidget;
     QGroupBox *grrb;
     QRadioButton *rad1,*rad2;
     QButtonGroup *bgR;
@@ -284,7 +285,7 @@ private:
 
 /*    void window_TE();
     void window_Enz();
-    void window_Ux_Psix();
+    void window_Ux();
     void window_psi_x();
     void window_psi_xt();
     void window_phi_k();

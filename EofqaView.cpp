@@ -120,8 +120,8 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
 {
     Erase = true; // this must initially be true
     lineWidth = 3;//10;
-    tMax = 1.1;
-    tMin = -0.1;
+    qaMax = 1.1;
+    qaMin = -0.1;
     Emin = -15;
     Emax = 20;
     hE = 0.05;
@@ -157,7 +157,7 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
     //rubberBandIsShown = false;
 
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
-    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
+    connect(this,SIGNAL(signalScaleQAChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_Eofqa()));
 //    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
@@ -255,19 +255,19 @@ void EofqaView::clearAll()
 }
 void EofqaView::scrollView(int dx, int dy)
 {
-    double stepY=(tMax-tMin)/5;//numTTicks;
-    tMin +=dy*stepY;
-    tMax +=dy*stepY;
+    double stepY=(qaMax-qaMin)/5;//numTTicks;
+    qaMin +=dy*stepY;
+    qaMax +=dy*stepY;
     double stepX=(Emax-Emin)/5;//numETicks;
     Emin +=dx*stepX;
     Emax +=dx*stepX;
     if(Emin<0) Emin=-0.2;
     if(Emax<0) Emax=1.;
-    setScaleTE();
-    emit(signalScaleTEChanged());
-/*    double stepX=(tMax-tMin)/5;//numTTicks;
-    tMin +=dx*stepX;
-    tMax +=dx*stepX;
+    setScaleQE();
+    emit(signalScaleQAChanged());
+/*    double stepX=(qaMax-qaMin)/5;//numTTicks;
+    qaMin +=dx*stepX;
+    qaMax +=dx*stepX;
     double stepY=(Emax-Emin)/5;//numETicks;
     Emin +=dy*stepY;
     Emax +=dy*stepY;
@@ -344,7 +344,7 @@ void EofqaView::slot_Eofqa()
         linev->setPen(p);
         lineh->setPen(p);
         linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
-        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+        lineh->setLine(0,vp.height()*(-qaMin)/(qaMax-qaMin),vp.width(),vp.height()*(-qaMin)/(qaMax-qaMin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
@@ -353,7 +353,7 @@ void EofqaView::slot_Eofqa()
         linev->setPen(p);
         lineh->setPen(p);
         linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
-        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+        lineh->setLine(0,vp.height()*(-qaMin)/(qaMax-qaMin),vp.width(),vp.height()*(-qaMin)/(qaMax-qaMin));
     }
 //--------------------------
     static const QColor colorForIds[12] = {
@@ -398,7 +398,7 @@ void EofqaView::slot_Eofqa()
                         if(qa<=1)
                         {
                         double x = vp.width()*(EE-Emin)/(Emax-Emin);
-                        double y = vp.height()*(qa-tMin)/(tMax-tMin);
+                        double y = vp.height()*(qa-qaMin)/(qaMax-qaMin);
                         curveTE.push_back(QPointF(x,y));
 //                        curveTE[j]  = QPointF(x,y);
                         }
@@ -505,7 +505,7 @@ void EofqaView::initDialogScaleY()
         h->addWidget(new QLabel("qa_min/pi",this));
         h->addWidget(this->leTmin= new QLineEdit(this));
         QString x;
-        x.sprintf("%lg",this->tMin);
+        x.sprintf("%lg",this->qaMin);
         this->leTmin->setText(x);
         //        this->leTmin->setToolTip("Lower value of E-interval");
         connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
@@ -517,7 +517,7 @@ void EofqaView::initDialogScaleY()
         h->addWidget(new QLabel("qa_max/pi",this));
         h->addWidget(this->leTmax= new QLineEdit(this));
         QString x;
-        x.sprintf("%lg",this->tMax);
+        x.sprintf("%lg",this->qaMax);
         this->leTmax->setText(x);
         //        this->leTmax->setToolTip("High value of E-interval");
         connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
@@ -532,7 +532,7 @@ void EofqaView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
-void EofqaView::setScaleTE()
+void EofqaView::setScaleQE()
 {
     QString x;
     x.sprintf("%lg",this->hE);
@@ -541,9 +541,9 @@ void EofqaView::setScaleTE()
     this->leEmin->setText(x);
     x.sprintf("%lg",this->Emax);
     this->leEmax->setText(x);
-    x.sprintf("%lg",this->tMax);
+    x.sprintf("%lg",this->qaMax);
     this->leTmax->setText(x);
-    x.sprintf("%lg",this->tMin);
+    x.sprintf("%lg",this->qaMin);
     this->leTmin->setText(x);
 }
 void EofqaView::updateScaleTE()
@@ -551,8 +551,8 @@ void EofqaView::updateScaleTE()
     double hENew = this->leHE->text().toDouble();
     double EminNew = this->leEmin->text().toDouble();
     double EmaxNew = this->leEmax->text().toDouble();
-    double TminNew = this->leTmin->text().toDouble();
-    double TmaxNew = this->leTmax->text().toDouble();
+    double qaMinNew = this->leTmin->text().toDouble();
+    double qaMaxNew = this->leTmax->text().toDouble();
     bool changed = false;
     if (hE != hENew)
     {
@@ -569,20 +569,20 @@ void EofqaView::updateScaleTE()
         changed = true;
         Emax=EmaxNew;
     }
-    if (tMin != TminNew)
+    if (qaMin != qaMinNew)
     {
         changed = true;
-        tMin=TminNew;
+        qaMin=qaMinNew;
     }
-    if (tMax != TmaxNew)
+    if (qaMax != qaMaxNew)
     {
         changed = true;
-        tMax=TmaxNew;
+        qaMax=qaMaxNew;
     }
     if(changed)
     {
         model->set_EmaxEmin(Emax,Emin, hE);
-        emit(signalScaleTEChanged());
+        emit(signalScaleQAChanged());
     }
 }
 void EofqaView::contextMenuEvent(QContextMenuEvent *event)
@@ -598,76 +598,57 @@ void EofqaView::contextMenuEvent(QContextMenuEvent *event)
             update();
         }
 }
+ScalesEQ EofqaView::getScalesEQ() const
+{
+ScalesEQ tp;
+tp.hE=this->hE;
+tp.Emin=this->Emin;
+tp.Emax=this->Emax;
+tp.qaMin=this->qaMin;
+tp.qaMax=this->qaMax;
+return tp;
+}
+void  EofqaView::setScalesEQ(const ScalesEQ& u)
+{
+ bool changed_x = false;
+ bool changed_y = false;
+ double v=u.Emax;
+ if(v!=this->Emax)
+ {
+     this->Emax=v;
+     changed_x = true;
+ }
+ v=u.Emin;
+ if(v!=this->Emin)
+ {
+     changed_x = true;
+     this->Emin=v;
+ }
+ v=u.qaMax;
+ if(v!=this->qaMax)
+ {
+     this->qaMax=v;
+     changed_y = true;
+ }
 
-/*void EofqaView::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::LeftButton)
-    {
-        rubberBandIsShown = false;
-        updateRubberBandRegion();
-        unsetCursor();
-        QRect rect = rubberBandRect.normalized();
-        if(rect.width()<4||rect.height()<4)
-            return;
-        rect.translate(-1, -1);
-    }
-}
-void EofqaView::updateRubberBandRegion()
-{
-    QRect rect=rubberBandRect.normalized();
-    update(rect.left(), rect.top(), rect.width(), 1);
-    update(rect.left(), rect.top(), 1, rect.height());
-    update(rect.left(), rect.bottom(), rect.width(), 1);
-    update(rect.right(), rect.top(), 1, rect.height());
-}
-void EofqaView::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button()== Qt::LeftButton)
-    {
-        rubberBandIsShown = true;
-        rubberBandRect.setTopLeft(event->pos());
-        rubberBandRect.setBottomRight(event->pos());
-        updateRubberBandRegion();
-        setCursor(Qt::CrossCursor);
-    }
-}
-void EofqaView::mouseMoveEvent(QMouseEvent *event)
-{
-    QPointF f = mapToScene(event->pos());
-    emit(infoMouseMovedTo(f));
-    QGraphicsView::mouseMoveEvent(event);
-    if (rubberBandIsShown)
-    {
-        updateRubberBandRegion();
-        rubberBandRect.setBottomRight(event->pos());
-        updateRubberBandRegion();
-    }
+ v=u.qaMin;
+ if(v!=this->qaMin)
+ {
+     changed_y = true;
+     this->qaMin=v;
+ }
 
-}
-void EofqaView::enterEvent ( QEvent * event )
-{
-    setFocus();
-    QWidget::enterEvent(event);
-}
-void EofqaView::paintEvent(QPaintEvent *event)
-{
-    QVector<QRect> rects = event->region().rects();
-    QPainter painter(this);
-   for(int i=0; i<(int)rects.size();++i)
-        painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
-    if(rubberBandIsShown)
+ if(this->hE!=u.hE)
+ {
+ changed_x = true;
+ this->hE=u.hE;
+ }
+    if (changed_x||changed_y)
     {
-        painter.setPen(palette().light().color());//was 2!!!!
-        painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
-    }
-    if (hasFocus())
-    {
-        QStyleOptionFocusRect option;
-        option.initFrom(this);
-        style()->drawPrimitive(QStyle::PE_FrameFocusRect, &option, &painter, this);
+    emit(signalScaleQAChanged());
     }
 }
-*/
+
 EEDrag::EEDrag(EofqaView *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
@@ -726,7 +707,7 @@ public:
     }
 };
 
-EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
+QEWidget::QEWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
     setTitle(tr("Dispersion law E(qa)"));
@@ -738,11 +719,7 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
     QToolButton *reset = new QToolButton(this);
     reset->setIcon(QIcon(":/images/player_play.png"));
     reset->adjustSize();//QPushButton(tr("Close"));
-//    QPushButton *reset = new QPushButton(tr("&Resize"));
     connect(reset,SIGNAL(clicked()),eofqaView,SLOT(resizePicture()));
-
-//    bRunTE = new QPushButton(tr("Run "));
-//    connect(bRunTE,SIGNAL(clicked()),this,SLOT(slotRunWP()));
 
     QLabel *lTtext= new QLabel(this);
     lTtext->setText(tr("qa="));
@@ -764,11 +741,6 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
 
     connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
 
-//    zoomInButton = new QToolButton(this);
-//    zoomInButton->setIcon(QIcon("images/zoomin.png"));
-//    zoomInButton->adjustSize();
-//    connect(zoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
-
     QToolButton *buttonClose = new QToolButton(this);
     buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
@@ -779,13 +751,71 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
     vl->addLayout(hl);
     setLayout(vl);
 }
-void EofqaWidget::slotRunEqa()
+void QEWidget::slotRunEqa()
 {
- //   bRunTE->setText("STOP");
- //   disconnect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunEqa()));
- //   breakStatus.onButton(bRunTE);
     eofqaView->resizePicture();
- //   breakStatus.noButton(bRunTE);
- //   bRunTE->setText("RUN ");
- //   connect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunEqa()));
+}
+void QEWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "QE");
+    double Emin = 0, Emax = 0, he=0;
+    ScalesEQ u;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "Emin")
+        {
+            QString s = r->readElementText();
+            u.Emin = s.toDouble();
+        }
+        else if (r->name() == "Emax")
+        {
+            QString s = r->readElementText();
+            u.Emax = s.toDouble();
+        }
+        else if (r->name() == "hE")
+        {
+            QString s = r->readElementText();
+            u.hE = s.toDouble();
+        }
+        else if (r->name() == "qa_max")
+        {
+            QString s = r->readElementText();
+            u.qaMax = s.toDouble();
+        }
+        else if (r->name() == "qa_min")
+        {
+            QString s = r->readElementText();
+            u.qaMin = s.toDouble();
+        }
+        else
+            skipUnknownElement(r);
+    }
+    eofqaView->setScalesEQ(u);
+}
+
+
+void QEWidget::writeToXml(QXmlStreamWriter *w)
+{
+ScalesEQ u=eofqaView->getScalesEQ();
+w->writeStartElement("QE");
+    {
+        QString s;
+        s.sprintf("%lg",u.Emin);
+        w->writeTextElement("Emin",s);
+        s.sprintf("%lg",u.Emax);
+        w->writeTextElement("Emax",s);
+        s.sprintf("%lg",u.hE);
+        w->writeTextElement("hE",s);
+        s.sprintf("%lg",u.qaMin);
+        w->writeTextElement("qa_min",s);
+        s.sprintf("%lg",u.qaMax);
+        w->writeTextElement("qa_max",s);
+    }
+    w->writeEndElement();
 }

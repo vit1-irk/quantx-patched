@@ -538,8 +538,8 @@ void WaveFunctionView::slot_Psi_n_of_x()
         }
         else
         {
-            double x = (i*vp.width())/(npoints-1);
-            double y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
+            x = (i*vp.width())/(npoints-1);
+            y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
             if(y>1e4*psiMax) y=1e4*psiMax;
             if(y<-1e4*psiMax) y=-1e4*psiMax;
         }
@@ -608,6 +608,10 @@ void WaveFunctionView::setWhatToDraw(int w)
         emit( whatToDrawChanged(w) );
     }
 }
+int WaveFunctionView::getWhatToDraw()
+{
+    return whatToDraw;
+}
 void WaveFunctionView::showDialogScaleY()
 {
     if (!dialogScalePsin)
@@ -674,7 +678,7 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
     hl->addWidget(rad2);
     hl->addWidget(rad3);
     hl->addWidget(rad4);
-    QButtonGroup *bgR = new QButtonGroup(this);
+    bgR = new QButtonGroup(this);
     bgR->setExclusive(true);
     bgR->addButton(rad1,0);
     bgR->addButton(rad2,1);
@@ -682,7 +686,7 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
     bgR->addButton(rad4,3);
     bgR->button(0)->setChecked(true);
     connect(bgR,SIGNAL(buttonClicked(int)),waveFunctionView,SLOT(setWhatToDraw(int)));
-//    QPushButton *buttonClose = new QPushButton(tr("Close"));
+    connect(waveFunctionView,SIGNAL(whatToDrawChanged(int)),this,SLOT(checkButton(int)));
     hl->addWidget(bRun);
 
     QToolButton *buttonClose = new QToolButton(this);
@@ -695,4 +699,42 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
     vl->addLayout(hl);
 
     setLayout(vl);
+}
+void WaveFunctionWidget::checkButton(int index)
+{
+    this->bgR->button(index)->setChecked(true);
+}
+void WaveFunctionWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "Psix");
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "WhatToDraw")
+        {
+            QString s = r->readElementText();
+            int what = s.toInt();
+            waveFunctionView->setWhatToDraw(what);
+        }
+        else
+            skipUnknownElement(r);
+    }
+}
+
+
+void WaveFunctionWidget::writeToXml(QXmlStreamWriter *w)
+{
+    int what = waveFunctionView->getWhatToDraw();
+    w->writeStartElement("Psix");
+    {
+        QString s;
+        s.sprintf("%i",what);
+        w->writeTextElement("WhatToDraw",s);
+    }
+    w->writeEndElement();
 }

@@ -75,11 +75,12 @@ private:
     double xmin,xmax,dx;
     ScaleWPX *dialogScaleWPX;
     double tmin,tmax, time, htime;
-    QGraphicsLineItem *lineh,*linev;
+    QGraphicsLineItem *lineh,*linev,*vectorFirst,*linez;
     PhysicalModel *model;
     TimeView *dialogTime;
     QMap<int,CoordinateDistributionCurve*> curves;
     QVector<double> waveFunction;
+    QVector<complex> waveFunctionC;
 
     int whatToDraw;
 public slots:
@@ -95,6 +96,8 @@ class WavePacketXWidget : public QGroupBox
     Q_OBJECT
 public:
     WavePacketXWidget(PhysicalModel *model, QWidget * parent = 0);
+public slots:
+    void checkButton(int);
 private:
     QButtonGroup *bgR;
     WavePacketXView *wavePacketXView;

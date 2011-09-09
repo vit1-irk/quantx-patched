@@ -2385,6 +2385,7 @@ int PhysicalModel::zeroPsi()
     int Nmax, nzero, nzero_i, n_total;
     Nmax = getN ();
     nzero=0;
+//real part psi
     for (int i = 1; i <= Nmax; ++i)
     {
         nzero_i=0;
@@ -2417,7 +2418,51 @@ int PhysicalModel::zeroPsi()
         }
         n_total=nzero;
     }
-    return nzero;
+    if(this->typeOfU!=PERIODIC) return nzero;
+    int nzero_im=0;
+//imag part psi
+    complex psi0=a[1]+b[1];
+    double re=real(psi0);
+    double im=imag(psi0);
+    double phi0;
+    if (re!=0) phi0=atan(im/re);
+    else phi0=M_PI/2;
+    complex exp0=exp(complex(0., -phi0));
+    for (int i = 1; i <= Nmax; ++i)
+    {
+        nzero_i=0;
+        if (this->E0 > this->U[i])
+        {
+            double arg = real(k[i])*d[i];
+            double  psi_j   = real(exp0*(a[i]*exp(complex(0.,arg))+ b[i]*exp(complex(0.,-arg))));
+            double cj = psi_j/real(exp0*(a[i]+b[i]));
+            double cs = cos(arg);
+            double sn = sin(arg);
+            double phase_j= atan((cs-cj)/sn);
+            double arg_j=arg+phase_j;
+            int j=0;
+            while(arg_j > 0.5*M_PI*(1+2*j)+1.e-8)
+            {
+                j++;
+            }
+            nzero_i=j;
+            nzero_im=nzero_im+nzero_i;
+        }
+        else
+        {
+            double arg = imag(k[i])*d[i];
+            double psi2=real(exp0*(a[i]+b[i]));
+            double psi1=real(exp0*(a[i]*exp(-arg)+b[i]*exp(arg)));
+            if (psi1>0 && psi2<0 || psi1<0 && psi2>0)
+            {
+                nzero_im=nzero_im+1;
+            }
+        }
+        n_total=nzero_im;
+    }
+//    if(nzero_im>nzero) return nzero_im;
+//    else 
+        return nzero_im;
 }
 int PhysicalModel::zeroPsiQuasi()
 {
@@ -3818,7 +3863,7 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
-//        if(tail) this->b[N+1]=0.;
+        if(tail) this->b[N+1]=0.;
         build_Psi();
         double y = psi_real;
         if(viewWF==1) y = psi_imag;
@@ -3984,51 +4029,36 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
             set_E0(E);
             if(E>Umax)
             {
-            build_RT();
-            transmission[i] = this->TT;
+                build_RT();
+                y=this->TT;
             }
             else if(E<Umin)
             {
-                    if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(E);
-                    else y=0;
-                    transmission[i] = y;
+                if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(E);
+                else y=0;
+                transmission[i] = y;
             }
-            /*           if(Emin+i*dE>U[0]&&U[0]>0)
-            {
-                transmission[i] = this->TT;
-            }
-            else
-            {
-                if(Emin+i*dE<U[0]&&U[0]<0)
-                {
-                    if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(Emin+i*dE);
-                    else y=0;
-                    transmission[i] = y;
-                }
-            }*/
         }
         if(typeOfU==PERIODIC)
         {
-            //                int iy=this->zeroPsiPer(this->E0);
-            set_E0(Emin+i*dE);
-            transmission[i] = this->qa;
+            double E=Emin+i*dE;
+            y = zeroPsiPer(E);
         }
         if(typeOfU==QUASISTATIONARY)
         {
             set_E0(Emin+i*dE);
-            double tt=0;
             int n=this->levelNumber;
             if(Equasi.size()>0&&n>=0&&n<Equasi.size())
             {
-//                this->set_LevelNumber(n);
+                //                this->set_LevelNumber(n);
                 double E0=real(Equasi[n]);
                 double G=imag(Equasi[n]);
                 double G2=G*G;
                 double EE=Emin+i*dE-E0;
-                tt=G2/(EE*EE+G2);
+                y=G2/(EE*EE+G2);
             }
-            transmission[i] = tt;
         }
+        transmission[i] = y;
     }
     this->E0=Eold;
     return transmission;
@@ -4505,6 +4535,107 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
                 else y=-fmax;
             }
             waveFunction[i]=y;
+        }
+        TimeParameters tp;
+        tp=this->getTimeParam();
+        tp.time=this->time;
+        if(tp.ht!=this->ht)
+        {
+            this->ht=tp.ht;
+        }
+        emit(signalTimeChanged(this->time));
+        this->E0=Eold;
+        return waveFunction;
+}
+QVector<complex>  PhysicalModel::getPsi3DOfXT(double t, double xmin, double xmax, int npoints, int viewWF)//, bool need_build_WavePacket)
+{
+    double Eold=this->E0;
+    QVector<complex> waveFunction(npoints);
+    const int N = this->getN();
+    this->time=t;
+    if(this->need_build_WP)
+    {
+        if(type_of_WP==1)
+        {
+            this->set_WPpE();
+        }
+        else
+        {
+            this->set_WPmE();
+            if(((typeOfU==FINITE||typeOfU==PERIODIC)&&Ebound.size()==0)||(typeOfU==QUASISTATIONARY&&Equasi.size()==0))
+            {
+                for (int i=0; i < npoints; i++)
+                {
+                    waveFunction[i]=0;
+                }
+                need_build_WP=false;
+                return waveFunction;
+            }
+        }
+        need_build_WP=false;
+    }
+        int M;
+        if(typeOfU==FINITE||typeOfU==PERIODIC) M=EWofWP.size();
+        if(typeOfU==QUASISTATIONARY) M=EcWofWP.size();
+        std::vector<complex> expt;
+        expt.resize(M);
+        complex c,Psit=0;
+        for(int p=0;p<M;p++)
+        {
+            if(typeOfU==FINITE||typeOfU==PERIODIC)
+            {
+                c = exp(-complex(0, EWofWP[p].E*this->time));
+                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0) 
+                {
+                    c = c*exp(complex(0,real(kp(p,N+1))*xmax) );
+                }
+                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0) 
+                {
+                    c = c*exp(complex(0,-real(kp(p,0))*xmin) );
+                }
+            }
+            if(typeOfU==QUASISTATIONARY)
+            {
+                c = exp(-complex(-imag(EcWofWP[p].E)*this->time, real(EcWofWP[p].E)*this->time));
+            }
+            expt[p]=c;
+        }
+        double y;
+        double dx = (xmax-xmin)/(npoints-1);
+        double fmin=1e-6;
+        double fmax=1e4;
+        for (int i=0; i < npoints; i++)
+        {
+            this->x = xmin + dx*i;
+            complex Psit=(0.,0.);
+            for(int p=0;p<M;p++)
+            {
+                for(int n=0; n <= N+1; n++)
+                {
+                    this->k[n]=kp(p,n);
+                    this->a[n]=ap(p,n);
+                    this->b[n]=bp(p,n);
+                }
+                if(this->typeOfU==PERIODIC)
+                {
+                    this->E0=EWofWP[p].E;
+                    this->lambda=lambdap[p];
+                    this->build_Psi_per();
+                    Psit += this->psi*EWofWP[p].w*expt[p];
+                }
+                if(this->typeOfU==FINITE)
+                {
+                    this->E0=EWofWP[p].E;
+                    this->build_Psi();
+                    Psit += this->psi*EWofWP[p].w*expt[p];
+                }
+                if(this->typeOfU==QUASISTATIONARY)
+                {
+                    this->build_Psi();
+                    Psit += this->psi*EcWofWP[p].w*expt[p];
+                }
+            }
+            waveFunction[i]=Psit;
         }
         TimeParameters tp;
         tp=this->getTimeParam();

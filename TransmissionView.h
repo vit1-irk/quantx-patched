@@ -93,11 +93,11 @@ private:
     int curve_number;
 
 };
-class TransmissionWidget : public QGroupBox
+class TEWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    TransmissionWidget(PhysicalModel *model, QWidget * parent = 0);
+    TEWidget(PhysicalModel *model, QWidget * parent = 0);
     void readFromXml(QXmlStreamReader *r);
     void writeToXml(QXmlStreamWriter *w);
 private:

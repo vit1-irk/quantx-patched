@@ -116,15 +116,10 @@ public:
 };
 
 TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
-: QGraphicsView(parent), model(m)
+: QGraphicsView(parent), model(m), tMin(-0.01), tMax(1.01), Emin(-0.1), Emax(30.), hE(0.1)
 {
     Erase = true; // this must initially be true
     lineWidth = 3;//10;
-    tMax = 1.1;
-    tMin = -0.1;
-    Emin = -15;
-    Emax = 20;
-    hE = 0.05;
 
     lineh = NULL;
     linev = NULL;
@@ -150,19 +145,18 @@ TransmissionView::TransmissionView(PhysicalModel *m, QWidget *parent)
         setTransformationAnchor(AnchorUnderMouse);///
         setResizeAnchor(AnchorViewCenter);///
     }
-    setMinimumSize(300, 150);
-//    model->set_EmaxEmin(Emax,Emin,hE);
+    setMinimumSize(200, 100);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setViewportMapping();
+//    setViewportMapping();
 
-//    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
+    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalLevelNumberChanged(int)),this,SLOT(slot_whole_T_of_E()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
     connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
 //    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
-    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(reDraw()));
+//    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(reDraw()));
 //    resizePicture();
 }
 /*TransmissionView::~TransmissionView()
@@ -268,7 +262,6 @@ void TransmissionView::scrollView(int dx, int dy)
     if(Emin<0) Emin=-0.2;
     if(Emax<0) Emax=1.;
     setScaleTE();
-    emit(signalScaleTEChanged());
 }
 
 void TransmissionView::keyPressEvent(QKeyEvent *event)
@@ -364,7 +357,7 @@ void TransmissionView::slot_whole_T_of_E()
 
     if (! isVisible()) return;
     PotentialType type = model->getPotentialType();
-    if(type==PERIODIC) return;
+//    if(type==PERIODIC) return;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
@@ -644,7 +637,9 @@ void TransmissionView::setScaleTE()
     x.sprintf("%lg",this->tMax);
     this->leTmax->setText(x);
     x.sprintf("%lg",this->tMin);
-    this->leTmin->setText(x);
+     this->leTmin->setText(x);
+    emit(signalScaleTEChanged());
+
 }
 void TransmissionView::updateScaleTE()
 {
@@ -681,7 +676,7 @@ void TransmissionView::updateScaleTE()
     }
     if(changed)
     {
-//        model->set_EmaxEmin(Emax,Emin);
+//        model->set_EmaxEmin(Emax,Emin,hE);
         emit(signalScaleTEChanged());
     }
 }
@@ -826,7 +821,7 @@ public:
     }
 };
 
-TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
+TEWidget::TEWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
     setTitle(tr("Transmission T(E)"));
@@ -879,23 +874,24 @@ TransmissionWidget::TransmissionWidget(PhysicalModel *model, QWidget *parent)
     vl->addLayout(hl);
     setLayout(vl);
 }
-void TransmissionWidget::slotErase(int j)
+void TEWidget::slotErase(int j)
 {
     Q_UNUSED(j);
     if(transmissionView->Erase==true)
         transmissionView->Erase=false;
     else transmissionView->Erase=true;
 }
-void TransmissionWidget::slotRunTE()
+void TEWidget::slotRunTE()
 {
     transmissionView->resizePicture();
 
 }
-void TransmissionWidget::readFromXml(QXmlStreamReader *r)
+void TEWidget::readFromXml(QXmlStreamReader *r)
 {
     Q_ASSERT(this);
     Q_ASSERT(r->isStartElement() && r->name() == "TE");
     double Emin = 0, Emax = 0, he=0;
+    int l,t,w,h;
     int _visible = 0;
     while (!r->atEnd())
     {
@@ -909,17 +905,23 @@ void TransmissionWidget::readFromXml(QXmlStreamReader *r)
             QString s = r->readElementText();
             transmissionView->Emin = s.toDouble();
         }
-        else if (r->name() == "TEisVisible")
+        else if (r->name() == "TEViewisVisible")
         {
             _visible = r->readElementText().toInt();
         }
-        else if (r->name() == "geometry")
+/*        else if (r->name() == "geometry")
         {
             QString s = r->readElementText();
-            int l,t,w,h;
             sscanf_s(s.toAscii(),"%i %i %i %i",&l,&t,&w,&h);
-            transmissionView->setGeometry(QRect(l,t,w,h));
         }
+        else if (r->name() == "pos")
+        {
+            QString s = r->readElementText();
+            int ix,iy;
+            sscanf_s(s.toAscii(),"%i %i",&ix,&iy);
+            transmissionView->move(QPoint(ix,iy));
+        }
+*/
         else if (r->name() == "Emax")
         {
             QString s = r->readElementText();
@@ -944,21 +946,25 @@ void TransmissionWidget::readFromXml(QXmlStreamReader *r)
             skipUnknownElement(r);
     }
     transmissionView->setScaleTE();
+ //   transmissionView->setGeometry(QRect(l,t,w,h));
     if (_visible) show();
     else hide();
 }
 
 
-void TransmissionWidget::writeToXml(QXmlStreamWriter *w)
+void TEWidget::writeToXml(QXmlStreamWriter *w)
 {
     w->writeStartElement("TE");
     {
         QString s;
+/*        QPoint psn= this->transmissionView->pos();
         QRect g = this->transmissionView->geometry();
         s.sprintf("%i %i %i %i",g.left(),g.top(),g.width(),g.height());
-        w->writeTextElement("geometry",s);
+        w->writeTextElement("geometry",s);*/
         s.sprintf("%i",transmissionView->isVisible() ? 1 : 0);
-        w->writeTextElement("TEisVisible",s);
+        w->writeTextElement("TEViewisVisible",s);
+//        s.sprintf("%i %i",psn.x(),psn.y());
+//        w->writeTextElement("pos",s);
         s.sprintf("%lg",transmissionView->Emin);
         w->writeTextElement("Emin",s);
         s.sprintf("%lg",transmissionView->Emax);

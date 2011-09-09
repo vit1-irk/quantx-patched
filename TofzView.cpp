@@ -612,7 +612,7 @@ public:
     }
 };
 
-TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
+TZWidget::TZWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
     setTitle(tr("Transmission T(z) at energy E"));
@@ -656,4 +656,67 @@ TofzViewWidget::TofzViewWidget(PhysicalModel *model, QWidget *parent)
     connect(buttonClose,SIGNAL(clicked()),this,SLOT(hide()),Qt::QueuedConnection); //???
     vl->addLayout(hl);
     setLayout(vl);
+}
+void TZWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "TZ");
+    double Emin = 0, Emax = 0, he=0;
+    double qamin = 0, qamax = 0;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+/*        if (r->name() == "Emin")
+        {
+            QString s = r->readElementText();
+            transmissionView->Emin = s.toDouble();
+        }
+        else if (r->name() == "Emax")
+        {
+            QString s = r->readElementText();
+            transmissionView->Emax = s.toDouble();
+        }
+        else if (r->name() == "hE")
+        {
+            QString s = r->readElementText();
+            transmissionView->hE = s.toDouble();
+        }*/
+        else if (r->name() == "Tmax")
+        {
+            QString s = r->readElementText();
+            tofzView->tMax = s.toDouble();
+        }
+        else if (r->name() == "Tmin")
+        {
+            QString s = r->readElementText();
+            tofzView->tMin = s.toDouble();
+        }
+        else
+            skipUnknownElement(r);
+    }
+    tofzView->setScaleTZ();
+}
+
+
+void TZWidget::writeToXml(QXmlStreamWriter *w)
+{
+    w->writeStartElement("TZ");
+    {
+        QString s;
+/*        s.sprintf("%lg",transmissionView->Zmin);
+        w->writeTextElement("Zmin",s);
+        s.sprintf("%lg",transmissionView->Zmax);
+        w->writeTextElement("Zmax",s);
+        s.sprintf("%lg",transmissionView->hZ);
+        w->writeTextElement("hZ",s);*/
+        s.sprintf("%lg",tofzView->tMin);
+        w->writeTextElement("Tmin",s);
+        s.sprintf("%lg",tofzView->tMax);
+        w->writeTextElement("Tmax",s);
+    }
+    w->writeEndElement();
 }

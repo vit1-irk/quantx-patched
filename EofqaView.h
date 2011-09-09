@@ -15,6 +15,19 @@
 
 class EEDrag;
 class EofqaView;
+struct ScalesEQ
+{
+    double Emin,Emax,hE;
+    double qaMin,qaMax;
+    bool operator != (const ScalesEQ& o)
+    {
+        return hE != o.hE
+            ||Emin != o.Emin
+            ||Emax != o.Emax
+            ||qaMin != o.qaMin
+            ||qaMax != o.qaMax;
+    }
+};
 
 class EofqaCurve : public QGraphicsPolygonItem
 {
@@ -34,6 +47,9 @@ class EofqaView : public QGraphicsView
     Q_OBJECT
 public:
 
+    ScalesEQ getScalesEQ() const;
+    void setScalesEQ(const ScalesEQ&);
+
     EofqaView(PhysicalModel *m, QWidget *parent = 0);
 //    virtual ~EofqaView();
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
@@ -49,13 +65,13 @@ public slots:
 signals:
     void infoMouseMovedTo(QPointF);
 //    void signalScalesChanged();
-    void signalScaleTEChanged();
+    void signalScaleQAChanged();
 protected:
     void resizeEvent(QResizeEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void scrollView(int dx, int dy);
-    void setScaleTE();
+    void setScaleQE();
     void scaleView(qreal scaleFactor);
     void setScalesFromModel();
     bool Erase;
@@ -66,7 +82,7 @@ public:
 private:
     void initDialogScaleY();
     void updateRubberBandRegion();
-    double tMax, tMin;
+    double qaMax, qaMin;
     double Emin,Emax,hE;
     QGraphicsLineItem *lineh,*linev;
     EEDrag *lineE;
@@ -85,11 +101,13 @@ private:
 
     int curve_number;
 };
-class EofqaWidget : public QGroupBox
+class QEWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    EofqaWidget(PhysicalModel *model, QWidget * parent = 0);
+    QEWidget(PhysicalModel *model, QWidget * parent = 0);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
 private:
     EofqaView *eofqaView;
 //    QPushButton *bRunEqa;

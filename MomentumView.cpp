@@ -430,7 +430,7 @@ void MomentumView::contextMenuEvent(QContextMenuEvent *event)
         }
 }
 
-MomentumViewWidget::MomentumViewWidget(PhysicalModel *model, QWidget *parent)
+MomentumDistibutionWidget::MomentumDistibutionWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
     setTitle(tr("Momentum distribution: bound states"));

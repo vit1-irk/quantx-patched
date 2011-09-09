@@ -98,6 +98,12 @@ class WaveFunctionWidget : public QGroupBox
     Q_OBJECT
 public:
     WaveFunctionWidget(PhysicalModel *model, QWidget * parent = 0);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
+private:
+    QButtonGroup *bgR;
+public slots:
+    void checkButton(int);
 private:
     WaveFunctionView *waveFunctionView;
 };
