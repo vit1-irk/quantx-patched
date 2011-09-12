@@ -2,6 +2,7 @@
 #include <cmath>
 #include <QRectF>
 #include <QPolygonF>
+#include "FindBand.h"
 
 // Auxiliary class for finding energy levels
 class ETree
@@ -305,46 +306,56 @@ int PhysicalModel::zeroPsiPer(double E)
 void PhysicalModel::findBands()
 {
     double E;
-    double Eold=this->E0;
-    if(this->N==0||U[1]==U[2])
+    double Eold = this->E0;
+    if (this->N == 0 || U[1] == U[2])
     {
-        int n=this->N;
-        double u0=U[0];
-        double u1=U[1];
-        double u2=U[2];
+        int n = this->N;
+        double u0 = U[0];
+        double u1 = U[1];
+        double u2 = U[2];
         return;
     }
     QPair<double,double> umin_umax = getUminUmax();
     double Umin = umin_umax.first;
     double Umax = umin_umax.second;
-    Emin=Umin+1e-7;
-    if(Emax==Emin) Emax=2*(Emin+1);
-    if(Emax<Emin)
+    Emin = Umin + 1e-7;
+    if (Emax == Emin) Emax = 2*(Emin + 1);
+    if (Emax < Emin)
     {
-    double t=Emax;
-    Emax=Emin;
-    Emin=t;
+        double t = Emax;
+        Emax = Emin;
+        Emin = t;
     }
-    int nmax = this->zeroPsiPer(this->Emax);
-    double dmax = this->discrim;
-    int nmin = this->zeroPsiPer(this->Emin);
-    double dmin = this->discrim;
-    this->Ebound.clear();
-    ETreePer *mytree = new ETreePer(Emin, Emax, this, nmin, nmax, dmin, dmax);
-    mytree->compute(this->Ebound);
-    int NN=Ebound.size();
-    int jj;
-    double ee;
-        for (int i = 0; i < Ebound.size(); ++i)
-        {
-            double e=Ebound[i];
-            ee=e;
-            jj=i;
-         }
-    delete mytree;
-    this->E0=Eold;
 
+    EQDN emin = EQDN( this->Emin, this );
+    EQDN emax = EQDN( this->Emax, this );
+
+    QVector<EQDN> bandCenters = findBandCenters( this, emin, emax );
+
+    if (1)
+    {
+        double cka, cke;
+        int N = bandCenters.size();
+        for (int n = 0; n < N; ++n)
+        {
+            cke = bandCenters[n].e;
+            this->set_E0(cke);
+            cka = this->qa / M_PI; // must be 0.5
+        }
+    }
+
+    QVector<EQDN> bandEdges = findBandEdges( this, emin, emax, bandCenters );
+
+    Ebound.clear();
+    foreach( EQDN e, bandEdges )
+    {
+        Ebound.push_back( e.e );
+    }
+
+
+    this->set_E0(Eold);
 }
+
 QPair<double,double> PhysicalModel::getUminUmax()
 {
     if (need_build_U)
@@ -1230,7 +1241,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
     if (! need_build_U)
         return;
-    
+
 /*    QVector<double> newd, newm, newUi;
     int do_replace = 0;
     newd.push_back(d[0]);
@@ -1241,12 +1252,12 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
     {
         if (d[n]==0)
         {
-// skip this interval and flag do_replace 
+// skip this interval and flag do_replace
             do_replace = 1;
         }
         else if (Ui[n]==Ui[n+1] && m[n]==m[n+1])
         {
-            // merge these intervals and flag do_replace 
+            // merge these intervals and flag do_replace
             if(this->typeOfU==PERIODIC)
             {
                 Ui[n]=Ui[n+1]+1e-8;
@@ -1254,7 +1265,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
                 newm.push_back(m[n]);
                 newUi.push_back(Ui[n]);
             }
-            else 
+            else
             {
                 newd.push_back(d[n] + d[n+1]);
                 newm.push_back(m[n]);
@@ -2740,7 +2751,7 @@ void PhysicalModel::setU_ch2x(const U_ch2x& u)
         xx=(L/2*u.Width-x_i)/u.Width;
         double ch=0.5*(exp(xx)+exp(-xx));
         ch=ch*ch;
-        y_i=u0/ch; 
+        y_i=u0/ch;
         if(n==1) y0=0.9*y_i;
         this->Ui[n] = y_i-y0;
         this->m[n] = 0.5;
@@ -4004,12 +4015,12 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
     QVector<double> transmission(npoints);
     double dE = (Emax-Emin)/(npoints-1);
     double Umax,Umin;
-    if(U[0]>U[N+1]) 
+    if(U[0]>U[N+1])
     {
         Umax=U[0];
         Umin=U[N+1];
     }
-    else 
+    else
     {
         Umax=U[N+1];
         Umin=U[0];
@@ -4200,7 +4211,7 @@ QVector<double> PhysicalModel::getPhiOfk(double E, double kmin, double kmax, int
 }
 void PhysicalModel::set_Uxz(double z)
 {
-   if(U1.size()==U2.size())
+    if(U1.size()==U2.size())
     {
         int N = U1.size()-2;
         set_N(U1.size()-2);
