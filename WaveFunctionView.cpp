@@ -142,7 +142,7 @@ void WaveFunctionView::slotEnergyChanged()
             double yz = yn-(xi-xmin)*sn;
             y = yz+yim;
             x = xz+yre;
-            if(i==0) 
+            if(i==0)
             {
                 vectorFirst->setLine(xz,yz,x,y);
                 vectorFirst->setPen(p);
@@ -150,7 +150,7 @@ void WaveFunctionView::slotEnergyChanged()
             else
             {
                 QGraphicsLineItem *l = new QGraphicsLineItem(vectorFirst);
-                l->setLine(xz,yz,x,y); 
+                l->setLine(xz,yz,x,y);
             }
         }
         else

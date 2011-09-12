@@ -309,7 +309,7 @@ void WavePacketXView::slot_WavePacket_of_t()
             vp_old=vp;
         }
             waveFunctionC = model->getPsi3DOfXT(t,xmin,xmax,npoints,whatToDraw);
-        if(type==FINITE&&whatToDraw==3) 
+        if(type==FINITE&&whatToDraw==3)
         {
             waveFunctionC = model->getPsi3DOfXT(t,xmin,xmax,npoints,whatToDraw);
             if(vectorFirst) scene()->removeItem(vectorFirst);
@@ -331,7 +331,7 @@ void WavePacketXView::slot_WavePacket_of_t()
             double yz = yn-(xi-xmin)*sn;
             y = yz+yim;
             x = xz+yre;
-            if(i==0) 
+            if(i==0)
             {
                 vectorFirst->setLine(xz,yz,x,y);
                 vectorFirst->setPen(p);
@@ -340,7 +340,7 @@ void WavePacketXView::slot_WavePacket_of_t()
             {
                 QGraphicsLineItem *l = new QGraphicsLineItem(vectorFirst);
                 l->setPen(pl);
-                l->setLine(xz,yz,x,y); 
+                l->setLine(xz,yz,x,y);
             }
         }
         else
@@ -355,7 +355,7 @@ void WavePacketXView::slot_WavePacket_of_t()
                 break;
             case 1:
                 y=imag(yi);
-                break; 
+                break;
             default:
                 break;
             }

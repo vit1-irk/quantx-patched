@@ -1889,7 +1889,7 @@ bool MainWindow::save()
     }
 
     QFile f(curFile);
-    QString s;  
+    QString s;
     if (! f.open(QFile::WriteOnly | QFile::Text))
         return false;
     else
@@ -1967,11 +1967,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         if (r->name() == "UXisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_Ux();
             }
-            else 
+            else
             {
                 this->uxWidget->hide();
             }
@@ -1979,11 +1979,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "PsiXisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_psi_x();
             }
-            else 
+            else
             {
                 this->waveFunctionWidget->hide();
             }
@@ -1991,11 +1991,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "PsiXTisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_psi_xt();
             }
-            else 
+            else
             {
                 this->wavePacketXWidget->hide();
             }
@@ -2003,11 +2003,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "PhiKisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_phi_k();
             }
-            else 
+            else
             {
                 this->momentumDistibutionWidget->hide();
             }
@@ -2015,11 +2015,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "PhiKTisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_phi_kt();
             }
-            else 
+            else
             {
                 this->wavePacketKWidget->hide();
             }
@@ -2027,11 +2027,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "TEisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_TE();
             }
-            else 
+            else
             {
                 this->teWidget->hide();
             }
@@ -2039,11 +2039,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "TZisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_TZ();
             }
-            else 
+            else
             {
                 this->tzWidget->hide();
             }
@@ -2051,11 +2051,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "EnzisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_Enz();
             }
-            else 
+            else
             {
                 this->enzWidget->hide();
             }
@@ -2063,11 +2063,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "QEisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_QE();
             }
-            else 
+            else
             {
                 this->qeWidget->hide();
             }
@@ -2075,11 +2075,11 @@ void MainWindow::readFromXml(QXmlStreamReader *r)
         else if (r->name() == "EGisVisible")
         {
             _visible = r->readElementText().toInt();
-            if (_visible) 
+            if (_visible)
             {
                 window_EG();
             }
-            else 
+            else
             {
                 this->egWidget->hide();
             }
@@ -2166,14 +2166,14 @@ bool MainWindow::openFile()
 
         if (!f.open(QFile::ReadOnly | QFile::Text))
             return false;
- 
+
         QXmlStreamReader reader(&f);
         while (!reader.atEnd())
         {
             reader.readNext();
             if (! reader.isStartElement()) continue;
             if (reader.name() == "kvant")
-            { 
+            {
                 while (!reader.atEnd())
                 {
                     reader.readNext();
