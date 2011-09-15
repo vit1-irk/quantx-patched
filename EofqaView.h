@@ -61,7 +61,7 @@ public slots:
     void slot_Eofqa();
     void slotEline();
     void clearAll();
-    void updateScaleTE();
+    void updateScaleQE();
 signals:
     void infoMouseMovedTo(QPointF);
 //    void signalScalesChanged();

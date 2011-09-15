@@ -94,7 +94,7 @@ void Zview::setModel(PhysicalModel *_model)
         modelChanged();
     }
         connect(model,SIGNAL(signalZChanged(double)),this,SLOT(setCurrentZ(double)));
-        connect(model,SIGNAL(signalScalezChanged()),this,SLOT(modelChanged()));
+//        connect(model,SIGNAL(signalScaleZChanged()),this,SLOT(modelChanged())); //??????????
   }
 
 void Zview::modelChanged()

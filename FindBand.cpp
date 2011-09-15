@@ -1,6 +1,14 @@
 #include "FindBand.h"
 
+#define IFNOT(expr) if (!(expr))
+
 inline int SIGN(double x)
+{
+    if (x < 0) return -1;
+    if (x > 0) return +1;
+    return 0;
+}
+inline int SIGN(int x)
 {
     if (x < 0) return -1;
     if (x > 0) return +1;
@@ -8,7 +16,7 @@ inline int SIGN(double x)
 }
 inline bool CLOSE_ENOUGH(double a, double b)
 {
-    return fabs(a-b) < 1e-12;
+    return fabs(a-b) < 1e-9;
 }
 
 /**
@@ -21,7 +29,10 @@ EQDN findBandCenter(PhysicalModel *model, EQDN a, EQDN z)
     EQDN m = a;
     while (!CLOSE_ENOUGH( a.e, z.e ))
     {
-        Q_ASSERT(a.n + 1 == z.n);
+        IFNOT(a.n + 1 == z.n)
+        {
+            Q_ASSERT(0);
+        }
         m = EQDN( (a.e + z.e)/2, model );
 
         if (a.n == m.n)
@@ -34,6 +45,31 @@ EQDN findBandCenter(PhysicalModel *model, EQDN a, EQDN z)
         }
     }
     return m;
+}
+
+/**
+ * Find band center next above \a z.
+ */
+EQDN findNextBandCenter(PhysicalModel *model, EQDN z )
+{
+    double de = 1.0;
+    while (1)
+    {
+        EQDN u = EQDN( z.e + de, model );
+        if (z.n + 1 == u.n)
+        {
+            return findBandCenter(model,z,u);
+        }
+        if (z.n == u.n)
+        {
+            z = u;
+            de *= 2;
+        }
+        else
+        {
+            de /= 3;
+        }
+    }
 }
 
 /**
@@ -60,6 +96,13 @@ QVector<EQDN> findBandCenters(PhysicalModel *model, EQDN a, EQDN z)
 
     lo << hi;
 
+//    EQDN xx = lo.last();
+//    EQDN yy = findNextBandCenter(model, z );
+//    if (yy.e > xx.e)
+//    {
+//        lo.push_back(yy);
+//    }
+
     //TODO: filter out duplicates
     return lo;
 }
@@ -75,12 +118,13 @@ EQDN findBandEdge1(PhysicalModel *model, EQDN a, EQDN z)
 //    while (abs(a.d)>1.e-9||abs(z.d)>1.e-9)
     while (!CLOSE_ENOUGH( a.e, z.e ))
     {
-        Q_ASSERT(SIGN(a.d) != SIGN(z.d));
-        double e1;
-//        double e1 = (a.e * z.d - a.d * z.e) / (z.d - a.d);
-//my        double e1 = z.e-z.d*(z.e  - a.e) / (z.d - a.d);
+        IFNOT ( SIGN(a.d) != SIGN(z.d) )
+        {
+            Q_ASSERT(0);
+        }
+        double e1 = (a.e * z.d - a.d * z.e) / (z.d - a.d);
         double thr = 0.1 * (z.e - a.e);
-//        if (e1 <= a.e + thr || z.e - thr <= e1)
+        if (e1 <= a.e + thr || z.e - thr <= e1)
         {
             e1 = (a.e + z.e)/2;
         }
@@ -95,42 +139,14 @@ EQDN findBandEdge1(PhysicalModel *model, EQDN a, EQDN z)
             z = m;
         }
     }
-    double dif;
-    if(a.d<0)
-    {
-       dif = a.q;
-       if(abs(dif)>1e-4) dif=abs(M_PI-abs(a.q));
-       else dif=abs(dif);
-       if(dif>0.1)
-       {
-       double dq=a.q;
-       }
-    }
-    else
-    {
-       dif = z.q;
-       if(abs(dif)>1e-4) dif=abs(M_PI-abs(z.q));
-       else dif=abs(dif);
-       if(dif>0.1)
-       {
-       double dq=a.q;
-       }
-    }
-
-    if(abs(a.d)>1e-5||abs(z.d)>1e-5||dif>1e-4)
-            {
-            double ea=a.e;
-            double ez=z.e;
-            }
     return a.d < 0 ? a : z;
 }
 
 /**
  * Find two band edges contained in interval \a a ... \a z.
  */
-QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z)
+QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z, int dqde_a)
 {
-//    while (abs(a.d)>1.e-9||abs(z.d)>1.e-9) //???
     while (!CLOSE_ENOUGH( a.e, z.e ))
     {
         EQDN m = EQDN( (a.e + z.e)/2, model );
@@ -143,35 +159,54 @@ QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z)
         }
 
 
-        EQDN m1 = EQDN( m.e + 0.01*(z.e - a.e), model );
-        if (m1.d > 0)
+//        EQDN m1 = EQDN( m.e + 1e-8, model );
+        double h=0.25*(z.e - a.e);
+        EQDN mm = EQDN( m.e - h, model );
+        EQDN mp = EQDN( m.e + h, model );
+        if (mm.d > 0)
         {
             // m1 belongs to band gap
-            EQDN e1 = findBandEdge1( model, a, m1 ); // a..m1 -> m..m1?
-            EQDN e2 = findBandEdge1( model, m1, z );
+            EQDN e1 = findBandEdge1( model, a, mm ); // a..m1 -> m..m1?
+            EQDN e2 = findBandEdge1( model, mm, z );
             return QPair<EQDN,EQDN>( e1, e2 );
         }
-/*        if((m1.q-z.q)>0&&(m.q-a.q)>0||(m1.q-z.q)<0&&(m.q-a.q)<0)
+        if (mp.d > 0)
         {
-            z=m1;
-            a=m;
-            continue;
+            // m1 belongs to band gap
+            EQDN e1 = findBandEdge1( model, a, mp ); // a..m1 -> m..m1?
+            EQDN e2 = findBandEdge1( model, mp, z );
+            return QPair<EQDN,EQDN>( e1, e2 );
         }
-        */
-        EQDN a1 = EQDN( a.e + 1e-8, model );
-        EQDN z1 = EQDN( z.e + 1e-8, model );
-        if(((m1.q-m.q)>0&&(a1.q-a.q)>0)||((m1.q-m.q)<0&&(a1.q-a.q)<0))
+        int dqde_mm = SIGN(m.q - mm.q);
+        int dqde_mp = SIGN(mp.q - m.q);
+        int dqde_z = -dqde_a;
+        if ( SIGN(dqde_mm) == SIGN(dqde_a) )
         {
-        //на одной ветке c a
-            a=m1;
-            continue;
+            a = mm;
         }
-        if(((m1.q-m.q)>0&&(z1.q-z.q)>0)||((m1.q-m.q)<0&&(z1.q-z.q)<0))
+        if ( SIGN(dqde_mp) == SIGN(dqde_z) )
         {
-        //на одной ветке c z
-            z=m;
-            continue;
+            z = mp;
         }
+        if((a.d<0&&abs(a.d)<1e-12)&&(z.d<=0&&abs(z.d)<1e-12))
+        {
+            return QPair<EQDN,EQDN>(a,z);
+        }
+
+//        EQDN a1 = EQDN( a.e + h, model );
+//        EQDN z1 = EQDN( z.e - h, model );
+//        if(((m1.q-m.q)>=0&&(a1.q-a.q)>=0)||((m1.q-m.q)<=0&&(a1.q-a.q)<=0))
+//        {
+//            //на одной ветке c a
+//            a=m1;
+//            continue;
+//        }
+//        if(((m1.q-m.q)>=0&&(z1.q-z.q)>=0)||((m1.q-m.q)<=0&&(z1.q-z.q)<=0))
+//        {
+//            //на одной ветке c z
+//            z=m;
+//            continue;
+//        }
     }
     return QPair<EQDN,EQDN>(a,z);
 }
@@ -183,7 +218,7 @@ QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<
 {
     Q_ASSERT( bandCenters.size() > 0 );
     Q_ASSERT( a.e <= bandCenters.first().e );
-    Q_ASSERT( bandCenters.last().e <= z.e );
+    //Q_ASSERT( bandCenters.last().e <= z.e );
 
     QVector<EQDN> res;
     int NC = bandCenters.size();
@@ -201,19 +236,10 @@ QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<
         if (nc < NC - 1)
         {
             EQDN c1 = bandCenters[nc+1];
-            QPair<EQDN,EQDN> p = findBandEdges2(model, c, c1 );
-            if(abs(p.first.d)<1.e-5&&abs(p.second.d)<1.e-5)
-            {
-                res.push_back(p.first); //???
-                res.push_back(p.second); //???
-            }
-            else
-            {
-                EQDN e1=p.first;
-                EQDN e2=p.second;
-                res.push_back(p.first); //???
-                res.push_back(p.second); //???
-            }
+            int dqde_nc = (nc%2) ? -1 : +1;
+            QPair<EQDN,EQDN> p = findBandEdges2( model, c, c1, dqde_nc );
+            res.push_back(p.first);
+            res.push_back(p.second);
         }
         // There may be one or two band edges in c[last]...z, try to find them
         if (nc == NC - 1 && c.e < z.e)
@@ -221,51 +247,48 @@ QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<
             if (SIGN(c.d) != SIGN(z.d))
             {
                 EQDN g = findBandEdge1( model, c, z );
-                if(abs(g.d)<1.e-5) res.push_back(g);
-                else
-                {
-                continue;
-                }
+                res.push_back(g);
                 break;
             }
             /* else */
-            double de = 0.1*(z.e - c.e);
-            for (int k = 1 ;; ++k)
+            double DELTAE = 0.1*(z.e - c.e);
+            for (int k = 1; ; ++k)
             {
-                double e1 = c.e + k*de;
-                if (e1 > z.e) break;
-                EQDN c1 = EQDN( e1, model);
-                if (SIGN(c1.d) != SIGN(c.d))
+                double de = c.e + k*DELTAE;
+                if (de > z.e) break;
+                EQDN d = EQDN( de, model);
+                if (SIGN(d.d) != SIGN(c.d))
                 {
-                    EQDN g1 = findBandEdge1( model, c, c1 );
-                    EQDN g2 = findBandEdge1( model, c1, z );
-                    if(abs(g1.d)<1.e-5&&abs(g2.d)<1.e-5)
-                    {
-                        res.push_back(g1);
-                        res.push_back(g2);
-                        break;
-                    }
-                    else
-                    {
-                    continue;
-                    }
+                    EQDN g1 = findBandEdge1( model, c, d );
+                    EQDN g2 = findBandEdge1( model, d, z );
+                    res.push_back(g1);
+                    res.push_back(g2);
+                    break;
                 }
-                if ((c1.q <= c.q && c1.q <= z.q) || (c1.q >= c.q && c1.q >= z.q))
+                EQDN c1 = EQDN( c.e + 1e-9, model);
+                EQDN d1 = EQDN( d.e + 1e-9, model);
+                if (d1.d > 0)
                 {
-                    // c1 suggests a cusp
-                    if(c.e<z.e) //???
-                    {
-                        QPair<EQDN,EQDN> p = findBandEdges2(model, c, z );
-                        if(abs(p.second.e-p.first.e)>1.e-9)
-                        {
-                            res.push_back(p.first);
-                            res.push_back(p.second);
-                        }
-                    }
+                    EQDN g1 = findBandEdge1( model, c, d1 );
+                    EQDN g2 = findBandEdge1( model, d1, z );
+                    res.push_back(g1);
+                    res.push_back(g2);
+                    break;
+                }
+                if (SIGN(d1.q-d.q) != SIGN(c1.q - c.q))
+                {
+                    int dqde_nc = (nc%2) ? -1 : +1;
+                    QPair<EQDN,EQDN> p = findBandEdges2( model, c, d1, dqde_nc );
+                    res.push_back(p.first);
+                    res.push_back(p.second);
                     break;
                 }
             }
         }
+    }
+    while (res.last().e > z.e)
+    {
+        res.pop_back();
     }
     return res;
 }

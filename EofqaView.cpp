@@ -151,16 +151,11 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
         setResizeAnchor(AnchorViewCenter);///
     }
     setMinimumSize(300, 150);
-    model->set_EmaxEmin(Emax,Emin,hE);
+//    setScalesFromModel();
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //rubberBandIsShown = false;
-
-//    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
     connect(this,SIGNAL(signalScaleQAChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
-//    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_Eofqa()));
-//    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
     connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
@@ -181,7 +176,17 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
 */
 void EofqaView::setScalesFromModel()
 {
-    if(Emax<=0.) Emax=20;
+    QPair<double,double> umin_umax = model->getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
+    Emin = Umin + 1e-7;
+    if (Emax == Emin) Emax = 2*(Emin + 1);
+    if (Emax < Emin)
+    {
+        double t = Emax;
+        Emax = Emin;
+        Emin = t;
+    }
 }
 void EofqaView::slotEline()
 {
@@ -311,7 +316,8 @@ void EofqaView::slot_Eofqa()
 {
     if (! isVisible()) return;
     PotentialType type = model->getPotentialType();
-    if(type==FINITE) return;
+    if(type==FINITE||type==QUASISTATIONARY) return;
+    EParameters sE;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
@@ -364,7 +370,9 @@ void EofqaView::slot_Eofqa()
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     if(type==PERIODIC)
     {
-        model->set_EmaxEmin(Emax,Emin,hE);
+        sE.Emin = this->Emin;
+        sE.Emax = this->Emax;
+        model->setEParameters(sE);
         QVector<double> Ebound = model->getEn();
         int number_of_levels = Ebound.size();
         QPolygonF curveTE;
@@ -472,7 +480,7 @@ void EofqaView::initDialogScaleY()
         QString x;
         x.sprintf("%lg",this->hE);
         this->leHE->setText(x);
-        connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -484,7 +492,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->Emin);
         this->leEmin->setText(x);
         this->leEmin->setToolTip("Lower value of E-interval");
-        connect(this->leEmin,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leEmin,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -496,7 +504,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->Emax);
         this->leEmax->setText(x);
         this->leEmax->setToolTip("High value of E-interval");
-        connect(this->leEmax,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leEmax,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -508,7 +516,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->qaMin);
         this->leTmin->setText(x);
         //        this->leTmin->setToolTip("Lower value of E-interval");
-        connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -520,7 +528,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->qaMax);
         this->leTmax->setText(x);
         //        this->leTmax->setToolTip("High value of E-interval");
-        connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     gbScaleXY->setLayout(vl);
@@ -546,7 +554,7 @@ void EofqaView::setScaleQE()
     x.sprintf("%lg",this->qaMin);
     this->leTmin->setText(x);
 }
-void EofqaView::updateScaleTE()
+void EofqaView::updateScaleQE()
 {
     double hENew = this->leHE->text().toDouble();
     double EminNew = this->leEmin->text().toDouble();
@@ -581,7 +589,7 @@ void EofqaView::updateScaleTE()
     }
     if(changed)
     {
-        model->set_EmaxEmin(Emax,Emin, hE);
+//        setScaleQE();
         emit(signalScaleQAChanged());
     }
 }
@@ -645,6 +653,7 @@ void  EofqaView::setScalesEQ(const ScalesEQ& u)
  }
     if (changed_x||changed_y)
     {
+    setScaleQE();
     emit(signalScaleQAChanged());
     }
 }

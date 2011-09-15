@@ -70,6 +70,7 @@ public:
     void showDialogZ();
     QPair<double,double> getEnzMinMax();
     void setEnzMinMax(const QPair<double,double> &s);
+    void setScaleEnz();
 
 //    getScalesEnz();
 private:
@@ -77,7 +78,6 @@ private:
     QLineEdit *leEnzmin;
     QLineEdit *leEnzmax;
     double Enzmin, Enzmax;
-    void setScaleEnz();
     QGroupBox  *gbScaleXY;
     double lineWidth;
     int numberOfCurves;

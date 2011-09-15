@@ -2222,6 +2222,10 @@ bool MainWindow::openFile()
                     {
                         enzWidget->readFromXml(&reader);
                     }
+                    else if (reader.name() == "QE")
+                    {
+                        qeWidget->readFromXml(&reader);
+                    }
                     else if (reader.name() == "EGplane")
                     {
                         egWidget->readFromXml(&reader);

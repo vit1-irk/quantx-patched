@@ -68,11 +68,16 @@ public:
 //    void showDialogDefWP();
 private:
     void clearAll();
-     WPparametersM *dialogWPEm;
+    QPointF getPoint(bool first, double x, complex y);
+    void setInitialTime();
+    void reDrawAxes();
+
+    WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
     int lineWidth;
     double psiMax, psiMin;
     double xmin,xmax,dx;
+    double xn,yn,xk,yk,cs,sn;
     ScaleWPX *dialogScaleWPX;
     double tmin,tmax, time, htime;
     QGraphicsLineItem *lineh,*linev,*vectorFirst,*linez;
@@ -81,6 +86,7 @@ private:
     QMap<int,CoordinateDistributionCurve*> curves;
     QVector<double> waveFunction;
     QVector<complex> waveFunctionC;
+    QPen p,pl;
 
     int whatToDraw;
 public slots:

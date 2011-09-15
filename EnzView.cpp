@@ -188,11 +188,11 @@ Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0),numberOfCurves(0)
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMinimumSize(260, 100);
-    setScalesFromModel();
+//    setScalesFromModel();
     initDialogScaleY();
     connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
 //    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(redrawCurves()));
-    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
+//    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_drawEc_n()));
 }
 /*EnzView::~EnzView()
@@ -356,8 +356,12 @@ void EnzView::slot_En_of_z()
     PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY)
     {
-    return;
+        return;
     }
+    EParameters sE;
+    sE.Emin = this->Enzmin;
+    sE.Emax = this->Enzmax;
+    model->setEParameters(sE);
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
@@ -442,6 +446,7 @@ void EnzView::slot_En_of_z()
         QVector<double> adjEbound = Ebound;
         for(int m=0; m<=nmx; m++)
         {
+            double EE=Ebound[m];
             adjEbound[m]=vp.height()*(Ebound[m]-Enzmin)/(Enzmax-Enzmin);
         }
         double zi = vp.width()*(-zmin)/(zmax-zmin)+zz*vp.width()/(zmax-zmin);
@@ -795,6 +800,7 @@ void EnzWidget::readFromXml(QXmlStreamReader *r)
     t.first=enzmin;
     t.second=enzmax;
     enzView->setEnzMinMax(t);
+    enzView->setScaleEnz();
 }
 
 

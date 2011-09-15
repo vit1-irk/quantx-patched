@@ -110,6 +110,7 @@ public:
         right->compute(E);
     }
 };
+
 class ETreePer
 {
     double emin,emax;
@@ -253,6 +254,13 @@ public:
         right->compute(E);
     }
 };
+
+/**
+* Find the edge of band precisely.
+* \a emin - minimal energy (lowest value of potential)
+* \a emax - maximum energy (~ infinity)
+* \a dmin -
+*/
 double PhysicalModel::findEdgeOfBand(double emin, double emax, double dmin, double dmax)
 {
     int nmax, nmin, nmid;
@@ -1241,90 +1249,34 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
 {
     if (! need_build_U)
         return;
-
-/*    QVector<double> newd, newm, newUi;
-    int do_replace = 0;
-    newd.push_back(d[0]);
-    newm.push_back(m[0]);
-    newUi.push_back(Ui[0]);
-    int n;
-    for (n = 1; n < d.size()-1; n++)
-    {
-        if (d[n]==0)
-        {
-// skip this interval and flag do_replace
-            do_replace = 1;
-        }
-        else if (Ui[n]==Ui[n+1] && m[n]==m[n+1])
-        {
-            // merge these intervals and flag do_replace
-            if(this->typeOfU==PERIODIC)
-            {
-                Ui[n]=Ui[n+1]+1e-8;
-                newd.push_back(d[n]);
-                newm.push_back(m[n]);
-                newUi.push_back(Ui[n]);
-            }
-            else
-            {
-                newd.push_back(d[n] + d[n+1]);
-                newm.push_back(m[n]);
-                newUi.push_back(Ui[n]);
-                do_replace = 1;
-                n = n+1;
-            }
-        }
-        else
-        {
-            newd.push_back(d[n]);
-            newm.push_back(m[n]);
-            newUi.push_back(Ui[n]);
-        }
-    }
-    if (n < d.size())
-    {
-        newd.push_back(d[n]);
-        newm.push_back(m[n]);
-        newUi.push_back(Ui[n]);
-    }
-    */
-    if(this->typeOfU==PERIODIC&&N<2) 
-    {
-            set_N(2);
-        if(Ui[0]==Ui[1])
-        {
-            Ui[1]=Ui[1]+1e-9;
-            U[1]=Ui[1];
-            Ui[2]=Ui[0];
-            U[2]=Ui[0];
-            m[1]=m[2]=0.5;
-            double d1=d[1];
-            double d2=d[2];
-
-            if(d[1]==0) d[1]=1e-8;
-            if(d[2]==0) d[2]=1e-8;
-        }
-            goto label;   
-    }
-    /*
-    if (do_replace)
-    {
-        this->set_Ui_d_m(newUi,newd,newm);
-    }*/
-
     U[0] = Ui[0];
+    for(int n=d.size()-1; n >= 1; n--)
+    {
+        double uu=Ui[n];
+        if(Ui[n]==Ui[n-1])
+        {
+            Ui[n-1]=Ui[n]+1e-2;
+        }
+    }
     for(int n=d.size()-1; n >= 0; n--)
     {
         U[n] = Ui[n];
+        if(n>0&&d[n]<=0)
+        {
+            d[n]=1e-5;
+        }
     }
-label:    if(this->typeOfU==PERIODIC)
+    if(this->typeOfU==PERIODIC)
     {
         U[0]=U[N];
+        double u0=U[N];
+        double u1=U[1];
         d[0]=d[N];
         m[0]=0.5;//m[N];
         U[N+1]=U[1];
         d[N+1]=d[1];
         m[N+1]=0.5;//m[1];
+
     }
     if(this->typeOfU==FINITE)
     {
@@ -1835,7 +1787,7 @@ void PhysicalModel::Smatrix_per()
     int Na=a.size();
     int Nb=b.size();
     int Nk=k.size();
-*/   
+*/
     complex p11,p12,p22,p21;
     for(int i=1; i<=N; i++)
     {
@@ -1966,7 +1918,7 @@ b[i]=b[i]/a[1];
 //            b[i]=gamma*b1[i]+(lambda-alpha)*b[i];
         }
         double p=squaremod(lambda);
-        if(abs(p-1.)>1.e-8)
+        if(abs(p-1.)>1.e-12)
 //        if(abs(p-1.)>1.e-6)
         {
         this->qa=M_PI+0.1;
@@ -2410,7 +2362,8 @@ int PhysicalModel::zeroPsi()
             double phase_j= atan((cs-cj)/sn);
             double arg_j=arg+phase_j;
             int j=0;
-            while(arg_j > 0.5*M_PI*(1+2*j)+1.e-8)
+            while(arg_j > 0.5*M_PI*(1+2*j))
+//            while(arg_j > 0.5*M_PI*(1+2*j)+1.e-8)
             {
                 j++;
             }
@@ -2452,7 +2405,8 @@ int PhysicalModel::zeroPsi()
             double phase_j= atan((cs-cj)/sn);
             double arg_j=arg+phase_j;
             int j=0;
-            while(arg_j > 0.5*M_PI*(1+2*j)+1.e-8)
+            while(arg_j > 0.5*M_PI*(1+2*j))
+//            while(arg_j > 0.5*M_PI*(1+2*j)+1.e-8)
             {
                 j++;
             }
@@ -2472,7 +2426,7 @@ int PhysicalModel::zeroPsi()
         n_total=nzero_im;
     }
 //    if(nzero_im>nzero) return nzero_im;
-//    else 
+//    else
         return nzero_im;
 }
 int PhysicalModel::zeroPsiQuasi()
@@ -2830,6 +2784,14 @@ tp.Phinmin=this->Phinmin;
 tp.Phinmax=this->Phinmax;
 return tp;
 }
+EParameters PhysicalModel::getEParameters() const
+{
+EParameters tp;
+tp.Emin=this->Emin;
+tp.Emax=this->Emax;
+tp.hE=this->hE;
+return tp;
+}
 TimeParameters PhysicalModel::getTimeParam() const
 {
  TimeParameters tp;
@@ -2935,24 +2897,25 @@ void  PhysicalModel::setGParam(const gParameters& u)
     }
 
 }
-
-void  PhysicalModel::set_EmaxEmin(double E1, double E2, double he)
+void  PhysicalModel::setEParameters(const EParameters& u)
 {
  bool changed = false;
- if(this->Emax!=E1)
+ double v=u.Emin;
+ if(v!=this->Emin)
  {
      changed = true;
-     this->Emax=E1;
+     this->Emin=v;
  }
- if(this->Emin!=E2)
+ v=u.Emax;
+ if(v!=this->Emax)
  {
      changed = true;
-     this->Emin=E2;
+     this->Emax=v;
  }
- if(this->hE!=he)
+ if(this->hE!=u.hE)
  {
      changed = true;
-     this->hE=he;
+     this->hE=u.hE;
  }
     if (changed&&(typeOfU==PERIODIC||typeOfU==QUASISTATIONARY))
     {
@@ -3687,7 +3650,6 @@ void PhysicalModel::set_Ecmplx(complex v)
     {
         this->Ecmplx = v;
         if(abs(imag(v))<1e-6) Ecmplx=complex(real(v),0.);
-//        this->build_kcmplx();
         this->build_ab();
     }
 }
@@ -3830,7 +3792,24 @@ double PhysicalModel::get_U(int n)
     }
     return U[n];
 }
-QVector<double> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF)
+QVector<complex> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax, int npoints)
+{
+    double Eold=this->E0;
+    set_E0(E);
+    QVector<complex> waveFunction(npoints);
+    double dx = (xmax-xmin)/(npoints-1);
+    for (int i=0; i < npoints; i++)
+    {
+        x = xmin + dx*i;
+        build_Psi_per();
+        waveFunction[i] = psi;
+    }
+    set_E0(Eold);
+    double qq=this->qa/M_PI;
+    emit(signalQaChanged(qq));
+    return waveFunction;
+}
+/*QVector<double> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF)
 {
     double y,tt,num;
     tt=0;
@@ -3857,15 +3836,13 @@ QVector<double> PhysicalModel::getPsiOfX_per(double E, double xmin, double xmax,
         }
         waveFunction[i] = y;
     }
-    //---------------
     this->E0=Eold;
-//        build_k();
         build_ab();
         double qq=this->qa/M_PI;
     emit(signalQaChanged(qq));
     return waveFunction;
-}
-QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
+}*/
+/*QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
     double Eold=this->E0;
     set_E0(E);
@@ -3893,28 +3870,44 @@ QVector<double> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int
     }
 
     //---------------
-    this->E0=Eold;
+    set_E0(Eold);
     getTatE();
     return waveFunction;
-}
-QVector<complex> PhysicalModel::getPsi3DOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail)
+}*/
+QVector<complex> PhysicalModel::getPsiOfX(double E, double xmin, double xmax, int npoints, bool tail)
 {
     double Eold=this->E0;
     set_E0(E);
-    QVector<complex> waveFunctionC(npoints);
+    QVector<complex> waveFunction(npoints);
+    double dx = (xmax-xmin)/(npoints-1);
+    for (int i=0; i < npoints; i++)
+    {
+        x = xmin + dx*i;
+        if(tail) this->b[N+1]=0.;
+        build_Psi();
+        waveFunction[i] = psi;
+    }
+    set_E0(Eold);
+    getTatE();
+    return waveFunction;
+}
+QVector<complex> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints)
+{
+    double tt=0;
+    complex Eold=this->Ecmplx;
+    set_Ecmplx(E);
+    QVector<complex> waveFunction(npoints);
     double dx = (xmax-xmin)/(npoints-1);
     for (int i=0; i < npoints; i++)
     {
         x = xmin + dx*i;
         build_Psi();
-        waveFunctionC[i] = psi;
+        waveFunction[i] = psi;
     }
-
-    this->E0=Eold;
-    getTatE();
-    return waveFunctionC;
+    emit(signalTransmissionChanged(tt));
+    return waveFunction;
 }
-QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF,bool tail)
+/*QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF,bool tail)
 {
     double y,tt,num;
     tt=0;
@@ -3942,18 +3935,9 @@ QVector<double> PhysicalModel::getQuasiPsiOfX(complex E, double xmin, double xma
         }
         waveFunction[i] = y;
     }
-
-    //---------------
-/*    if(imag(Eold)!=0) this->set_Ecmplx(Eold);
-    else
-    {
-        this->set_Ecmplx(Eold);
-        set_E0(imag(Eold));
-    }*/
-
     emit(signalTransmissionChanged(tt));
     return waveFunction;
-}
+}*/
 void PhysicalModel::getTatE()//(double E)
 {
     double num,Umax,Umin;
@@ -3969,7 +3953,7 @@ void PhysicalModel::getTatE()//(double E)
     }
     if(E0>Umax)
     {
-        build_ab();
+//        build_ab();
         build_RT();
         emit(signalTransmissionChanged(TT));
     }
@@ -4215,12 +4199,29 @@ void PhysicalModel::set_Uxz(double z)
     {
         int N = U1.size()-2;
         set_N(U1.size()-2);
-         if (N < 0) return;
-
+        if (N < 0) return;
+        if(this->typeOfU==PERIODIC&&this->N==1)
+        {
+            this->set_N1(2);
+            set_N(2);
+            U1[0]=U1[N1];
+            d1[0]=d1[N1];
+            m1[0]=0.5;//m[N];
+            U1[N1+1]=U1[1];
+            d1[N1+1]=d1[1];
+            m1[N1+1]=0.5;//m[1];
+            this->set_N2(2);
+            U2[0]=U2[N2];
+            d2[0]=d2[N2];
+            m2[0]=0.5;//m[N];
+            U2[N2+1]=U2[1];
+            d2[N2+1]=d2[1];
+            m2[N2+1]=0.5;//m[1];
+        }
         QVector<double> Uz(1+N+1);
         QVector<double> dz(1+N+1);
         QVector<double> mz(1+N+1);
-         double UU,mm,dd, uu1,uu2;
+        double UU,mm,dd, uu1,uu2;
         for(int n=0; n<=N+1; n++)
         {
             UU = U1[n] + z*(U2[n]-U1[ n]);
@@ -4232,7 +4233,19 @@ void PhysicalModel::set_Uxz(double z)
             d[n] = d1[n] + z*(d2[n]-d1[n]);
             m[n] = m1[n] + z*(m2[n]-m1[n]);
         }
-            this->markUchanged();
+        if(this->N==2&&Ui[0]==Ui[1])
+        {
+            Ui[1]=Ui[1]+1e-9;
+            U[1]=Ui[1];
+            Ui[2]=Ui[0];
+            U[2]=Ui[0];
+            m[1]=m[2]=0.5;
+            double d1=d[1];
+            double d2=d[2];
+            if(d[1]==0) d[1]=1e-8;
+            if(d[2]==0) d[2]=1e-8;
+        }
+        this->markUchanged();
     }
 }
 void PhysicalModel::slotU1()
@@ -4383,8 +4396,10 @@ void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
         EWofWP.resize(1);
         EWofWP[0].E=wpE_hi;
         EWofWP[0].w=1.;
-        return;
+
     }
+    else
+    {
     EWofWP.resize(wpN);
     if(wpE_hi<wpE_lo)
     {
@@ -4411,7 +4426,7 @@ void PhysicalModel::set_WPpE()//int wpN, double wpE_lo, double wpE_hi)
     }
     for(int i=0;i<wpN;i++)
         EWofWP[i].w /=W;
-
+    }
     //-----------------------
     const int N = this->getN();
     int M=EWofWP.size();
@@ -4472,11 +4487,11 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
             if(typeOfU==FINITE||typeOfU==PERIODIC)
             {
                 c = exp(-complex(0, EWofWP[p].E*this->time));
-                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0) 
+                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0)
                 {
                     c = c*exp(complex(0,real(kp(p,N+1))*xmax) );
                 }
-                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0) 
+                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0)
                 {
                     c = c*exp(complex(0,-real(kp(p,0))*xmin) );
                 }
@@ -4558,7 +4573,7 @@ QVector<double>  PhysicalModel::getPsiOfXT(double t, double xmin, double xmax, i
         this->E0=Eold;
         return waveFunction;
 }
-QVector<complex>  PhysicalModel::getPsi3DOfXT(double t, double xmin, double xmax, int npoints, int viewWF)//, bool need_build_WavePacket)
+QVector<complex>  PhysicalModel::getPsi3DOfXT(double t, double xmin, double xmax, int npoints)//, bool need_build_WavePacket)
 {
     double Eold=this->E0;
     QVector<complex> waveFunction(npoints);
@@ -4596,11 +4611,11 @@ QVector<complex>  PhysicalModel::getPsi3DOfXT(double t, double xmin, double xmax
             if(typeOfU==FINITE||typeOfU==PERIODIC)
             {
                 c = exp(-complex(0, EWofWP[p].E*this->time));
-                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0) 
+                if(typeOfU==FINITE&&EWofWP[p].E- this->get_U(N+1) >0)
                 {
                     c = c*exp(complex(0,real(kp(p,N+1))*xmax) );
                 }
-                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0) 
+                if(typeOfU==FINITE&&this->get_U(N+1)-EWofWP[p].E >0&&EWofWP[p].E- this->get_U(0) >0)
                 {
                     c = c*exp(complex(0,-real(kp(p,0))*xmin) );
                 }
@@ -4738,6 +4753,8 @@ public:
     void readWidthOfLine();
     void writeWidthOfLine();
     void readTime();
+    void readEParameters();
+    void writeEParameters();
     void writeTime();
     void readGParam();
     void writeGParam();
@@ -4787,6 +4804,10 @@ void ModelXML::read()
         if (r->name() == "E0")
         {
             readE0();
+        }
+        else if (r->name() == "EnergyParameters")
+        {
+            readEParameters();
         }
         else if (r->name() == "typeOfU")
         {
@@ -4870,6 +4891,7 @@ void ModelXML::write()
     writeTypeOfU();
     writeGParam();
     writeE0();
+    writeEParameters();
     writeUbias();
     writeUdm();
     writeUdm1();
@@ -4915,6 +4937,17 @@ void ModelXML::writeE0()
     s.sprintf("%lg",model->get_E0());
     w->writeTextElement("E0",s);
 }
+void ModelXML::writeEParameters()
+{
+    QString s;
+    EParameters tp=model->getEParameters();
+    double hE=tp.hE;
+    double Emin=tp.Emin;
+    double Emax=tp.Emax;
+    s.sprintf("%lg %lg %lg",hE,Emin,Emax);
+    w->writeTextElement("EnergyParameters",s);
+}
+
 void ModelXML::writeTypeWP()
 {
     QString s;
@@ -5237,6 +5270,21 @@ void ModelXML::readTime()
     tp.tmin=tmin;
     tp.tmax=tmax;
     model->setTimeParam(tp);
+}
+void ModelXML::readEParameters()
+{
+    Q_ASSERT(r->isStartElement() && r->name() == "EnergyParameters");
+    double hE,Emin,Emax;
+    hE=0.1;
+    Emin=0;
+    Emax=1000;
+    QString s = r->readElementText();
+    sscanf_s(s.toAscii(),"%lg %lg %lg",&hE,&Emin,&Emax);
+    EParameters tp;
+    tp.hE=hE;
+    tp.Emin=Emin;
+    tp.Emax=Emax;
+    model->setEParameters(tp);
 }
 void ModelXML::readTypeOfU()
 {

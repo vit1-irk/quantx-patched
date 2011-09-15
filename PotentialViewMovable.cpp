@@ -1339,9 +1339,11 @@ void PotentialViewMovable::updateRangeE()
     }
     if(changed)
     {
-        model->set_EmaxEmin(Emax,Emin,hE);
-//        emit(signalRangeEChanged());
-
+        EParameters sE;
+        sE.hE= this->hE;
+        sE.Emin = this->Emin;
+        sE.Emax = this->Emax;
+        model->setEParameters(sE);
     }
 }
 

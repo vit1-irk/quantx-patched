@@ -104,6 +104,16 @@ struct TimeParameters
             || ht  != o.ht;
     }
 };
+struct EParameters
+{
+    double Emin,Emax,hE;
+    bool operator != (const EParameters& o)
+    {
+        return Emin != o.Emin
+            ||Emax != o.Emax
+            || hE  != o.hE;
+    }
+};
 struct SettingParameters
 {
     int lineWidth;
@@ -223,8 +233,9 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
-    void set_EmaxEmin(double E1, double E2, double he);
-
+//    void set_EmaxEmin(double E1, double E2, double he);
+    void setEParameters(const EParameters &);
+    EParameters getEParameters() const;
     LevelNumberParameters getLevelNumberParameters() const;
     void setLevelNumberParameters(const LevelNumberParameters&);
     ScaleWPXParameters getScaleWPXParam() const;
@@ -256,7 +267,7 @@ public:
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
-    QVector<complex>  getPsi3DOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
+    QVector<complex>  getPsi3DOfXT(double t, double xmin, double xmax, int npoints);//, bool needBuildWavePacket);
     QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
     void readFromXml(QXmlStreamReader *r);
     void writeToXml(QXmlStreamWriter *w);
@@ -540,10 +551,10 @@ public:
     int findNumberOfLevels(double E);
     int findNumberOfQuasiLevels(double E);
 
-      QVector<double> getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF, bool tail);
-      QVector<complex> getPsi3DOfX(double E, double xmin, double xmax, int npoints, int viewWF,bool tail);
-      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
-      QVector<double> getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF);
+      QVector<complex> getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints);
+      QVector<complex> getPsiOfX(double E, double xmin, double xmax, int npoints, bool tail);
+//      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
+      QVector<complex> getPsiOfX_per(double E, double xmin, double xmax, int npoints);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getPhiOfkPer(double kmin, double kmax);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints);

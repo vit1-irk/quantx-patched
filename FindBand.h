@@ -19,5 +19,5 @@ struct EQDN
 EQDN findBandCenter(PhysicalModel *model, EQDN a, EQDN z);
 QVector<EQDN> findBandCenters(PhysicalModel *model, EQDN a, EQDN z);
 QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<EQDN>& bandCenters);
-QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z);
+QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z, int sign_dqde_a);
 EQDN findBandEdge1(PhysicalModel *model, EQDN a, EQDN z);
