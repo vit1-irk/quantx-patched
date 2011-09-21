@@ -5,8 +5,7 @@
 *.pdb
 *.suo
 *.vcproj.*.user
-/t1
-/t2
+/t?
 Makefile*
 *.vcproj
 *.sln
@@ -18,5 +17,13 @@ Makefile*
 *.log
 *.toc
 *.out
-tmp
+tmp*
+*.f
+*.pdf
+*.ppt
+*.doc
+*.qm
+*.dll
+*.txt
+*.exe
 
