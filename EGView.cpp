@@ -184,7 +184,7 @@ Emin(0.001), Emax(20), hE(0.05), Gmax(0.1), Gmin(-3.), dG(0.05), dialogG(0),gbSc
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMinimumSize(260, 100);
-    setScalesFromModel();
+//    setScalesFromModel();
     initDialogScaleY();
     setViewportMapping();
     connect(model,SIGNAL(signalGChanged(double)),this,SLOT(slotGLine()));

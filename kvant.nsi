@@ -1,3 +1,5 @@
+# http://sourceforge.net/project/memberlist.php?group_id=355577
+
 !define VERSION "0.001" ; 2011 09 21
 Name "Kvant ${VERSION}"
 OutFile "Kvant-${VERSION}.exe"

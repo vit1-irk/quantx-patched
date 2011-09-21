@@ -168,7 +168,7 @@ QVariant ZDraggable::itemChange(GraphicsItemChange change, const QVariant & valu
 }
 EnzView::EnzView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),lineZ(0), rectEG(0),
-Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0),numberOfCurves(0)
+Enzmin(-10.), Enzmax(1.), dialogZ(0),gbScaleXY(0),numberOfCurves(0)
 {
     curve_number=-1;
     Erase = true; // this must initially be true
@@ -191,6 +191,7 @@ Enzmin(-21.), Enzmax(0.1), dialogZ(0),gbScaleXY(0),numberOfCurves(0)
 //    setScalesFromModel();
     initDialogScaleY();
     connect(model,SIGNAL(signalZChanged(double)),this,SLOT(slotZline()));
+    connect(model,SIGNAL(signalEParametersChanged()),this,SLOT(setScaleEnz()));
 //    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(redrawCurves()));
 //    connect(this,SIGNAL(signalScaleEnzChanged()),this,SLOT(resizePicture()));
 //    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_drawEc_n()));
@@ -221,7 +222,7 @@ void EnzView::setEnzMinMax(const QPair<double,double> &s)
 void EnzView::slotZline()
 {
     PotentialType type = model->getPotentialType();
-    if(type==QUASISTATIONARY) return;
+//    if(type==QUASISTATIONARY) return;
     zParameters tp = model->getzParam();
     double z=tp.z;
     if(z>tp.zmax) z=tp.zmax;
@@ -345,10 +346,16 @@ void EnzView::keyPressEvent(QKeyEvent *event)
     QGraphicsView::keyPressEvent(event);
 }
 static const QColor colorForIds[12] = {
-    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::black,
-    Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
+    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::darkYellow,
+    Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::black
 };
 const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+static const QColor colorForIdsP[12] = {
+    Qt::darkRed, Qt::red, Qt::darkGreen, Qt::green, Qt::darkBlue, Qt::blue,
+    Qt::darkCyan,Qt::cyan, Qt::darkMagenta,Qt::magenta,
+    Qt::black,Qt::gray
+};
+const int size_colorForIdsP = sizeof(colorForIdsP)/sizeof(colorForIdsP[0]);
 
 void EnzView::slot_En_of_z()
 {
@@ -361,6 +368,7 @@ void EnzView::slot_En_of_z()
     EParameters sE;
     sE.Emin = this->Enzmin;
     sE.Emax = this->Enzmax;
+    sE.hE=0.01;
     model->setEParameters(sE);
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
@@ -421,6 +429,7 @@ void EnzView::slot_En_of_z()
         clearAll();
         curve_number=0;
         adjCurves.resize(0);
+        colorOfCurves.resize(0); 
         physCurves.resize(0);
     }
     else curve_number=curve_number+1;
@@ -430,10 +439,12 @@ void EnzView::slot_En_of_z()
     {
         adjCurves.resize(0);
         physCurves.resize(0);
+        colorOfCurves.resize(0); 
     }
     for (int i=0; i < npoints; i++)
     {
         double zz=z0 + hz*i;
+        if(zz<0) break;
         tp.z=zz;
         model->setzParam(tp);
         QVector<double> Ebound = model->getEn();
@@ -464,10 +475,19 @@ void EnzView::slot_En_of_z()
                 physCurves[ic].push_back(QPointF(zz, Ebound[i]));
             }
         }
-//        for(int j=0; j<adjCurves.size(); j++)
         for(int j=numberOfCurves; j<adjCurves.size(); j++)
         {
-            p.setColor(colorForIds[j % size_colorForIds]);
+            if(type==PERIODIC) 
+            {
+                QColor c = colorForIdsP[(j-numberOfCurves) % size_colorForIdsP];
+                p.setColor(c);//olorForIdsP[(j-numberOfCurves) % size_colorForIdsP]);
+                //                p.setColor(colorForIds[(j/2) % size_colorForIds]);
+            }
+            else 
+            {
+                QColor c = colorForIds[(j-numberOfCurves) % size_colorForIds];
+                p.setColor(c);
+            }
 //            setCurve(numberOfCurve+j,physCurves[j],adjCurves[j],p);
             setCurve(j,physCurves[j],adjCurves[j],p);
         }
@@ -488,6 +508,21 @@ void EnzView::slot_En_of_z()
             return;
         }
     }
+    colorOfCurves.resize(adjCurves.size());
+            for(int j=numberOfCurves; j<adjCurves.size(); j++)
+        {
+            if(type==PERIODIC) 
+            {
+                QColor c = colorForIdsP[(j-numberOfCurves) % size_colorForIdsP];
+                colorOfCurves[j]=c; 
+            }
+            else 
+            {
+                QColor c = colorForIds[(j-numberOfCurves) % size_colorForIds];
+                colorOfCurves[j]=c; 
+            }
+        }
+
         numberOfCurves=physCurves.size();
     update();
 }
@@ -533,6 +568,7 @@ void EnzView::slot_En_of_z()
 void EnzView::redrawCurves()
 {
     if(curves.size()==0) return;
+    PotentialType type = model->getPotentialType();
     QPen p;
     SettingParameters ts;
     ts=model->getSettingParameters();
@@ -571,7 +607,13 @@ void EnzView::redrawCurves()
             qreal newy = vp.height()*(ppg[k].y()-Enzmin)/(Enzmax-Enzmin);
             ipg[k] = QPointF(newx,newy);
         }
-        p.setColor(colorForIds[id % size_colorForIds]);
+/*            if(type==PERIODIC) 
+            {
+                p.setColor(colorForIdsP[id % size_colorForIdsP]);
+            }
+            else 
+                p.setColor(colorForIds[id % size_colorForIds]);*/
+        p.setColor(colorOfCurves[id]);
         if(ipg.size()>=1)setCurve(id,ppg,ipg,p);
     }
     update();

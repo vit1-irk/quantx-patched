@@ -188,11 +188,15 @@ QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z, int dqde_a
         {
             z = mp;
         }
-        if((a.d<0&&abs(a.d)<1e-12)&&(z.d<=0&&abs(z.d)<1e-12))
+        if((a.d<0&&abs(a.d)<1e-10)&&(z.d<=0&&abs(z.d)<1e-10))
         {
             return QPair<EQDN,EQDN>(a,z);
         }
-
+/*        if((a.d<0&&abs(a.d)<1e-10)&&(z.d<=0&&abs(z.d)<1e-10))
+        {
+            return QPair<EQDN,EQDN>(a,z);
+        }
+*/
 //        EQDN a1 = EQDN( a.e + h, model );
 //        EQDN z1 = EQDN( z.e - h, model );
 //        if(((m1.q-m.q)>=0&&(a1.q-a.q)>=0)||((m1.q-m.q)<=0&&(a1.q-a.q)<=0))

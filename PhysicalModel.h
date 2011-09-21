@@ -282,6 +282,7 @@ signals:
     void signalLevelNumberChanged(int);
     void signalEboundChanged();
     void signalScalesUChanged();
+    void signalEParametersChanged();
     void signalScalePsinChanged();
     void signalScalePhinChanged();
     void signalLevelParametersChanged();

@@ -55,6 +55,7 @@ psiMax(1.), psiMin(-1.), whatToDraw(0)
 void WaveFunctionView::slotEnergyChanged()
 {
     if (! isVisible()) return;
+//    clearAll();
     LevelNumberParameters wp = model->getLevelNumberParameters();
     nMin=wp.nmin;
     nMax=wp.nmax;
@@ -153,7 +154,7 @@ void WaveFunctionView::slotEnergyChanged()
                 x = xz+yre;
                 if(y>1e4*psiMax) y=1e4*psiMax;
                 if(y<-1e4*psiMax) y=-1e4*psiMax;
- /*               if(i==0)
+                if(i==0)
                 {
                     vectorFirst->setLine(xz,yz,x,y);
                     vectorFirst->setPen(pl);
@@ -163,7 +164,7 @@ void WaveFunctionView::slotEnergyChanged()
                     QGraphicsLineItem *l = new QGraphicsLineItem(vectorFirst);
                     l->setPen(pl);
                     l->setLine(xz,yz,x,y);
-                }*/
+                }
             }
             else
             {
@@ -374,7 +375,17 @@ void WaveFunctionView::scrollView(int hx, int hy)
         dialogScalePsin->setModel(model);
     }*/
 }
-
+static const QColor colorForIds[12] = {
+    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::darkYellow,
+    Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::black
+};
+const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+static const QColor colorForIdsP[12] = {
+    Qt::darkRed, Qt::red, Qt::darkGreen, Qt::green, Qt::darkBlue, Qt::blue,
+    Qt::darkCyan,Qt::cyan, Qt::darkMagenta,Qt::magenta,
+    Qt::black,Qt::gray
+};
+const int size_colorForIdsP = sizeof(colorForIdsP)/sizeof(colorForIdsP[0]);
 void WaveFunctionView::slot_Psi_n_of_x()
 {
     if (! isVisible()) return;
@@ -395,12 +406,13 @@ void WaveFunctionView::slot_Psi_n_of_x()
     p.setColor(Qt::black);
     pl.setColor(Qt::lightGray);
     if(whatToDraw==3) clearAll();
-    static const QColor colorForIds[12] = {
+/*    static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+  */
     PotentialType type = model->getPotentialType();
     int number_of_levels;
     QVector<double> Ebound;
@@ -530,7 +542,12 @@ void WaveFunctionView::slot_Psi_n_of_x()
             }
             psi[i]  = QPointF(x, y);
         }
-        p.setColor(colorForIds[n % size_colorForIds]);
+        if(type==PERIODIC) 
+        {
+            p.setColor(colorForIdsP[n % size_colorForIdsP]);
+        }
+        else 
+            p.setColor(colorForIds[n % size_colorForIds]);
         setCurve(n, psi, p);
     }
     update();
@@ -701,6 +718,7 @@ void WaveFunctionWidget::readFromXml(QXmlStreamReader *r)
         else
             skipUnknownElement(r);
     }
+        waveFunctionView->clearAll();
 }
 
 

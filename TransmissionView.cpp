@@ -840,7 +840,7 @@ TEWidget::TEWidget(PhysicalModel *model, QWidget *parent)
 //    connect(bRunTE,SIGNAL(clicked()),this,SLOT(slotRunWP()));
 
     QLabel *lTtext= new QLabel(this);
-    lTtext->setText(tr("T="));
+    lTtext->setText(tr("T,N="));
     QLabel *lT= new MyLabel("",this);
     lT->setTextFormat(Qt::AutoText);
     connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));

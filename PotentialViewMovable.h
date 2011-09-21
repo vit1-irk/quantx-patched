@@ -59,6 +59,8 @@ public slots:
     void setScalesFromModel();
     void updateRangeE();
     void changeE();
+//    void setRangeE();
+    void modelChanged();
 signals:
     void infoMouseMovedTo(QPointF);
 //    void signalRangeEChanged();

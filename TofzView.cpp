@@ -628,7 +628,7 @@ TZWidget::TZWidget(PhysicalModel *model, QWidget *parent)
     connect(reset,SIGNAL(clicked()),tofzView,SLOT(resizePicture()));
 
     QLabel *lTtext= new QLabel(this);
-    lTtext->setText(tr("T="));
+    lTtext->setText(tr("T,N="));
     QLabel *lT= new MyLabel("",this);
     lT->setTextFormat(Qt::AutoText);
     connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));

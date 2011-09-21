@@ -60,8 +60,8 @@ void MomentumView::resizePicture()
     phiMin=tp.Phinmin;
     setViewportMapping();
     PotentialType type = model->getPotentialType();
-    if(type==PERIODIC)  slotEnergyChanged();
     slot_Phi_n_of_k();
+    if(type==PERIODIC)  slotEnergyChanged();
 }
 
 void MomentumView::setViewportMapping()
@@ -184,14 +184,12 @@ void MomentumView::slotEnergyChanged()
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
         linev->setPen(p);
         lineh->setPen(p);
         linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
         lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-    }*/
-    p.setColor(Qt::darkCyan);//Qt::darkRed);
+*/ 
+ p.setColor(Qt::darkCyan);//Qt::darkRed);
 
     double E=model->get_E0();
     model->set_E0(E);
@@ -276,6 +274,20 @@ void MomentumView::slot_Phi_n_of_k()
     }
     PotentialType type = model->getPotentialType();
     if(type==QUASISTATIONARY) return;
+        if(!linev)
+        {
+            lineh = new QGraphicsLineItem();
+            linev = new QGraphicsLineItem();
+            scene()->addItem(lineh);
+            scene()->addItem(linev);
+        }
+//        else
+//        {
+            linev->setPen(p);
+            lineh->setPen(p);
+            linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+            lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
+//        }
     if(type==PERIODIC)
     {
         double     ax=0;
@@ -325,7 +337,7 @@ void MomentumView::slot_Phi_n_of_k()
     }
     else
     {
-        if(!linev)
+/*        if(!linev)
         {
             lineh = new QGraphicsLineItem();
             linev = new QGraphicsLineItem();
@@ -339,7 +351,7 @@ void MomentumView::slot_Phi_n_of_k()
             linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
             lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
         }
-
+*/
         int npoints;
         QVector<double> waveFunction;
         QPolygonF phi;

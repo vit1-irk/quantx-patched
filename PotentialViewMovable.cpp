@@ -150,11 +150,27 @@ public:
     }
     QRectF boundingRect() const
     {
-        return QRectF(QPointF(),p2);
+        QRectF vp = view->sceneRect();
+        QPoint va(0,0);
+        QPoint vb(0,view->lineWidth);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+        QRect vpr = view->viewport()->rect();
+        QPointF vpr1 = view->mapToScene(vpr.topLeft());
+        QPointF vpr2 = view->mapToScene(vpr.bottomRight());
+        QMatrix m = view->matrix();
+        QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+        return aa;
+//        QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+//        return aa;///QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+        //        return QRectF(QPointF(),p2);
     }
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
     {
         pen.setWidthF(view->widthLineE);
+//        pen.setCapStyle(Qt::FlatCap);
         pen.setCapStyle(Qt::FlatCap);
         painter->setPen(pen);
         painter->drawLine(QLineF(QPointF(),p2));
@@ -168,6 +184,11 @@ EnergyLevels::EnergyLevels(PotentialViewMovable *v,QGraphicsItem *parent)
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,false);
     setFlag(QGraphicsItem::ItemIsSelectable,false);
+//    penHover.setCapStyle(Qt::RoundCap);
+    setZValue(1001);
+    pen.setCapStyle(Qt::FlatCap);
+//    pen.setWidthF(view->widthLineE);
+//    pen.setColor(Qt::black);
 }
 
 QVariant EnergyLevels::itemChange(GraphicsItemChange change, const QVariant & value)
@@ -391,6 +412,7 @@ Emin(-10.),Emax(20.),hE(0.01)
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEnergyChanged()));
     connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slotEboundChanged()));
 //    connect(this,SIGNAL(signalRangeE()),this,SLOT(slotEboundChanged()));
+    connect(model,SIGNAL(signalEParametersChanged()),this,SLOT(modelChanged()));
     connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
@@ -573,7 +595,7 @@ void PotentialViewMovable::slotUChanged()
         scene()->removeItem(linesUmin.last());
         linesUmin.pop_back();
     }
-    int j=linesVmin.size();
+    int j=linesVmin.size(); 
     while (0 < linesVmin.size())
     {
         scene()->removeItem(linesVmin.last());
@@ -625,12 +647,14 @@ void PotentialViewMovable::slotUChanged()
         //----------------------
         double xlast = vp.x();
         int nlast=Ui.size()-1;
+        QPen p;
+        p.setColor(Qt::black);
         for (int n = 0; n < Ui.size(); ++n)
         {
             linesU[n]->setFlag(QGraphicsItem::ItemIsMovable,true);
             linesU[n]->setFlag(QGraphicsItem::ItemIsSelectable,true);
             linesU[n]->setZValue(1000);
-//            linesU[n]->setAcceptHoverEvent(true);
+            linesU[n]->setPen(p);
             linesU[n]->set_n(n);
             qreal y = Ui[n];
             (void)y;
@@ -645,7 +669,8 @@ void PotentialViewMovable::slotUChanged()
             //       if(xlast+w < xmax)
             {
                 linesU[n]->setLine(xlast,Ui[n],w);
-                linesU[n]->setZValue(1000);
+//                linesU[n]->setZValue(1000);
+//                linesU[n]->setPen(p);
                 xlast += w;
             }
             /*       else
@@ -668,6 +693,7 @@ void PotentialViewMovable::slotUChanged()
                 linesV[n]->setCursor(n == 0 ? QCursor() : Qt::SizeHorCursor);
                 linesV[n]->setFlag(QGraphicsItem::ItemIsMovable,n == 0 ? false : true  );
                 linesV[n]->setFlag(QGraphicsItem::ItemIsSelectable,n == 0 ? false : true  );
+                linesV[n]->setPen(p);
 //                if(n==0)linesV[n]->setAcceptHoverEvent(false);
 //                else linesV[n]->setAcceptHoverEvent(true);
                 linesV[n]->setZValue(1000);
@@ -790,7 +816,8 @@ void PotentialViewMovable::slotUperChanged()
     int ivx=linesVmax.size();
 //    for (int n = 1; n < linesU.size(); ++n)
         QPen p;
-        p.setColor(Qt::darkRed);
+        p.setColor(Qt::darkYellow);
+//      p.setColor(Qt::darkRed);
     for (int n = 1; n < Ui.size()-1; ++n)
     {
         linesU[n-1]->setFlag(QGraphicsItem::ItemIsMovable,true);
@@ -934,27 +961,33 @@ void PotentialViewMovable::slotUperChanged()
     }
     update();
 }
-void PotentialViewMovable::slotEboundChanged()
-{
     static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
-//        Qt::yellow,
-        Qt::black,
-        Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
+        Qt::darkYellow,
+        Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, 
+        Qt::black
+    };
+    static const QColor colorForIdsP[12] = {
+        Qt::darkRed, Qt::red, Qt::darkGreen, Qt::green, Qt::darkBlue, Qt::blue,
+        Qt::darkCyan,Qt::cyan, Qt::darkMagenta,Qt::magenta,
+        Qt::black,Qt::gray
+//        Qt::darkYellow,Qt::gray
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+    const int size_colorForIdsP = sizeof(colorForIdsP)/sizeof(colorForIdsP[0]);
+void PotentialViewMovable::slotEboundChanged()
+{
     PotentialType type = model->getPotentialType();
-    QVector<double> Ebound;
-    QVector<complex> Equasi;
     if(type==FINITE||type==PERIODIC)
     {
+        QVector<double> Ebound;
         Ebound = model->getEn();
         while (Ebound.size() > linesEn.size())
         {
             int n = linesEn.size();
             EnergyLevels *line = new EnergyLevels(this);
-            double e = Ebound[n];
-            line->setLine(xmin,e,xmax-xmin);
+//            double e = Ebound[n];
+//            line->setLine(xmin,e,xmax-xmin);
             line->setFlag(QGraphicsItem::ItemIsMovable,false);
             line->setFlag(QGraphicsItem::ItemIsSelectable,false);
             line->setCursor(QCursor());
@@ -966,14 +999,21 @@ void PotentialViewMovable::slotEboundChanged()
             scene()->removeItem(linesEn.last());
             linesEn.pop_back();
         }
-        for (int n = 0; n < linesEn.size(); ++n)
+        for (int n = 0; n < Ebound.size(); ++n)
+            //      for (int n = 0; n < linesEn.size(); ++n)
         {
+            if(type==PERIODIC) 
+            {
+                linesEn[n]->setPen(colorForIdsP[n % size_colorForIdsP]);
+            }
+            else 
+                linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
             linesEn[n]->setLine(xmin,Ebound[n],xmax-xmin);
-            linesEn[n]->setPen(colorForIds[n % size_colorForIds]);
         }
     }
     if(type==QUASISTATIONARY)
     {
+        QVector<complex> Equasi;
         Equasi = model->getEquasi();
         while (Equasi.size() > linesEn.size())
         {
@@ -1029,8 +1069,8 @@ void PotentialViewMovable::slotEnergyChanged()
         scene()->addItem(lineEnergy);
     }
     QPen p;
-    p.setJoinStyle(Qt::BevelJoin);
-    p.setCapStyle(Qt::RoundCap);
+//    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::FlatCap);
     p.setWidthF(this->widthLineE);
     p.setStyle(Qt::DashLine);
     p.setColor(Qt::green);
@@ -1052,11 +1092,15 @@ EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *
     pen.setStyle(Qt::DashLine);
     pen.setColor(Qt::green);
     pen.setWidthF(v->widthLineE);
+    penHover.setCapStyle(Qt::FlatCap);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(view->widthLineE);
+
 
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
-    setZValue(999);
+    setZValue(1002);
     setAcceptHoverEvents ( true );
 }
 
@@ -1090,6 +1134,11 @@ HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
 //    penHover.setStyle(Qt::DashLine);
     penHover.setWidthF(view->widthLineH);
     penHover.setColor(Qt::blue);
+
+    penHover.setCapStyle(Qt::FlatCap);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(view->widthLineH);
+    pen.setColor(Qt::black);
 
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
@@ -1149,6 +1198,10 @@ VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
 //    penHover.setStyle(Qt::DashLine);
     penHover.setWidthF(view->widthLineV);
     penHover.setColor(Qt::blue);
+
+//    p.setJoinStyle(Qt::BevelJoin);
+    penHover.setCapStyle(Qt::FlatCap);
+    pen.setCapStyle(Qt::FlatCap);
 
     pen.setWidthF(view->widthLineV);
     pen.setColor(Qt::black);
@@ -1316,6 +1369,21 @@ void PotentialViewMovable::setRangeE()
     x.sprintf("%lg",this->Emax);
     this->leEmax->setText(x);
 }
+void PotentialViewMovable::modelChanged()
+{
+    EParameters tp = model->getEParameters();
+
+    QString buf;
+    buf.sprintf("%lg",tp.hE);
+    this->leHE->setText(buf);
+
+    buf.sprintf("%lg",tp.Emin);
+    this->leEmin->setText(buf);
+
+    buf.sprintf("%lg",tp.Emax);
+    this->leEmax->setText(buf);
+}
+
 void PotentialViewMovable::updateRangeE()
 {
     double hENew = this->leHE->text().toDouble();
@@ -1484,10 +1552,11 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
 
 
     QLabel *lTtext= new QLabel(this);
-    lTtext->setText(tr("T/N(E)="));
+    lTtext->setText(tr("T,N="));
     QLabel *lT= new MyLabel("",this);
     lT->setTextFormat(Qt::AutoText);
     connect(model, SIGNAL(signalTransmissionChanged(double)), lT, SLOT(setNum(double)));
+    connect(model, SIGNAL(signalQaChanged(double)), lT, SLOT(setNum(double)));
     hl->addWidget(lNtext);
     hl->addWidget(lN);
     hl->addWidget(lEtext);
@@ -1530,7 +1599,7 @@ void PotentialMovableWidget::updateLevelNumber()
 {
     int levelNumber = this->lN->text().toDouble();
     int N=this->potentialViewMovable->model->get_LevelNumber();
-    if ( levelNumber!= N)
+//    if ( levelNumber!= N)
     {
         this->potentialViewMovable->model->set_LevelNumber(levelNumber);
     }

@@ -360,7 +360,7 @@ void MainWindow::slotSetEquasi()
         tableViewEquasi = new QTableView(this);
         tableViewEquasi->setWindowFlags(Qt::Window);
         tableViewEquasi->setFont(QFont("Serif", 12, QFont::Bold ));
-        tableViewEquasi->setWindowTitle("Quasilevels");
+        tableViewEquasi->setWindowTitle("Quasistationary states");
 
         tableViewEquasi->setCornerButtonEnabled(false);
         tableViewEquasi->setSortingEnabled(false);
@@ -2126,6 +2126,9 @@ void MainWindow::writeToXml(QXmlStreamWriter *w)
 
         s.sprintf("%i",this->waveFunctionWidget->isVisible() ? 1 : 0);
         w->writeTextElement("PsiXisVisible",s);
+
+        s.sprintf("%i",this->wavePacketXWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("PsiXTisVisible",s);
 
         s.sprintf("%i",this->momentumDistibutionWidget->isVisible() ? 1 : 0);
         w->writeTextElement("PhiKisVisible",s);

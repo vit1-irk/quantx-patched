@@ -339,7 +339,6 @@ void PhysicalModel::findBands()
     EQDN emax = EQDN( this->Emax, this );
 
     QVector<EQDN> bandCenters = findBandCenters( this, emin, emax );
-
     if (1)
     {
         double cka, cke;
@@ -352,15 +351,16 @@ void PhysicalModel::findBands()
         }
     }
 
-    QVector<EQDN> bandEdges = findBandEdges( this, emin, emax, bandCenters );
-
-    Ebound.clear();
-    foreach( EQDN e, bandEdges )
+    if(bandCenters.size()>0)
     {
-        Ebound.push_back( e.e );
+        QVector<EQDN> bandEdges = findBandEdges( this, emin, emax, bandCenters );
+        Ebound.clear();
+        foreach( EQDN e, bandEdges )
+        {
+            Ebound.push_back( e.e );
+        }
     }
-
-
+    else     Ebound.clear();
     this->set_E0(Eold);
 }
 
@@ -480,6 +480,7 @@ void PhysicalModel::findQuasiStates()
     if(this->hE<=0) hE=0.1;
     double he=this->hE;
     Equasi.resize(0);
+    if(Emax<=Emin) Emax=20;
     while(E<=this->Emax)
     {
         E=E+he;
@@ -686,6 +687,7 @@ void PhysicalModel::getColors(double Emin, double Emax, double dE, double Gmin, 
     complex Ecnew;
     complex Ecold;
     int iE=1+(Emax-Emin)/dE;
+    if(Gmax<=Gmin||Emax<=Emin) return;
     int jG=1+(Gmax-Gmin)/dG;
     colorEG.resize(jG*iE);
     QPoint p;
@@ -1278,7 +1280,7 @@ void PhysicalModel::build_U() /* input:Ub,Ui --- result:U */
         m[N+1]=0.5;//m[1];
 
     }
-    if(this->typeOfU==FINITE)
+    if(this->typeOfU==FINITE||this->typeOfU==QUASISTATIONARY)
     {
         d[0]=0;
         m[0]=0.5;
@@ -1340,8 +1342,9 @@ This function calculates the coefficients a & b.
         {
             Smatrix();
             this->funEn=real(bN1);
-            if((this->E0 > U[N+1]&&E0<=U[0])||(U[N+1]>U[0]&&E0>U[N+1]))
-//            if(this->E0 > U[N+1]&&E0>=U[0])
+            if((this->E0 > U[N+1])||(U[N+1]>U[0]&&E0>U[N+1]))
+// при падении на ступеньку справа U[0]>U[1] амплитуда падающей волны всегда 1
+//            if((this->E0 > U[N+1]&&E0<=U[0])||(U[N+1]>U[0]&&E0>U[N+1]))
             {
                 complex bb=b[N+1];
                 for(int i=0; i<=N+1; i++)
@@ -2917,12 +2920,13 @@ void  PhysicalModel::setEParameters(const EParameters& u)
      changed = true;
      this->hE=u.hE;
  }
+    if (changed) emit(signalEParametersChanged());
     if (changed&&(typeOfU==PERIODIC||typeOfU==QUASISTATIONARY))
     {
         need_build_En = true;
         emit(signalEboundChanged());
     }
-}
+} 
 void  PhysicalModel::setTimeParam(const TimeParameters& u)
 {
  double v=u.time;
@@ -2946,6 +2950,7 @@ void  PhysicalModel::setSettingParameters(const SettingParameters &u)
      emit(signalWidthChanged());
  }
 }
+
 void  PhysicalModel::set_LevelNumber(int n)
 {
     if(levelNumber!=n)
@@ -3388,7 +3393,7 @@ width_of_Line(2), levelNumber(0),
 E0(0.001), GG(-0.001), Emax(20.), Emin(0.1), hE(0.01), psi(0), x(0),
   kwave(0), Gmin(-5.), Gmax(-0.001), dG(0.05),
  time(0),tmin(0),tmax(100),ht(0.01),
- zz(-1),zmin(0.),zmax(1.),hz(0.01),
+ zz(.001),zmin(0.),zmax(1.),hz(0.01),
 Hx(0.01), Xmax(3.), Xmin(-1), Umin(-25),Umax(10),
 Psimin(-1.), Psimax(4.),
 Psinmin(-1.), Psinmax(1.),
@@ -3513,6 +3518,11 @@ void PhysicalModel::setPotentialType(PotentialType t)
             d[0]=0;
             m[0]=m[N];
             Ui[N+1]=0;
+            if(Ui[N+1]==Ui[N]) 
+            {
+                set_N(N-1);
+                Ui[N+1]=0;
+            }
             d[N+1]=1;//d[1];???
             m[N+1]=m[1];
         }
@@ -3718,6 +3728,7 @@ QVector<double> PhysicalModel::getEn()
             }
         }
         if(this->typeOfU==PERIODIC) findBands();
+//        set_LevelNumber(this->levelNumber);
         this->E0=Eold;
         need_build_En = false;
     }
@@ -3765,6 +3776,7 @@ double PhysicalModel::getEn(int n)
         if(this->typeOfU==PERIODIC) findBands();
         need_build_En = false;
     }
+    set_LevelNumber(this->levelNumber);
     return Ebound[n];
 }
 complex PhysicalModel::getEquasi(int n)
@@ -3953,7 +3965,7 @@ void PhysicalModel::getTatE()//(double E)
     }
     if(E0>Umax)
     {
-//        build_ab();
+        build_ab();
         build_RT();
         emit(signalTransmissionChanged(TT));
     }
@@ -3981,7 +3993,7 @@ void PhysicalModel::getTnatE()//(double E)
 //        this->set_LevelNumber(n);
         double E0=real(Equasi[n]);
         double G=imag(Equasi[n]);
-        double G2=G*G;
+        double G2=G*G; 
         double EE=this->E0-E0;
         tt=G2/(EE*EE+G2);
         emit(signalTransmissionChanged(tt));
@@ -4026,6 +4038,10 @@ QVector<double> PhysicalModel::getTransmissionOfE(double Emin, double Emax, int 
             {
                 build_RT();
                 y=this->TT;
+            }
+            else if(E>=Umin&&E<=Umax)
+            {
+                y=0;
             }
             else if(E<Umin)
             {
@@ -4129,6 +4145,10 @@ QVector<double> PhysicalModel::getTransmissionOfZ(double Zmin, double Zmax, int 
                 build_RT();
                 transmission[i] = this->TT;
             }
+            else if (this->E0>=U[0]&&this->E0<=U[N+1])
+            {
+                y=0.;
+            }
             else
             {
                 if(this->Ebound.size()>=1) y = 0.1*findNumberOfLevels(this->E0);
@@ -4198,8 +4218,20 @@ void PhysicalModel::set_Uxz(double z)
     if(U1.size()==U2.size())
     {
         int N = U1.size()-2;
-        set_N(U1.size()-2);
+//        set_N(U1.size()-2);
         if (N < 0) return;
+        if(this->typeOfU==FINITE||this->typeOfU==QUASISTATIONARY)
+        {
+            U1[N+1]=0.;
+            U2[N+1]=0.;
+            if(U1[N+1]==U1[N]&&U2[N+1]==U2[N])
+            {
+                int Nold=this->N;
+                set_N1(Nold-1);
+                set_N2(Nold-1);
+                set_N(Nold-1);
+            }
+        }
         if(this->typeOfU==PERIODIC&&this->N==1)
         {
             this->set_N1(2);
@@ -4805,6 +4837,10 @@ void ModelXML::read()
         {
             readE0();
         }
+        else if (r->name() == "LevelNumber")
+        {
+            readLevelNumber();
+        }
         else if (r->name() == "EnergyParameters")
         {
             readEParameters();
@@ -4840,10 +4876,6 @@ void ModelXML::read()
         else if (r->name() == "GParameters")
         {
             readGParam();
-        }
-        else if (r->name() == "LevelNumber")
-        {
-            readLevelNumber();
         }
         else if (r->name() == "ZParameters")
         {

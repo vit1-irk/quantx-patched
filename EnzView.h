@@ -87,6 +87,7 @@ private:
     QVector<QPolygonF> physCurvesI;
     QVector<QPolygonF> adjCurvesR;
     QVector<QPolygonF> physCurvesR;
+    QVector<QColor> colorOfCurves;
 
     int curve_number;
     double zmax, zmin, hz;
