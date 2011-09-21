@@ -6,6 +6,8 @@ OutFile "Kvant-${VERSION}.exe"
 InstallDir $PROGRAMFILES32\Kvant
 RequestExecutionLevel user
 
+XPStyle on
+
 ; First is default
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\Russian.nlf"
@@ -74,4 +76,4 @@ FunctionEnd
 ; TODOs
 ; $APPDATA for saving files, or $PROFILE ?
 ; Check if the build is from clean checkout, and check version.
-; 
+;
