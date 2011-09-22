@@ -15,8 +15,28 @@
 #include <QList>
 #include <QRectF>
 #include <QGraphicsScene>
+#include <QSettings>
 #include "BreakStatus.h"
 #include "MySplitter.h"
+
+QString gDocDir;
+static void update_gDocDir(const QString& filename = QString())
+{
+    if (filename.isEmpty())
+    {
+        if (gDocDir.isEmpty())
+        {
+            QSettings settings(QSettings::UserScope, "Microsoft", "Windows");
+            settings.beginGroup("CurrentVersion/Explorer/Shell Folders");
+            gDocDir = settings.value("Personal").toString();
+        }
+    }
+    else
+    {
+        QFileInfo i(filename);
+        gDocDir = i.absoluteFilePath();
+    }
+}
 
 class DoubleValidator : public QRegExpValidator
 {
@@ -281,15 +301,20 @@ void MainWindow::initMenuBar()
 
      QToolBar *widthLineTool = new QToolBar;
      addToolBar(widthLineTool);
-     QAction *widthLineAc = new QAction(tr("Setting"), widthLineTool);
+     QAction *widthLineAc = new QAction(tr("Settings"), widthLineTool);
      widthLineTool->addAction(widthLineAc);
      widthLineAc->setToolTip(tr("Толщина линий в пикселах"));
      connect(widthLineAc, SIGNAL(triggered()), this, SLOT(slotSetting()));
 }
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("О программе Кванте"),
-        tr("Это новая версия программы QUANTX, написанная на Qt. Авторы: Ткаченко О.А., Ткаченко В.А., Коткин Г.Л., Бакшеев Д.Г."));
+    QMessageBox::about(this, tr("О программе Квант"),
+        tr("<p><b>Квант 0.001</b></p>"
+        "<p>Учебная программа по квантовой механике.</p>" 
+        "<p>Авторы: О.А.Ткаченко, В.А.Ткаченко, Г.Л.Коткин</p>"
+        "<p>Сайт программы: <a href='http://sourceforge.net/projects/quantx'>"
+        "http://sourceforge.net/projects/quantx</a></p>"
+        ));
 }
 
 void MainWindow::chooseFont()
@@ -303,14 +328,16 @@ void MainWindow::chooseFont()
         this->menuWidget()->setFont(myfont);
 }
 
-
 bool MainWindow::saveAs()
 {
+    update_gDocDir();
     QString fn = QFileDialog::getSaveFileName( this,
-        tr("Choose a file name"), ".",
+        tr("Choose a file name"), gDocDir,
         tr("*.xml"));
-    if ( !fn.isEmpty() ) {
+    if ( !fn.isEmpty() )
+    {
         curFile = fn;
+        update_gDocDir( fn );
         return this->save();
     }
     return false;
@@ -2157,13 +2184,17 @@ void MainWindow::writeToXml(QXmlStreamWriter *w)
 //------
 bool MainWindow::openFile()
 {
+    update_gDocDir();
+
     QString fileName;
 //    int _visibleTE;
-    fileName = QFileDialog::getOpenFileName(this, "Choose a data file","", "*.xml");
+    fileName = QFileDialog::getOpenFileName(this, "Choose a data file", gDocDir, "*.xml");
     if (fileName.isEmpty())
         return false;
     else
     {
+        update_gDocDir(fileName);
+
         //--------------------------------------
         QFile f(fileName);//curFile);
 

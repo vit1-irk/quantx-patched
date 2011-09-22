@@ -32,6 +32,7 @@ Section "Installer Section"
   File "C:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcr90.dll"
   File "C:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
   File "documentation\kvant.pdf"
+  File "documentation\tasks.pdf"
 SectionEnd
 
 Section -post
@@ -54,6 +55,8 @@ Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\Kvant"
   CreateShortCut "$SMPROGRAMS\Kvant\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Kvant\Kvant.lnk" "$INSTDIR\kvant.exe" "" "$INSTDIR\kvant.exe" 0
+  CreateShortCut "$SMPROGRAMS\Kvant\Kvant.pdf.lnk" "$INSTDIR\Kvant.pdf" "" "$INSTDIR\Kvant.pdf" 0
+  CreateShortCut "$SMPROGRAMS\Kvant\Tasks.pdf.lnk" "$INSTDIR\Tasks.pdf" "" "$INSTDIR\Tasks.pdf" 0
 SectionEnd
 
 Section "un.Installer Section"
