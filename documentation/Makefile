@@ -1,8 +1,12 @@
-all: kvant.pdf ../debug/kvant.pdf ../release/kvant.pdf
+FILE=kvant
+.SUFFIXES: .pdf
+all: $(FILE).pdf
+all: ../debug/$(FILE).pdf
+all: ../release/$(FILE).pdf
 
-kvant.pdf: kvant.tex
+$(FILE).pdf: $(FILE).tex
 	-pdflatex -interaction=batchmode $<
-	-pdflatex -interaction=batchmode $<
+	pdflatex -interaction=batchmode $<
 
-../%/kvant.pdf: kvant.pdf
+../%/$(FILE).pdf: $(FILE).pdf
 	if [ -d $(@D) ] ; then cp $< $@ ; fi

@@ -14,10 +14,11 @@
 //#include "ScalesUx.h"
 #include "ScalePsin.h"
 #include "LevelNumber.h"
+#include <cmath>
 
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),
-dialogLevNum(0), lineh(0), linev(0),dialogScalePsin(0),//gbWidth(0),//leW(0),
+dialogLevNum(0), lineh(0), linev(0),linez(0),vectorFirst(0),dialogScalePsin(0),//gbWidth(0),//leW(0),
 xmin(-1.), xmax(10.),dx(0.01),
 nMax(4),nMin(0),hn(1),lineWidth(2),
 psiMax(1.), psiMin(-1.), whatToDraw(0)
@@ -54,65 +55,127 @@ psiMax(1.), psiMin(-1.), whatToDraw(0)
 void WaveFunctionView::slotEnergyChanged()
 {
     if (! isVisible()) return;
+//    clearAll();
     LevelNumberParameters wp = model->getLevelNumberParameters();
     nMin=wp.nmin;
     nMax=wp.nmax;
     hn=wp.hn;
     if(nMin>0&&nMax>0&&hn>0) return;
     QRectF vp = scene()->sceneRect();
-    QPen p;
+    QPen p,pl;
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);//Qt::darkRed);
-    if(!linev)
+    pl.setColor(Qt::lightGray);
+    pl.setWidthF(1);
+    double xn,yn,cs,sn;
+    if(whatToDraw<3)
     {
-        lineh = new QGraphicsLineItem();
-        linev = new QGraphicsLineItem();
-        scene()->addItem(lineh);
-        scene()->addItem(linev);
+        if(linez)
+        {
+            scene()->removeItem(linez);
+            linez=0;
+        }
+        if(!linev)
+        {
+            lineh = new QGraphicsLineItem();
+            linev = new QGraphicsLineItem();
+            scene()->addItem(lineh);
+            scene()->addItem(linev);
+        }
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
     }
-    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-    linev->setPen(p);
-    lineh->setPen(p);
-    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+    else
+    {
+        xn= vp.width()/2.;
+        yn =2*vp.height()/3.;
+        double xk = 0;
+        double yk = 0;//vp.height();
+        cs = (xn-xk)/(xmax-xmin);
+        sn = -(yk-yn)/(xmax-xmin);
+        if(!linez)
+        {
+            linez = new QGraphicsLineItem();
+            scene()->addItem(linez);
+            linez->setPen(p);
 
-    p.setColor(Qt::darkCyan);//Qt::darkRed);
+        }
+        if(!linev)
+        {
+            lineh = new QGraphicsLineItem();
+            linev = new QGraphicsLineItem();
+            scene()->addItem(lineh);
+            scene()->addItem(linev);
+        }
+        linev->setLine(xn, yn, xn, vp.height());
+        lineh->setLine(xn, yn, vp.width(), yn);
+        linez->setLine(xn, yn, xk, yk);
+        linev->setPen(p);
+        lineh->setPen(p);
+    }
+    p.setColor(Qt::gray);//Qt::darkRed);
     complex Ec;
     double E;
     PotentialType type = model->getPotentialType();
     E=model->get_E0();
     int npoints;//=501;
-    QVector<double> waveFunction;
+    QVector<complex> waveFunction;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
     if(type==QUASISTATIONARY) return;
-    if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints,whatToDraw);
-    if(type==FINITE||type==QUASISTATIONARY) waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,whatToDraw,false);
-//    if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Ec,xmin,xmax,npoints,whatToDraw,false);
     double h=vp.height();
+    if(vectorFirst) scene()->removeItem(vectorFirst);
+    vectorFirst = new QGraphicsLineItem(NULL,scene());
+    bool tail=false;
+        if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints);
+        if(type==FINITE) waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,tail);
         for (int i=0; i < npoints; i++)
         {
-//            double x = xmin + dx*i;
-//            double y = waveFunction[i];
-//            y = (y-psiMin)*scalePsi+Umin;
-//            psi[i]  = QPointF(x, y);
-            double x = (i*vp.width())/(npoints-1);
-            double y =h*(waveFunction[i]-psiMin)/(psiMax-psiMin);
-            if(y>10*h)
+            double x,yim,yre,y;
+            yre = real(waveFunction[i]);
+            yim = imag(waveFunction[i]);
+            if(whatToDraw==0) y = yre;
+            if(whatToDraw==1) y = yim;
+            if(whatToDraw==2) y = yre*yre+yim*yim;
+            if(whatToDraw==3)
             {
-                y=10*h;
+                double xi = xmin + dx*i;
+                yim =vp.height()*yim/psiMax;
+                yre =vp.height()*yre/psiMax;
+                double xz = xn-(xi-xmin)*cs;
+                double yz = yn-(xi-xmin)*sn;
+                y = yz+yim;
+                x = xz+yre;
+                if(y>1e4*psiMax) y=1e4*psiMax;
+                if(y<-1e4*psiMax) y=-1e4*psiMax;
+                if(i==0)
+                {
+                    vectorFirst->setLine(xz,yz,x,y);
+                    vectorFirst->setPen(pl);
+                }
+                else
+                {
+                    QGraphicsLineItem *l = new QGraphicsLineItem(vectorFirst);
+                    l->setPen(pl);
+                    l->setLine(xz,yz,x,y);
+                }
             }
-            if(y<-10*h)
+            else
             {
-                y=-10*h;
+                x = (i*vp.width())/(npoints-1);
+                y =vp.height()*(y-psiMin)/(psiMax-psiMin);
+                if(y>1e4*psiMax) y=1e4*psiMax;
+                if(y<-1e4*psiMax) y=-1e4*psiMax;
             }
             psi[i]  = QPointF(x, y);
         }
+    p.setColor(Qt::darkCyan);//Qt::darkRed);
     setCurve(ID_PSI_ENERGY, psi, p);
 }
 /*void WaveFunctionView::slotZChanged()
@@ -162,6 +225,7 @@ WaveFunctionView::~WaveFunctionView()
     }
     if (!lineh) delete lineh;
     if (!linev) delete linev;
+    if (!linez) delete linez;
 }
 void WaveFunctionView::resizePicture()
 {
@@ -173,16 +237,8 @@ void WaveFunctionView::resizePicture()
         xmax=tp.Xmax;
         psiMax=tp.Psinmax;
         psiMin=tp.Psinmin;
-
-/*        if(dialogScalePsin) dialogScalePsin->modelChanged();
-        else
-        {
-            dialogScalePsin = new ScalePsin(this);
-            dialogScalePsin->setModel(model);
-        }*/
     }
     setViewportMapping();
-//    slot_Psi_n_of_x();
     LevelNumberParameters wp = model->getLevelNumberParameters();
     nMin=wp.nmin;
     nMax=wp.nmax;
@@ -213,48 +269,17 @@ void WaveFunctionView::setViewportMapping()
     double rpsiMax=a.height();//a.height();
     QRectF b = QRectF(QPointF(rxmin,rpsiMin),QPointF(rxmax,rpsiMax));
     scene()->setSceneRect(b);
-        qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height();
-        qreal dx = - m11 * a.x();
-        qreal dy = - m22 * (a.y() + a.height());
-        QMatrix m(m11,0,0,m22,dx,dy);
-        this->setMatrix(m);
-        scene()->update(scene()->sceneRect());
-     QRectF   sr = scene()->sceneRect();
+    qreal m11 = a.width() / b.width();
+    qreal m22 = - a.height() / b.height();
+    qreal dx = - m11 * a.x();
+    qreal dy = - m22 * (a.y() + a.height());
+    QMatrix m(m11,0,0,m22,dx,dy);
+    this->setMatrix(m);
+    scene()->update(scene()->sceneRect());
+    QRectF   sr = scene()->sceneRect();
     update();
 }
 
-/*void WaveFunctionView::setViewportMapping()
-{
-    QRectF vp = QRectF(QPointF(this->xmin,this->psiMin),QPointF(this->xmax,this->psiMax));
-
-    QRectF sr = scene()->sceneRect();
-
-    QRectF a = QRectF(this->viewport()->rect());
-    if (vp != sr||a != a_old)
-    {
-        scene()->setSceneRect(vp);
-
-        QRectF b = vp; //scene()->sceneRect();
- //       QRectF a = QRectF(this->viewport()->rect());
-        qreal m11 = a.width() / b.width();
-        qreal m22 = - a.height() / b.height();
-        qreal dx = - m11 * a.x();
-        qreal dy = - m22 * (a.y() + a.height());
-        QMatrix m(m11,0,0,m22,dx,dy);
-        this->setMatrix(m);
-        scene()->update(scene()->sceneRect());
-        sr = scene()->sceneRect();
-        a_old=a;
-     double ax=fabs(xmax-xmin)*lineWidth/a.width();
-//     double ay=a.height()/20000.;
-//      double ay=a.height()/fabs(psiMax-psiMin);
-//     double ay=fabs(psiMax-psiMin)*lineWidth/a.height();
-     double ay=fabs(psiMax-psiMin)*lineWidth/a.height();
-     widthLineEn= ay;
-   }
-    update();
-} */
 void WaveFunctionView::resizeEvent(QResizeEvent*)
 {
 //    setViewportMapping();
@@ -350,28 +375,44 @@ void WaveFunctionView::scrollView(int hx, int hy)
         dialogScalePsin->setModel(model);
     }*/
 }
-
+static const QColor colorForIds[12] = {
+    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::darkYellow,
+    Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::black
+};
+const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+static const QColor colorForIdsP[12] = {
+    Qt::darkRed, Qt::red, Qt::darkGreen, Qt::green, Qt::darkBlue, Qt::blue,
+    Qt::darkCyan,Qt::cyan, Qt::darkMagenta,Qt::magenta,
+    Qt::black,Qt::gray
+};
+const int size_colorForIdsP = sizeof(colorForIdsP)/sizeof(colorForIdsP[0]);
 void WaveFunctionView::slot_Psi_n_of_x()
 {
     if (! isVisible()) return;
+    LevelNumberParameters wp = model->getLevelNumberParameters();
+    nMin=wp.nmin;
+    nMax=wp.nmax;
+    hn=wp.hn;
+    if(nMin<0||nMax<0||hn<0) return;
     QRectF vp = scene()->sceneRect();
     QRect a = QRect(this->viewport()->rect());
-    QPen p;
+    QPen p,pl;
     SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-//    if(lineWidth==0)lineWidth=1;
     p.setWidthF(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
-    static const QColor colorForIds[12] = {
+    pl.setColor(Qt::lightGray);
+    if(whatToDraw==3) clearAll();
+/*    static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
-//        Qt::yellow,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
+  */
     PotentialType type = model->getPotentialType();
     int number_of_levels;
     QVector<double> Ebound;
@@ -386,11 +427,6 @@ void WaveFunctionView::slot_Psi_n_of_x()
     Ebound = model->getEn();
     number_of_levels = Ebound.size();
     }
-    LevelNumberParameters wp = model->getLevelNumberParameters();
-    nMin=wp.nmin;
-    nMax=wp.nmax;
-    hn=wp.hn;
-    if(nMin<0||nMax<0||hn<0) return;
     for ( QMap<int,CoordinateDistribution*>::iterator i = curves.begin();  i != curves.end();   ++i)
     {
         int n = i.key();
@@ -402,56 +438,122 @@ void WaveFunctionView::slot_Psi_n_of_x()
         if(n>nMax&&nMax<number_of_levels-1) removeCurve(n);
         if(n<nMin&&nMin<number_of_levels-1) removeCurve(n);
     }
-
-    if(!linev)
-    {
-        lineh = new QGraphicsLineItem();
-        linev = new QGraphicsLineItem();
-        scene()->addItem(lineh);
-        scene()->addItem(linev);
-    }
-    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
-    linev->setPen(p);
-    lineh->setPen(p);
-    linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
-    lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+  double xn,yn,cs,sn;
+  if(whatToDraw<3)
+  {
+      if(linez)
+      {
+          scene()->removeItem(linez);
+          linez=0;
+      }
+      if(!linev)
+      {
+          lineh = new QGraphicsLineItem();
+          linev = new QGraphicsLineItem();
+          scene()->addItem(lineh);
+          scene()->addItem(linev);
+      }
+      linev->setPen(p);
+      lineh->setPen(p);
+      linev->setLine(vp.width()*(-xmin)/(xmax-xmin), 0, vp.width()*(-xmin)/(xmax-xmin),vp.height() );
+      lineh->setLine(0,vp.height()*(-psiMin)/(psiMax-psiMin),vp.width(),vp.height()*(-psiMin)/(psiMax-psiMin));
+  }
+  else
+  {
+      xn= vp.width()/2.;
+      yn =2*vp.height()/3.;
+      double xk = 0;
+      double yk = 0;//vp.height();
+      cs = (xn-xk)/(xmax-xmin);
+      sn = -(yk-yn)/(xmax-xmin);
+      if(!linez)
+      {
+          linez = new QGraphicsLineItem();
+          pl.setWidthF(1);
+          scene()->addItem(linez);
+          linez->setPen(p);
+      }
+      if(!linev)
+      {
+          lineh = new QGraphicsLineItem();
+          linev = new QGraphicsLineItem();
+          scene()->addItem(lineh);
+          scene()->addItem(linev);
+      }
+      linev->setLine(xn, yn, xn, vp.height());
+      lineh->setLine(xn, yn, vp.width(), yn);
+      linez->setLine(xn, yn, xk, yk);
+      linev->setPen(p);
+      lineh->setPen(p);
+  }
+    if(vectorFirst) scene()->removeItem(vectorFirst);
+    vectorFirst = new QGraphicsLineItem(NULL,scene());
     int npoints;//=501;
-    QVector<double> waveFunction;
+    QVector<complex> waveFunction;
     QPolygonF psi;
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
     p.setWidthF(lineWidth);
     bool tail=true;
-    for (int n = this->nMin; n <= this->nMax; n+= this->hn)
+            for (int n = this->nMin; n <= this->nMax; n+= this->hn)
     {
         if(n>number_of_levels-1) break;
-    if(type==PERIODIC) waveFunction = model->getPsiOfX_per(Ebound[n],xmin,xmax,npoints,whatToDraw);
-    if(type==FINITE) waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
-    if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Equasi[n],xmin,xmax,npoints,whatToDraw,tail);
-//        waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,whatToDraw,tail);
+        if(type==PERIODIC) waveFunction = model->getPsiOfX_per(Ebound[n],xmin,xmax,npoints);
+        if(type==FINITE) waveFunction = model->getPsiOfX(Ebound[n],xmin,xmax,npoints,tail);
+        if(type==QUASISTATIONARY) waveFunction = model->getQuasiPsiOfX(Equasi[n],xmin,xmax,npoints);
         for (int i=0; i < npoints; i++)
         {
- //           double x = xmin + dx*i;
- //           double y = waveFunction[i];
- //           psi[i]  = QPointF(x, y);
-/*            double x = i;//(i*vp.width())/(npoints-1);
-            double y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
-            psi[i]  = QPointF(x, y);*/
-            double x = (i*vp.width())/(npoints-1);
-            double y =vp.height()*(waveFunction[i]-psiMin)/(psiMax-psiMin);
-            if(y>1e4*psiMax) y=1e4*psiMax;
-            if(y<-1e4*psiMax) y=-1e4*psiMax;
+            double x,yim,yre,y;
+            yre = real(waveFunction[i]);
+            yim = imag(waveFunction[i]);
+            if(whatToDraw==0) y = yre;
+            if(whatToDraw==1) y = yim;
+            if(whatToDraw==2) y = yre*yre+yim*yim;
+            if(whatToDraw==3)
+            {
+                double xi = xmin + dx*i;
+                yim =vp.height()*yim/psiMax;
+                yre =vp.height()*yre/psiMax;
+                double xz = xn-(xi-xmin)*cs;
+                double yz = yn-(xi-xmin)*sn;
+                y = yz+yim;
+                x = xz+yre;
+                if(y>1e4*psiMax) y=1e4*psiMax;
+                if(y<-1e4*psiMax) y=-1e4*psiMax;
+/*                if(i==0&&n==nMin)
+                {
+                    vectorFirst->setLine(xz,yz,x,y);
+                    vectorFirst->setPen(pl);
+                }
+                else
+                {
+                    QGraphicsLineItem *l = new QGraphicsLineItem(vectorFirst);
+                    l->setPen(pl);
+                    l->setLine(xz,yz,x,y);
+                }*/
+            }
+            else
+            {
+                x = (i*vp.width())/(npoints-1);
+                y = vp.height()*(y-psiMin)/(psiMax-psiMin);
+                if(y>1e4*psiMax) y=1e4*psiMax;
+                if(y<-1e4*psiMax) y=-1e4*psiMax;
+            }
             psi[i]  = QPointF(x, y);
-             }
-        p.setColor(colorForIds[n % size_colorForIds]);
+        }
+        if(type==PERIODIC) 
+        {
+            p.setColor(colorForIdsP[n % size_colorForIdsP]);
+        }
+        else 
+            p.setColor(colorForIds[n % size_colorForIds]);
         setCurve(n, psi, p);
     }
     update();
+
 }
-//void WaveFunctionView::setCurve(int id,const QPolygon & curve, const QPen& pen)
-void WaveFunctionView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
+void WaveFunctionView::setCurve(int id, const QPolygonF & curve, const QPen& pen)
 {
     if (curves[id])
     {
@@ -508,6 +610,10 @@ void WaveFunctionView::setWhatToDraw(int w)
         emit( whatToDrawChanged(w) );
     }
 }
+int WaveFunctionView::getWhatToDraw()
+{
+    return whatToDraw;
+}
 void WaveFunctionView::showDialogScaleY()
 {
     if (!dialogScalePsin)
@@ -529,21 +635,13 @@ void WaveFunctionView::contextMenuEvent(QContextMenuEvent *event)
     QAction *levNum = m.addAction(tr("Level numbers"));
     QAction *scalePsi = m.addAction(tr("Scales"));
     QAction *what = m.exec(event->globalPos());
-//    QAction *width = m.addAction(m.tr("width of line"));
-/*    if (what == width)
-    {
-        this->showDialogWidth();
-        update();
-    }*/
     if (what == levNum)
     {
         this->showDialogLevNum();
-        //        update();
     }
     if (what == scalePsi)
     {
         this->showDialogScaleY();
-        //        update();
     }
     event->accept();
 }
@@ -569,17 +667,20 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
     QRadioButton *rad1= new QRadioButton("Re "+psi);
     QRadioButton *rad2= new QRadioButton("Im "+psi);
     QRadioButton *rad3= new QRadioButton(mod_psiofx);
+    QRadioButton *rad4= new QRadioButton("3D");
     hl->addWidget(rad1);
     hl->addWidget(rad2);
     hl->addWidget(rad3);
-    QButtonGroup *bgR = new QButtonGroup(this);
+    hl->addWidget(rad4);
+    bgR = new QButtonGroup(this);
     bgR->setExclusive(true);
     bgR->addButton(rad1,0);
     bgR->addButton(rad2,1);
     bgR->addButton(rad3,2);
+    bgR->addButton(rad4,3);
     bgR->button(0)->setChecked(true);
     connect(bgR,SIGNAL(buttonClicked(int)),waveFunctionView,SLOT(setWhatToDraw(int)));
-//    QPushButton *buttonClose = new QPushButton(tr("Close"));
+    connect(waveFunctionView,SIGNAL(whatToDrawChanged(int)),this,SLOT(checkButton(int)));
     hl->addWidget(bRun);
 
     QToolButton *buttonClose = new QToolButton(this);
@@ -592,4 +693,43 @@ WaveFunctionWidget::WaveFunctionWidget(PhysicalModel *model, QWidget *parent)
     vl->addLayout(hl);
 
     setLayout(vl);
+}
+void WaveFunctionWidget::checkButton(int index)
+{
+    this->bgR->button(index)->setChecked(true);
+}
+void WaveFunctionWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "Psix");
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "WhatToDraw")
+        {
+            QString s = r->readElementText();
+            int what = s.toInt();
+            waveFunctionView->setWhatToDraw(what);
+        }
+        else
+            skipUnknownElement(r);
+    }
+        waveFunctionView->clearAll();
+}
+
+
+void WaveFunctionWidget::writeToXml(QXmlStreamWriter *w)
+{
+    int what = waveFunctionView->getWhatToDraw();
+    w->writeStartElement("Psix");
+    {
+        QString s;
+        s.sprintf("%i",what);
+        w->writeTextElement("WhatToDraw",s);
+    }
+    w->writeEndElement();
 }

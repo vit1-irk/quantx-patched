@@ -1,14 +1,14 @@
-#include "Uparabolic.h"
+#include "Uch2x.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 
 
-Uparabolic::Uparabolic(QWidget *parent, Qt::WindowFlags f)
+Uch2x::Uch2x(QWidget *parent, Qt::WindowFlags f)
 : QDialog(parent,f), model(0)
 {
-        this->setWindowTitle(tr("Parabolic potential"));
+        this->setWindowTitle(tr("U0/ch^2(x/a)"));
         this->setFont(QFont("Serif", 12, QFont::Bold ));
         QVBoxLayout *vl = new QVBoxLayout(this);
 
@@ -43,18 +43,17 @@ Uparabolic::Uparabolic(QWidget *parent, Qt::WindowFlags f)
     this->setLayout(vl);
     this->modelChanged();
 }
-
-Uparabolic::~Uparabolic(void)
+Uch2x::~Uch2x(void)
 {
 }
 
-void Uparabolic::setModel(PhysicalModel *_model)
+void Uch2x::setModel(PhysicalModel *_model)
 {
     model = _model;
     modelChanged();
 }
 
-void Uparabolic::modelChanged()
+void Uch2x::modelChanged()
 {
     if (!model)
     {
@@ -70,7 +69,7 @@ void Uparabolic::modelChanged()
         this->leWidth->setEnabled(true);
     }
 
-    Uparab up = model->getUparab();
+    U_ch2x up = model->getU_ch2x();
     last.numberOfIntervals = -1;
 
     QString buf;
@@ -82,17 +81,18 @@ void Uparabolic::modelChanged()
     this->leWidth->setText(buf);
 }
 
-void Uparabolic::updateModel()
+void Uch2x::updateModel()
 {
     if (!model) return;
-    Uparab up = { 0 };
+    U_ch2x up = { 0 };
 
     up.numberOfIntervals = this->leNumberOfIntervals->text().toInt();
     up.U0 = this->leU0->text().toDouble();
     up.Width = this->leWidth->text().toDouble();
 //    if (up != last)
     {
-        model->setUparab(up);
+        model->setU_ch2x(up);
         last = up;
     }
 }
+

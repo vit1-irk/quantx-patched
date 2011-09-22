@@ -15,8 +15,28 @@
 #include <QList>
 #include <QRectF>
 #include <QGraphicsScene>
+#include <QSettings>
 #include "BreakStatus.h"
 #include "MySplitter.h"
+
+QString gDocDir;
+static void update_gDocDir(const QString& filename = QString())
+{
+    if (filename.isEmpty())
+    {
+        if (gDocDir.isEmpty())
+        {
+            QSettings settings(QSettings::UserScope, "Microsoft", "Windows");
+            settings.beginGroup("CurrentVersion/Explorer/Shell Folders");
+            gDocDir = settings.value("Personal").toString();
+        }
+    }
+    else
+    {
+        QFileInfo i(filename);
+        gDocDir = i.absoluteFilePath();
+    }
+}
 
 class DoubleValidator : public QRegExpValidator
 {
@@ -101,6 +121,7 @@ void MainWindow::initMenuBar()
      QAction *uTable = new QAction(tr("Табличный"), uMenu);
      QAction *uLinear = new QAction(tr("Линейный"),uMenu);
      QAction *uParabolic = new QAction(tr("Параболический"),uMenu);
+     QAction *uCh2x = new QAction(tr("U_0/ch^2(x/a)"),uMenu);
      uMenu->addAction(uTable);
      uMenu->addSeparator();
      uMenu->addSeparator();
@@ -108,9 +129,12 @@ void MainWindow::initMenuBar()
      uMenu->addSeparator();
      uMenu->addAction(uParabolic);
      uMenu->addSeparator();
+     uMenu->addAction(uCh2x);
+     uMenu->addSeparator();
      connect(uTable, SIGNAL(triggered()), this, SLOT(slotSetUxt()));
      connect(uParabolic, SIGNAL(triggered()), this, SLOT(slotSetUs()));
      connect(uLinear, SIGNAL(triggered()), this, SLOT(slotSetUlinear()));
+     connect(uCh2x, SIGNAL(triggered()), this, SLOT(slotSetUCh2x()));
 
      QMenu *wMenu = menuBar()->addMenu(tr("Зависимости"));
      wMenu->setWhatsThis(tr("Основные варианты счета"));
@@ -128,14 +152,11 @@ void MainWindow::initMenuBar()
      QString mod_phinofk="|"+phinofk+"|"+to2;
      QString mod_Phinofkt="|"+Phinofkt+"|"+to2;
 
-     //     QAction *mU = new QAction("U(x), En, "+psi+"(x,E)", this);
-     //     wMenu->addAction(mU);
      Uaction = new QAction("U(x) && En", this);
-//     Uaction = new QAction("U(x), En, "+psi+"(x,E)", this);
      wMenu->addAction(Uaction);
      wMenu->addSeparator();
-     //Uaction->setStatusTip(tr("Calculated energy levels and wave function at energy E for potential U(x)"));
-     Uaction->setStatusTip(tr("Уровни энергии в потенциале U(x) и волновая функция для энергии E"));
+     Uaction->setStatusTip(tr("Уровни энергии в потенциале U(x)"));
+
      QAction *mPsinX = new QAction(psinofx, this);
      wMenu->addAction(mPsinX);
      wMenu->addSeparator();
@@ -182,7 +203,7 @@ void MainWindow::initMenuBar()
      wMenu->addSeparator();
      mEG->setStatusTip(tr("Квазистационарные сост. на пл. E+iG, нули Re и Im B_{N+1}" ));
 */
-     connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux_Psix()));
+     connect(Uaction, SIGNAL(triggered()), this, SLOT(window_Ux()));
      connect(mPsinX, SIGNAL(triggered()), this, SLOT(window_psi_x()));
      connect(mPhinK, SIGNAL(triggered()), this, SLOT(window_phi_k()));
      connect(mPsiXT, SIGNAL(triggered()), this, SLOT(window_psi_xt()));
@@ -280,23 +301,20 @@ void MainWindow::initMenuBar()
 
      QToolBar *widthLineTool = new QToolBar;
      addToolBar(widthLineTool);
-     QAction *widthLineAc = new QAction(tr("Setting"), widthLineTool);
+     QAction *widthLineAc = new QAction(tr("Settings"), widthLineTool);
      widthLineTool->addAction(widthLineAc);
      widthLineAc->setToolTip(tr("Толщина линий в пикселах"));
      connect(widthLineAc, SIGNAL(triggered()), this, SLOT(slotSetting()));
 }
 void MainWindow::about()
 {
-//    QMessageBox *mb = new QMessageBox(this);
-    QMessageBox::about(this, tr("О программе Кванте"),
-        tr("Варианты счета выбираются в меню <<Зависимости>>, при этом открывается новое\n"
-        "окно, которое при желании можно закрыть. Масштабы и дополнительные параметры,\n"
-        "такие как номера уровней, параметры волнового пакета, можно задать в\n"
-        "контекстно-зависящем меню, которое открывается при нажатии на правую кнопку\n"
-        "мышки в поле графика. Потенциал меняется мышкой в окне <<Потенциала>> или\n"
-        "задается численно в меню <<U(x)>> или на панели инструментов кнопкой <<Un>>,\n"
-        "которая запрашивает потенциал из одинаковых ям или барьеров. Таблица уровней\n"
-        "открывается при нажатии кнопки <<En>>"));
+    QMessageBox::about(this, tr("О программе Квант"),
+        tr("<p><b>Квант 0.001</b></p>"
+        "<p>Учебная программа по квантовой механике.</p>" 
+        "<p>Авторы: О.А.Ткаченко, В.А.Ткаченко, Г.Л.Коткин</p>"
+        "<p>Сайт программы: <a href='http://sourceforge.net/projects/quantx'>"
+        "http://sourceforge.net/projects/quantx</a></p>"
+        ));
 }
 
 void MainWindow::chooseFont()
@@ -310,14 +328,16 @@ void MainWindow::chooseFont()
         this->menuWidget()->setFont(myfont);
 }
 
-
 bool MainWindow::saveAs()
 {
+    update_gDocDir();
     QString fn = QFileDialog::getSaveFileName( this,
-        tr("Choose a file name"), ".",
+        tr("Choose a file name"), gDocDir,
         tr("*.xml"));
-    if ( !fn.isEmpty() ) {
+    if ( !fn.isEmpty() )
+    {
         curFile = fn;
+        update_gDocDir( fn );
         return this->save();
     }
     return false;
@@ -328,6 +348,7 @@ void MainWindow::slotSetEn()
     if (!tableViewEn)
     {
         tableViewEn = new QTableView(this);
+
         tableViewEn->setWindowFlags(Qt::Window);
         tableViewEn->setFont(QFont("Serif", 12, QFont::Bold ));
         tableViewEn->setWindowTitle("Energy Levels");
@@ -337,6 +358,7 @@ void MainWindow::slotSetEn()
         tableViewEn->setWordWrap(false);
 
         tableViewEn->setItemDelegate(new LineEditDelegate(this));
+        tableViewEn->setTextElideMode(Qt::ElideNone);
 #if 0
         tableViewEn->setSelectionMode(QAbstractItemView::SingleSelection);
         tableViewEn->setSelectionBehavior(QAbstractItemView::SelectItems);
@@ -348,12 +370,15 @@ void MainWindow::slotSetEn()
         LevelModel *lm = new LevelModel(tableViewEn);
         lm->setLevels(model);
         tableViewEn->setModel(lm);
+
+        connect(lm,SIGNAL(modelReset()),tableViewEn,SLOT(resizeColumnsToContents()));
     }
 
-    tableViewEn->reset();
+    ///?tableViewEn->reset();
     tableViewEn->show();
     tableViewEn->activateWindow();
     tableViewEn->setFocus();
+    tableViewEn->resizeColumnsToContents();
 }
 void MainWindow::slotSetEquasi()
 {
@@ -362,7 +387,7 @@ void MainWindow::slotSetEquasi()
         tableViewEquasi = new QTableView(this);
         tableViewEquasi->setWindowFlags(Qt::Window);
         tableViewEquasi->setFont(QFont("Serif", 12, QFont::Bold ));
-        tableViewEquasi->setWindowTitle("Quasilevels");
+        tableViewEquasi->setWindowTitle("Quasistationary states");
 
         tableViewEquasi->setCornerButtonEnabled(false);
         tableViewEquasi->setSortingEnabled(false);
@@ -434,6 +459,17 @@ void  MainWindow::slotSetUs()
     dialogUparab->activateWindow();
     dialogUparab->setFocus();
 }
+void  MainWindow::slotSetUCh2x()
+{
+    if (!dialogUch2x)
+    {
+        dialogUch2x = new Uch2x(this);
+        dialogUch2x->setModel(model);
+    }
+    dialogUch2x->show();
+    dialogUch2x->activateWindow();
+    dialogUch2x->setFocus();
+}
 void  MainWindow::slotSetUlinear()
 {
     if (!dialogUlinear)
@@ -477,108 +513,41 @@ void MainWindow::updateMouseMovedTo(QPointF f)
     this->mouseAtY->setText(y);
 }
 
-void MainWindow::windowTopRight()
-{
-    int NN=this->splitterR->count();
-    int iTopRight=topRightWin->QComboBox::currentIndex();
-    {
-        switch(iTopRight)
-        {
-        case 0:
-            window_Ux_Psix();
-            gbPview->show();
-            break;
-        case 1:
-            window_psi_x();
-            waveFunctionWidget->show();
-            break;
-        case 2:
-            window_psi_xt();
-            gbviewPsixT->show();
-            break;
-        default:
-            break;
-        }
-    NN=this->splitterR->count();
-    }
-
-}
-void MainWindow::windowDownRight()
-{
-    int iDownRight=downRightWin->QComboBox::currentIndex();
-    switch(iDownRight)
-    {
-    case 0:
-        window_psi_x();
-        waveFunctionWidget->show();
-        break;
-    case 1:
-        window_psi_xt();
-        gbviewPsixT->show();
-        break;
-    case 2:
-        break;
-    default:
-        break;
-    }
-}
-void MainWindow::windowDownLeft()
-{
-
-    int iDownLeft=downLeftWin->QComboBox::currentIndex();
-    switch(iDownLeft)
-    {
-    case 0:
-        window_phi_k();
-        gbviewM->show();
-//        gbLeftDown->show();
-        break;
-    case 1:
-        window_phi_kt();
-        gbviewMT->show();
-        break;
-    case 2:
-        break;
-    default:
-        break;
-    }
-}
-
     void MainWindow::window_TE()
 {
     if(!teWidget)
     {
-    teWidget = new TransmissionWidget(model);
+    teWidget = new TEWidget(model);
     }
     splitterL->addWidget(teWidget);
     teWidget->show();
 }
     void MainWindow::window_QE()
 {
-    if(!gbQEview)
+    if(!qeWidget)
     {
-    gbQEview = new EofqaWidget(model);
+    qeWidget = new QEWidget(model);
     }
-    splitterL->addWidget(gbQEview);
-    gbQEview->show();
+    splitterL->addWidget(qeWidget);
+    qeWidget->show();
 }
 void MainWindow::window_TZ()
 {
-    if(!gbTZview)
+    if(!tzWidget)
     {
-    gbTZview = new TofzViewWidget(model);
+    tzWidget = new TZWidget(model);
     }
-    splitterL->addWidget(gbTZview);
-    gbTZview->show();
+    splitterL->addWidget(tzWidget);
+    tzWidget->show();
 }
-void MainWindow::window_Ux_Psix()
+void MainWindow::window_Ux()
 {
-    if(!gbPview)
+    if(!uxWidget)
     {
-    gbPview = new PotentialMovableWidget(model);//QGroupBox("Wave Function");
+    uxWidget = new PotentialMovableWidget(model);//QGroupBox("Wave Function");
     }
-    splitterR->addWidget(gbPview);
-    gbPview->show();
+    splitterR->addWidget(uxWidget);
+    uxWidget->show();
 }
 
 void  MainWindow::slotSetTime()
@@ -608,12 +577,12 @@ void  MainWindow::slotSetZ()
 
 void MainWindow::window_psi_xt()
 {
-    if(!gbviewPsixT)
+    if(!wavePacketXWidget)
     {
-    gbviewPsixT = new WavePacketXWidget(model);
+    wavePacketXWidget = new WavePacketXWidget(model);
     }
-    splitterR->addWidget(gbviewPsixT);
-    gbviewPsixT->show();
+    splitterR->addWidget(wavePacketXWidget);
+    wavePacketXWidget->show();
 }
 void MainWindow::window_psi_x()
 {
@@ -645,21 +614,21 @@ void MainWindow::window_EG()
 
 void MainWindow::window_phi_kt()
 {
-    if(!gbviewMT)
+    if(!wavePacketKWidget)
     {
-    gbviewMT = new WavePacketKWidget(model);
+    wavePacketKWidget = new WavePacketKWidget(model);
     }
-    splitterL->addWidget(gbviewMT);
-    gbviewMT->show();
+    splitterL->addWidget(wavePacketKWidget);
+    wavePacketKWidget->show();
 }
 void MainWindow::window_phi_k()
 {
-    if(!gbviewM)
+    if(!momentumDistibutionWidget)
     {
-        gbviewM = new MomentumViewWidget(model);
+        momentumDistibutionWidget = new MomentumDistibutionWidget(model);
     }
-    splitterL->addWidget(gbviewM);
-    gbviewM->show();
+    splitterL->addWidget(momentumDistibutionWidget);
+    momentumDistibutionWidget->show();
 }
 
 void MainWindow::initControlDockWindow()
@@ -667,79 +636,25 @@ void MainWindow::initControlDockWindow()
     splitterR = new MySplitter(Qt::Vertical);
     splitterL = new MySplitter(Qt::Vertical);
     splitterLR = new MySplitter(Qt::Horizontal);
-    window_Ux_Psix();
-    gbPview->show();
-//    this->window_psi_x();
-//    waveFunctionWidget->show();
-
+    window_Ux();
+//    window_TE();
     QVBoxLayout * vl0 = new QVBoxLayout;
     splitterLR->addWidget(splitterL);
     splitterLR->addWidget(splitterR);
     vl0->addWidget(splitterLR);
-
-    QVBoxLayout * mainLayout = new QVBoxLayout;
-    mainLayout->addLayout(vl0);
-    QWidget *widget = new QWidget;
-    widget->setLayout(mainLayout);
-    widget->raise();
-    setCentralWidget(widget);
+    setCentralWidget(splitterLR);
+//    QVBoxLayout * mainLayout = new QVBoxLayout;
+//    mainLayout->addLayout(vl0);
+//    QWidget *widget = new QWidget;
+//    widget->setLayout(mainLayout);
+//    widget->raise();
+//    setCentralWidget(widget);
 }
 
 void MainWindow::resizeEvent (QResizeEvent * event)
 {
     QWidget::resizeEvent(event);
 }
-
-/*void MainWindow::compute()
-{
-    model->set_E0(this->E0);
-    model->build_k();
-    model->build_ab();
-    if(this->E0 > 0)
-        model->build_RT();
-    else
-    {
-        model->RR=1;
-        model->TT=0;
-    }
-
-    updateValues();
-}*/
-//--------------
-//void MainWindow::updateValues()
-//    {
-//    this->E0=model->get_E0();
-//    this->zz=model->get_zz();
-//    this->time=model->get_Time();
-//    this->E0.updateDisplay();
-//    this->zz.updateDisplay();
-//    this->time.updateDisplay();
-//    this->Ubias.updateDisplay();
-//    this->nLevel.updateDisplay();
-
-/*    QString s;
-    double E=this->E0;
-    s.sprintf("Energy E: %.3lg",E);
-    this->dispEnergy->setText(s);
-    this->dispEnergy->update();
-*/
- /*   double z=this->zz;
-    s.sprintf("z: %.3lg",z);
-    this->dispZ->setText(s);
-    this->dispZ->update();
-*/
-/*    double t=this->time;
-    s.sprintf("Time: %.3lg",t);
-    this->dispTime->setText(s);
-    this->dispTime->update();
-*/
-/*    double Ub=this->Ubias;
-    s.sprintf("Bias: %.3lg",Ub);
-    this->dispBias->setText(s);
-    this->dispBias->update();
-*/
-//}
-
 void MainWindow::initStatusBar()
 {
     createStatusBar();
@@ -748,29 +663,6 @@ void MainWindow::initStatusBar()
             this->statusBar());
     this->statusBar()->addWidget(this->dispEnergy);
 
- /*   this->dispZ = new QLabel("z: --------------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispZ);
-*/
- /*   this->dispTime = new QLabel("Time t: --------------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispTime);
-*/
-/*    this->dispBias = new QLabel("Bias: --------------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispBias);
-*/
-    /*    this->dispR = new QLabel("R: --------------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispR);
-    */
-/*    this->dispT = new QLabel("T: --------------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispT);
-    this->dispRT = new QLabel("(T+R): ---------",
-            this->statusBar());
-    this->statusBar()->addWidget(this->dispRT);
-    */
  }
 
 /*void MainWindow::Bound_States()
@@ -1986,12 +1878,12 @@ psixmin(-1.2),psixmax(1.5),zmin(0),zmax(1.), hz(0.01), zz(0.),
 QMainWindow(parent,f), countW(0), numOfCurve(1),numOfCurveNE(1), numOfCurveT(0), model(0),
 wpE_lo(5.), wpE_hi(15.), wpN(30),
 tableView(0),boundCondView(0),gbScales(0),gbIntervals(0),dialogSetting(0),
-dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
+dialogTime(0),dialogZ(0), dialogUAsMW(0),dialogUparab(0),dialogUch2x(0),dialogUlinear(0), dialogWPEm(0),dialogWPEp(0),tableViewEn(0),tableViewEquasi(0), gbScaleX(0),
 gbScaleZ(0),gbScaleP(0), gbScalePsi(0),
 gbIntN(0),gbIntE(0),  gbWP(0),gbWPr(0),gbWPl(0),bgR(0), bRunPsiXT(0),
-teWidget(0),gbQEview(0),gbTZview(0),enzWidget(0),egWidget(0),
-gbviewMT(0),gbviewM(0),
-gbPview(0),waveFunctionWidget(0),gbviewPsixT(0)
+teWidget(0),qeWidget(0),tzWidget(0),enzWidget(0),egWidget(0),
+wavePacketKWidget(0),momentumDistibutionWidget(0),
+uxWidget(0),waveFunctionWidget(0),wavePacketXWidget(0)
 {
     this->model = new PhysicalModel();
     UAsMW u2 = { 1, 0.1, 1, -10, 0 };
@@ -2024,7 +1916,7 @@ bool MainWindow::save()
     }
 
     QFile f(curFile);
-
+    QString s;
     if (! f.open(QFile::WriteOnly | QFile::Text))
         return false;
     else
@@ -2033,35 +1925,14 @@ bool MainWindow::save()
         writer.setAutoFormatting(true);
         writer.writeStartDocument();
         writer.writeStartElement("kvant");
-
-        if (model)
-        {
-            model->writeToXml(&writer);
-        }
-        //       if (enzWidget)
-        //       {
-        if(!enzWidget)
-        {
-            enzWidget = new EnzWidget(model);
-        }
-
-        if (enzWidget) enzWidget->writeToXml(&writer);
-        //       }
-        if(!egWidget)
-        {
-            egWidget = new EGWidget(model);
-        }
-
+        this->writeToXml(&writer);
+        if(model) model->writeToXml(&writer);
+        if(waveFunctionWidget) waveFunctionWidget->writeToXml(&writer);
+        if(enzWidget) enzWidget->writeToXml(&writer);
         if(egWidget) egWidget->writeToXml(&writer);
-        if(!teWidget)
-        {
-            teWidget = new TransmissionWidget(model);
-
-        }
-        if ( teWidget)
-        {
-            teWidget->writeToXml(&writer);
-        }
+        if(teWidget) teWidget->writeToXml(&writer);
+        if(tzWidget) tzWidget->writeToXml(&writer);
+        if(qeWidget) qeWidget->writeToXml(&writer);
         writer.writeEndElement();
         writer.writeEndDocument();
     }
@@ -2069,15 +1940,261 @@ bool MainWindow::save()
     statusBar()->showMessage(tr("Saved %1").arg(curFile), 2000);
     return true;
 }
+//------
+void MainWindow::readFromXml(QXmlStreamReader *r)
+{
+    if(!uxWidget) uxWidget = new PotentialMovableWidget(model);
+    if(!waveFunctionWidget) waveFunctionWidget = new WaveFunctionWidget(model);
+    if(!wavePacketKWidget) wavePacketKWidget = new WavePacketKWidget(model);
+    if(!wavePacketXWidget) wavePacketXWidget = new WavePacketXWidget(model);
+    if(!momentumDistibutionWidget) momentumDistibutionWidget = new MomentumDistibutionWidget(model);
+    if(!teWidget) teWidget = new TEWidget(model);
+    if(!tzWidget) tzWidget = new TZWidget(model);
+    if(!enzWidget) enzWidget = new EnzWidget(model);
+    if(!egWidget)  egWidget = new EGWidget(model);
+    if(!qeWidget)  qeWidget = new QEWidget(model);
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "mainWindow");
+    int _visible = 0;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+/*        if (r->name() == "MainWindowgeometry")
+        {
+            QString s = r->readElementText();
+            int l,t,w,h;
+            sscanf_s(s.toAscii(),"%i %i %i %i",&l,&t,&w,&h);
+            this->setGeometry(QRect(l,t,w,h));
+        }
+        else if (r->name() == "MainWindowpos")
+        {
+            QString s = r->readElementText();
+            int ix,iy;
+            sscanf_s(s.toAscii(),"%i %i",&ix,&iy);
+            this->move(QPoint(ix,iy));
+        }
+        else if (r->name() == "TEgeometry")
+        {
+            QString s = r->readElementText();
+            int l,t,w,h;
+            sscanf_s(s.toAscii(),"%i %i %i %i",&l,&t,&w,&h);
+            teWidget->setGeometry(QRect(l,t,w,h));
+        }
+        else if (r->name() == "TEpos")
+        {
+            QString s = r->readElementText();
+            int ix,iy;
+            sscanf_s(s.toAscii(),"%i %i",&ix,&iy);
+            teWidget->move(QPoint(ix,iy));
+        }*/
+        if (r->name() == "UXisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_Ux();
+            }
+            else
+            {
+                this->uxWidget->hide();
+            }
+        }
+        else if (r->name() == "PsiXisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_psi_x();
+            }
+            else
+            {
+                this->waveFunctionWidget->hide();
+            }
+        }
+        else if (r->name() == "PsiXTisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_psi_xt();
+            }
+            else
+            {
+                this->wavePacketXWidget->hide();
+            }
+        }
+        else if (r->name() == "PhiKisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_phi_k();
+            }
+            else
+            {
+                this->momentumDistibutionWidget->hide();
+            }
+        }
+        else if (r->name() == "PhiKTisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_phi_kt();
+            }
+            else
+            {
+                this->wavePacketKWidget->hide();
+            }
+        }
+        else if (r->name() == "TEisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_TE();
+            }
+            else
+            {
+                this->teWidget->hide();
+            }
+        }
+        else if (r->name() == "TZisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_TZ();
+            }
+            else
+            {
+                this->tzWidget->hide();
+            }
+        }
+        else if (r->name() == "EnzisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_Enz();
+            }
+            else
+            {
+                this->enzWidget->hide();
+            }
+        }
+        else if (r->name() == "QEisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_QE();
+            }
+            else
+            {
+                this->qeWidget->hide();
+            }
+        }
+        else if (r->name() == "EGisVisible")
+        {
+            _visible = r->readElementText().toInt();
+            if (_visible)
+            {
+                window_EG();
+            }
+            else
+            {
+                this->egWidget->hide();
+            }
+        }
+        else
+            skipUnknownElement(r);
+    }
+}
 
+
+void MainWindow::writeToXml(QXmlStreamWriter *w)
+{
+    if(!uxWidget) uxWidget = new PotentialMovableWidget(model);
+    if(!waveFunctionWidget) waveFunctionWidget = new WaveFunctionWidget(model);
+    if(!wavePacketKWidget) wavePacketKWidget = new WavePacketKWidget(model);
+    if(!wavePacketXWidget) wavePacketXWidget = new WavePacketXWidget(model);
+    if(!momentumDistibutionWidget) momentumDistibutionWidget = new MomentumDistibutionWidget(model);
+    if(!teWidget) teWidget = new TEWidget(model);
+    if(!tzWidget) tzWidget = new TZWidget(model);
+    if(!enzWidget) enzWidget = new EnzWidget(model);
+    if(!egWidget)  egWidget = new EGWidget(model);
+    if(!qeWidget)  qeWidget = new QEWidget(model);
+    w->writeStartElement("mainWindow");
+    {
+        QString s;
+        QRect g;
+/*        QPoint psn;
+        psn= this->pos();
+        s.sprintf("%i %i",psn.x(),psn.y());
+        w->writeTextElement("MainWindowpos",s);
+
+        g = this->geometry();
+        s.sprintf("%i %i %i %i",g.left(),g.top(),g.width(),g.height());
+        w->writeTextElement("MainWindowgeometry",s);
+
+        psn= this->teWidget->pos();
+        s.sprintf("%i %i",psn.x(),psn.y());
+        w->writeTextElement("TEpos",s);
+        g = this->teWidget->geometry();
+        s.sprintf("%i %i %i %i",g.left(),g.top(),g.width(),g.height());
+        w->writeTextElement("TEgeometry",s);*/
+        s.sprintf("%i",this->uxWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("UXisVisible",s);
+
+        s.sprintf("%i",this->waveFunctionWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("PsiXisVisible",s);
+
+        s.sprintf("%i",this->wavePacketXWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("PsiXTisVisible",s);
+
+        s.sprintf("%i",this->momentumDistibutionWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("PhiKisVisible",s);
+
+        s.sprintf("%i",this->wavePacketKWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("PhiKTisVisible",s);
+
+        s.sprintf("%i",this->teWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("TEisVisible",s);
+
+        s.sprintf("%i",this->tzWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("TZisVisible",s);
+
+        s.sprintf("%i",this->enzWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("EnzisVisible",s);
+
+        s.sprintf("%i",this->qeWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("QEisVisible",s);
+
+        s.sprintf("%i",this->egWidget->isVisible() ? 1 : 0);
+        w->writeTextElement("EGisVisible",s);
+    }
+    w->writeEndElement();
+}
+
+//------
 bool MainWindow::openFile()
 {
+    update_gDocDir();
+
     QString fileName;
-    fileName = QFileDialog::getOpenFileName(this, "Choose a data file","", "*.xml");
+//    int _visibleTE;
+    fileName = QFileDialog::getOpenFileName(this, "Choose a data file", gDocDir, "*.xml");
     if (fileName.isEmpty())
         return false;
     else
     {
+        update_gDocDir(fileName);
+
         //--------------------------------------
         QFile f(fileName);//curFile);
 
@@ -2094,33 +2211,57 @@ bool MainWindow::openFile()
                 while (!reader.atEnd())
                 {
                     reader.readNext();
-                    if (reader.name() == "model")
+                    if (reader.name() == "mainWindow")
+                    {
+                        this->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "model")
                     {
                         model->readFromXml(&reader);
                     }
-                    else if (reader.name() == "TE")
+/*                    else if (reader->name() == "TEisVisible")
                     {
+                        _visibleTE = this->readElementText().toInt();
+                        if (_visibleTE) teWidget->show();
+                        else teWidget->hide();
+                        teWidget->readFromXml(&reader);
+                    }
+                    else if (reader->name() == "TEgeometry")
+                    {
+                        QString s = reader->readElementText();
+                        int l,t,w,h;
+                        sscanf_s(s.toAscii(),"%i %i %i %i",&l,&t,&w,&h);
+                        teWidget->setGeometry(QRect(l,t,w,h));
+                        if (_visibleTE) teWidget->show();
+                        else teWidget->hide();
+                    }
                          if(!teWidget)
                          {
-                                 teWidget = new TransmissionWidget(model);
+                                 teWidget = new TEWidget(model);
 
-                         }
+                         }*/
+                    else if (reader.name() == "Psix")
+                    {
+                         waveFunctionWidget->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "TE")
+                    {
                          teWidget->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "TZ")
+                    {
+                         tzWidget->readFromXml(&reader);
                     }
                     else if (reader.name() == "Enz")
                     {
-                        if(!enzWidget)
-                        {
-                            enzWidget = new EnzWidget(model);
-                        }
                         enzWidget->readFromXml(&reader);
+                    }
+                    else if (reader.name() == "QE")
+                    {
+                        qeWidget->readFromXml(&reader);
                     }
                     else if (reader.name() == "EGplane")
                     {
-                        if(!egWidget)
-                        {
-                            egWidget = new EGWidget(model);
-                        }
                         egWidget->readFromXml(&reader);
                     }
                 }
@@ -2152,288 +2293,7 @@ void MainWindow::createStatusBar()
 
 void MainWindow::help()
 {
-/*    static QMessageBox *about;
-    if (!about)
-    {
-              char buf[200];
-//        MKLGetVersionString(buf,sizeof(buf)-1);
-        buf[sizeof(buf)-1] = 0;
-        about = new QMessageBox("New version of the KVANT packet",buf,
-        QMessageBox::Information, 1, 0, 0, this, 0, FALSE );
-
     }
-    about->setButtonText(1, "Dismiss" );
-    about->show();
-*/
-    }
-/*
-void MainWindow::init()
-{
-}
-
-
-WavePacket MainWindow::buildWPmE()
-{
-    WavePacket result;
-    result.clear();
-    QVector<double> Ebound = model->getEn();
-    if(this->nmaxWP >= Ebound.size()) this->nmaxWP = Ebound.size()-1;
-    if(this->nminWP<0) this->nminWP=0;
-    int NwpEm=(this->nmaxWP-this->nminWP)/this->hnWP + 1;
-    result.resize(NwpEm);
-    int j=0;
-    for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
-    {
-//        if(j>=NwpEm) break;
-        result[j].E = Ebound[i];
-        j++;
-    }
-    Emin=result[0].E;
-    Emax=result[NwpEm-1].E;
-    if(Emin==Emax)
-    {
-        result[0].w =1.;
-        return result;
-    }
-    double W=0;
-    double nc=0.5*(this->nminWP+this->nmaxWP);
-    double C=0.5*(this->nmaxWP-this->nminWP);
-    C*=C;C=6/C;
-    j=0;
-    for(int i=this->nminWP;i<=this->nmaxWP;i+=this->hnWP)
-    {
-        double z=(i-nc);z*=z*C;
-        W += result[j].w = exp(-z);
-        j++;
-    }
-    for(int i=0;i<NwpEm;i++)
-        result[i].w /=W;
-    return result;
-}
-WavePacket MainWindow::buildWPpE()
-{
-    WavePacket result;
-    result.clear();
-    std::vector<double> wpweightEi, wpEi;
-    result.resize(this->wpN);
-    if(this->wpE_hi==this->wpE_lo||this->wpN==1)
-    {
-    result.resize(1);
-    result[0].E=this->wpE_hi;
-    result[0].w=1.;
-    return result;
-    }
-    if(this->wpE_hi<this->wpE_lo)
-    {
-    double a=this->wpE_hi;
-    double b=this->wpE_lo;
-    this->wpE_hi=b;
-    this->wpE_lo=a;
-    }
-    double de=(this->wpE_hi-this->wpE_lo)/(this->wpN-1);
-    for(int i=0;i<this->wpN;i++)
-    {
-        result[i].E = this->wpE_lo+i*de;
-    }
-    double W=0;
-    double C=(wpE_hi-wpE_lo)/2;C*=C;C=6/C;
-    double Ec=(wpE_hi+wpE_lo)/2;
-    double z0=wpE_hi-Ec+de;z0*=z0*C;
-    double ex0=exp(-z0);
-    for(int i=0;i<wpN;i++)
-    {
-        double z=(result[i].E-Ec);z*=z*C;
-        W += result[i].w = exp(-z)-ex0;
-
-    }
-    for(int i=0;i<wpN;i++)
-        result[i].w /=W;
-    return result;
-
-}
-void MainWindow::WavePacketXoft()
-{
-    const int N = model->getN();
-
-    WavePacket result;
-    std::vector<double> data;
-    std::vector<complex> expt;
-    wPlotPsi2->show();
-    wPlotPsi2->raise();
-    setScalesPsi();
-    double y;
-    this->numOfCurve=0;
-    int ii=psi_type->QComboBox::currentIndex();
-    int iwp;
-    if(!this->bgR) iwp=1;
-    else iwp=bgR->checkedId();
-    switch(iwp)
-    {
-    case 2: // E_n
-        result=buildWPmE();
-        break;
-    case 1: //E>0
-        result=buildWPpE();
-        break;
-    default:
-        break;
-    }
-
-    int M=result.size();
-    Matrix<complex> kp(0, M-1, 0, N+1);
-    Matrix<complex> ap(0, M-1, 0, N+1);
-    Matrix<complex> bp(0, M-1, 0, N+1);
-    expt.resize(M);
-    for(int p=0;p<M;p++)
-    {
-        model->set_E0(result[p].E);
-        model->build_k();
-        model->build_ab();
-        for(int n=0; n <= N+1; n++)
-        {
-            kp(p,n)=model->k[n];
-            ap(p,n)=model->a[n];
-            bp(p,n)=model->b[n];
-        }
-    }
-    //-----------------------time-------
-    for (double t=this->time; t>=this->tmin&&t<=this->tmax; t+=this->htime)
-    {
-        this->time=t;
-        updateValues();
-        if (getBreakStatus(0))
-        {
-            return;
-        }
-        data.clear();
-        complex Psit=0;
-        for(int p=0;p<M;p++)
-        {
-
-            complex c = exp(-complex(0, result[p].E*t));
-            if(result[p].E- model->get_U(N+1) >0) c = c*exp(complex(0,real(kp(p,N+1))*this->xmax) );
-            //            if(wpEi[p]- model->U(0) >0) c = c*exp(-complex(0,real(kp(p,0))*this->xmin) );
-            expt[p]=c;
-        }
-        for(double x=this->xmin; x<=this->xmax; x+=this->hx)
-            //        for(double x=model->Xmin; x<=model->Xmax; x+=dx)
-        {
-            model->x=x;
-            complex Psit=(0.,0.);
-            for(int p=0;p<M;p++)
-            {
-                model->set_E0(result[p].E);
-                for(int n=0; n <= N+1; n++)
-                {
-                    model->k[n]=kp(p,n);
-                    model->a[n]=ap(p,n);
-                    model->b[n]=bp(p,n);
-                }
- //               if (model->E0 < model->get_U(N+1))
- //                   model->b[N+1]=0.;
-                model->build_Psi();
-                complex yy=model->psi;
-                Psit += model->psi*result[p].w*expt[p];
-
-            }
-            switch(ii)
-            {
-            case 0:
-                y=squaremod(Psit);
-                break;
-            case 1:
-                y=real(Psit);
-                break;
-            case 2:
-                y=imag(Psit);
-                break;
-            default:
-                break;
-            }
-            data.push_back(x);
-            data.push_back(y);
-        }
-        this->plotterPsi2x->setCurveData(2,data);
-    }
-}
-void MainWindow::WavePacketPoft()
-{
-    WavePacket result;
-    wPlotPhi->show();
-    wPlotPhi->raise();
-    std::vector<double> data;
-    std::vector<complex> expt;
-    double y;
-    this->numOfCurve=0;
-//    bool flg=flgScale->isChecked();
-    plotterPhi->scaleFixed=false;
- // E_n
-        result=buildWPmE();
-    int M=result.size();
-    const int N = model->getN();
-
-    Matrix<complex> kp(0, M-1, 0, N+1);
-    Matrix<complex> ap(0, M-1, 0, N+1);
-    Matrix<complex> bp(0, M-1, 0, N+1);
-    expt.resize(M);
-    for(int p=0;p<M;p++)
-    {
-        model->set_E0(result[p].E);
-        model->build_k();
-        model->build_ab();
-        for(int n=0; n <= N+1; n++)
-        {
-            kp(p,n)=model->k[n];
-            ap(p,n)=model->a[n];
-            bp(p,n)=model->b[n];
-        }
-    }
-
-    //-----------------------time-------
-    double kmin=-this->kmax;
-    if(this->kmax<=0) kmax=10.;
-    double dk=kmax/500;
-    if(dk>this->hk) dk=this->hk;
-    for (double t=this->time; t>=this->tmin&&t<=this->tmax; t+=this->htime)
-    {
-        data.clear();
-        complex Psit=0;
-        this->time=t;
-        updateValues();
-        if (getBreakStatus(0))
-            return;
-        for(int p=0;p<M;p++)
-        {
-            expt[p] = exp(-complex(0, result[p].E*t));
-        }
-        for(double kk=kmin; kk<=this->kmax; kk+=dk)
-        {
-            int N = model->getN();
-
-            complex Psit=(0.,0.);
-            model->kwave=kk;
-            for(int p=0;p<M;p++)
-            {
-                model->set_E0(result[p].E);
-                for(int n=0; n <= N+1; n++)
-                {
-                    model->k[n]=kp(p,n);
-                    model->a[n]=ap(p,n);
-                    model->b[n]=bp(p,n);
-                }
-//                model->b[N+1] = 0.;
-                model->build_Phi();
-                complex yy=model->phi;
-                Psit += model->phi*result[p].w*expt[p];
-            }
-                y=squaremod(Psit);
-            data.push_back(kk);
-            data.push_back(y);
-        }
-        this->plotterPhi->setCurveData(2,data);
-    }
-}
-*/
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())

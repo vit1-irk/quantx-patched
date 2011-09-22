@@ -53,7 +53,7 @@ public slots:
     void slot_En_of_z();
     void slotZline();
     void updateScaleEnz();
-    void slot_drawEc_n();
+//    void slot_drawEc_n();
 signals:
     void infoMouseMovedTo(QPointF);
     void signalScaleEnzChanged();
@@ -70,6 +70,7 @@ public:
     void showDialogZ();
     QPair<double,double> getEnzMinMax();
     void setEnzMinMax(const QPair<double,double> &s);
+    void setScaleEnz();
 
 //    getScalesEnz();
 private:
@@ -77,7 +78,6 @@ private:
     QLineEdit *leEnzmin;
     QLineEdit *leEnzmax;
     double Enzmin, Enzmax;
-    void setScaleEnz();
     QGroupBox  *gbScaleXY;
     double lineWidth;
     int numberOfCurves;
@@ -87,6 +87,7 @@ private:
     QVector<QPolygonF> physCurvesI;
     QVector<QPolygonF> adjCurvesR;
     QVector<QPolygonF> physCurvesR;
+    QVector<QColor> colorOfCurves;
 
     int curve_number;
     double zmax, zmin, hz;

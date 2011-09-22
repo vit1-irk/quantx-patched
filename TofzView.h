@@ -40,6 +40,7 @@ public:
     void setCurve(int id,const QPolygonF&, const QPen& = QPen());
     TofzCurve *getCurve(int id) const { return curves[id]; }
     void removeCurve(int id);
+    void setScaleTZ();
 public slots:
     void setViewportMapping();
     void resizePicture();
@@ -55,7 +56,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent *event);
     void scrollView(int dx, int dy);
-    void setScaleTZ();
+//    void setScaleTZ();
     void scaleView(qreal scaleFactor);
     void setScalesFromModel();
     bool Erase;
@@ -63,9 +64,10 @@ protected:
 public:
     void showDialogScaleY();
     void showDialogZ();
+    double tMax, tMin;
 private:
     void initDialogScaleY();
-    double tMax, tMin;
+//    double tMax, tMin;
     double Zmin,Zmax,hZ;
     double lineWidth;
     QGraphicsLineItem *lineh,*linev;
@@ -81,11 +83,13 @@ private:
     friend class ZTDraggable;
     int curve_number;
 };
-class TofzViewWidget : public QGroupBox
+class TZWidget : public QGroupBox
 {
     Q_OBJECT
 public:
-    TofzViewWidget(PhysicalModel *model, QWidget * parent = 0);
+    TZWidget(PhysicalModel *model, QWidget * parent = 0);
+    void readFromXml(QXmlStreamReader *r);
+    void writeToXml(QXmlStreamWriter *w);
 private:
     TofzView *tofzView;
 

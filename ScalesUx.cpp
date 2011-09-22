@@ -65,6 +65,7 @@ void ScalesUx::setModel(PhysicalModel *_model)
         model = _model;
         modelChanged();
     }
+        connect(model,SIGNAL(signalScalesUChanged()),this,SLOT(modelChanged()));
 }
 
 void ScalesUx::modelChanged()

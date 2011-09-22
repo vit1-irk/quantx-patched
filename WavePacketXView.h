@@ -68,18 +68,25 @@ public:
 //    void showDialogDefWP();
 private:
     void clearAll();
-     WPparametersM *dialogWPEm;
+    QPointF getPoint(bool first, double x, complex y);
+    void setInitialTime();
+    void reDrawAxes();
+
+    WPparametersM *dialogWPEm;
     WPparametersP *dialogWPEp;
     int lineWidth;
     double psiMax, psiMin;
     double xmin,xmax,dx;
+    double xn,yn,xk,yk,cs,sn;
     ScaleWPX *dialogScaleWPX;
     double tmin,tmax, time, htime;
-    QGraphicsLineItem *lineh,*linev;
+    QGraphicsLineItem *lineh,*linev,*vectorFirst,*linez;
     PhysicalModel *model;
     TimeView *dialogTime;
     QMap<int,CoordinateDistributionCurve*> curves;
     QVector<double> waveFunction;
+    QVector<complex> waveFunctionC;
+    QPen p,pl;
 
     int whatToDraw;
 public slots:
@@ -95,6 +102,8 @@ class WavePacketXWidget : public QGroupBox
     Q_OBJECT
 public:
     WavePacketXWidget(PhysicalModel *model, QWidget * parent = 0);
+public slots:
+    void checkButton(int);
 private:
     QButtonGroup *bgR;
     WavePacketXView *wavePacketXView;

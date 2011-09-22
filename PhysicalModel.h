@@ -81,6 +81,18 @@ struct Uparab
     }
 };
 
+struct U_ch2x
+{
+    int numberOfIntervals;
+    double U0, Width;
+    bool operator != (const U_ch2x& o)
+    {
+        return numberOfIntervals != o.numberOfIntervals
+            || U0 != o.U0
+            || Width != o.Width;
+    }
+};
+
 struct TimeParameters
 {
     double time,tmin,tmax,ht;
@@ -90,6 +102,16 @@ struct TimeParameters
             ||tmin != o.tmin
             ||tmax != o.tmax
             || ht  != o.ht;
+    }
+};
+struct EParameters
+{
+    double Emin,Emax,hE;
+    bool operator != (const EParameters& o)
+    {
+        return Emin != o.Emin
+            ||Emax != o.Emax
+            || hE  != o.hE;
     }
 };
 struct SettingParameters
@@ -195,7 +217,7 @@ struct gParameters
     }
 };
 
-enum PotentialType { FINITE, PERIODIC, QUASISTATIONARY, SEMIPERIODIC };
+enum PotentialType { FINITE, PERIODIC, QUASISTATIONARY, SEMIPERIODIC, UNDEFINED };
 
 struct PhysicalModel : public QObject
 {
@@ -211,9 +233,9 @@ public:
     void setEpWP(const EpWP&);
     EmWP getEmWP() const;
     void setEmWP(const EmWP&);
-    void set_EmaxEmin(double E1, double E2, double he);
-//    double get_Gmin const { return Gmin; };
-
+//    void set_EmaxEmin(double E1, double E2, double he);
+    void setEParameters(const EParameters &);
+    EParameters getEParameters() const;
     LevelNumberParameters getLevelNumberParameters() const;
     void setLevelNumberParameters(const LevelNumberParameters&);
     ScaleWPXParameters getScaleWPXParam() const;
@@ -227,12 +249,13 @@ public:
     ScalesUParameters getScalesUParam() const;
     void setScalesUParam(const ScalesUParameters&);
     Uparab getUparab() const;
+    U_ch2x getU_ch2x() const;
     void set_z(double v);
     void set_G(double v);
     void change_Time(double v);
 
     void setUparab(const Uparab&);
-//    zParameters getzParam();
+    void setU_ch2x(const U_ch2x&);
     zParameters getzParam() const;
     gParameters getGParam() const;
     TimeParameters getTimeParam() const;
@@ -244,6 +267,7 @@ public:
     UAsMW getUAsMW() const;
     void setUAsMW(const UAsMW&);
     QVector<double>  getPsiOfXT(double t, double xmin, double xmax, int npoints, int viewWF);//, bool needBuildWavePacket);
+    QVector<complex>  getPsi3DOfXT(double t, double xmin, double xmax, int npoints);//, bool needBuildWavePacket);
     QVector<double>  getPsiOfKT(double kmin, double kmax, int npoints);
     void readFromXml(QXmlStreamReader *r);
     void writeToXml(QXmlStreamWriter *w);
@@ -258,6 +282,7 @@ signals:
     void signalLevelNumberChanged(int);
     void signalEboundChanged();
     void signalScalesUChanged();
+    void signalEParametersChanged();
     void signalScalePsinChanged();
     void signalScalePhinChanged();
     void signalLevelParametersChanged();
@@ -527,9 +552,10 @@ public:
     int findNumberOfLevels(double E);
     int findNumberOfQuasiLevels(double E);
 
-      QVector<double> getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints, int viewWF, bool tail);
-      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
-      QVector<double> getPsiOfX_per(double E, double xmin, double xmax, int npoints, int viewWF);
+      QVector<complex> getQuasiPsiOfX(complex E, double xmin, double xmax, int npoints);
+      QVector<complex> getPsiOfX(double E, double xmin, double xmax, int npoints, bool tail);
+//      QVector<double> getPsiOfX(double E, double xmin, double xmax, int npoints, int viewWF, bool tail);
+      QVector<complex> getPsiOfX_per(double E, double xmin, double xmax, int npoints);
       QVector<double> getPhiOfk(double E, double kmin, double kmax, int npoints);
       QVector<double> getPhiOfkPer(double kmin, double kmax);
       QVector<double> getTransmissionOfE(double Emin, double Emax, int npoints);

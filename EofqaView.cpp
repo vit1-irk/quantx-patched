@@ -22,6 +22,87 @@ class EEDrag : public QGraphicsItem
     QPen penHover;
     QPen pen;
 public:
+    EEDrag(EofqaView *v,QGraphicsItem *parent = 0);
+    QVariant itemChange(GraphicsItemChange change, const QVariant & value);
+    void setPen(QPen _pen) { penForPainter = pen = _pen; }
+    void setLine(double x1,double y1,double width)
+    {
+        QPointF p = pos();
+        if (x1 != p.x() || y1 != p.y() || width != p2.x())
+        {
+            prepareGeometryChange();
+            p2 = QPointF(width,0);
+            this->setPos(x1,y1);
+            update();//repaint();
+        }
+    }
+    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = penHover;
+        update();//repaint();
+    }
+    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    {
+        penForPainter = pen;
+        this->setSelected(false);
+        update();//repaint();
+    }
+    double EEDrag::getEnergyFromLine()
+    {
+        QPointF p = pos();
+        return p.y();
+    }
+    QRectF boundingRect() const
+    {
+        QRectF vp = view->sceneRect();
+        QPoint va(0,0);
+        QPoint vb(0,5);
+        QPointF sa = view->mapToScene(va);
+        QPointF sb = view->mapToScene(vb);
+        double ax = fabs(sa.x() - sb.x());
+        double ay = fabs(sa.y() - sb.y());
+        QRect vpr = view->viewport()->rect();
+        QPointF vpr1 = view->mapToScene(vpr.topLeft());
+        QPointF vpr2 = view->mapToScene(vpr.bottomRight());
+        QMatrix m = view->matrix();
+        QRectF aa=QRectF(QPointF(),p2).adjusted(-ax,-ay,ax,ay);
+        return aa;
+
+    }
+    void paint(QPainter *painter,const QStyleOptionGraphicsItem *option,QWidget *)
+    {
+//        penForPainter.setWidthF(view->lineWidth);
+//        penForPainter.setCapStyle(Qt::FlatCap);
+        painter->setPen(penForPainter);
+//        qreal x2 = penForPainter.widthF();
+        painter->drawLine(QLineF(QPointF(),p2));
+
+/*        painter->setPen(penForPainter);
+        QPainter::RenderHints saved_hints = painter->renderHints();
+        painter->setRenderHint(QPainter::Antialiasing, false);
+        painter->drawLine(QLineF(QPointF(),p2));
+        painter->setRenderHints(saved_hints);*/
+    }
+    QLineF line() const { return QLineF(pos(),pos() + p2); }
+
+    void mousePressEvent(QGraphicsSceneMouseEvent * event)
+    {
+        if (event->buttons() & Qt::RightButton)
+        {
+               update();// repaint();
+        }
+    }
+};
+
+/*
+class EEDrag : public QGraphicsItem
+{
+    EofqaView *view;
+    QPointF p2;
+    QPen penForPainter;
+    QPen penHover;
+    QPen pen;
+public:
 //    double widthLineE;
     EEDrag(EofqaView *v,QGraphicsItem *parent = 0);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
@@ -114,16 +195,16 @@ public:
     }
 
 };
-
+*/
 EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m)
 {
     Erase = true; // this must initially be true
     lineWidth = 3;//10;
-    tMax = 1.1;
-    tMin = -0.1;
+    qaMax = 1.01;
+    qaMin = -1.01;
     Emin = -15;
-    Emax = 20;
+    Emax = 2.20;
     hE = 0.05;
 
     lineh = NULL;
@@ -151,16 +232,11 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
         setResizeAnchor(AnchorViewCenter);///
     }
     setMinimumSize(300, 150);
-    model->set_EmaxEmin(Emax,Emin,hE);
+//    setScalesFromModel();
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //rubberBandIsShown = false;
-
-//    connect(model,SIGNAL(signalEboundChanged()),this,SLOT(slot_T_of_E));
-    connect(this,SIGNAL(signalScaleTEChanged()),this,SLOT(resizePicture()));
+    connect(this,SIGNAL(signalScaleQAChanged()),this,SLOT(resizePicture()));
     connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(resizePicture()));
-//    connect(model,SIGNAL(signalPotentialChanged()),this,SLOT(slot_Eofqa()));
-//    connect(model,SIGNAL(signalWidthChanged()),this,SLOT(reDraw()));
     connect(model,SIGNAL(signalEnergyChanged(double)),this,SLOT(slotEline()));
     connect(model,SIGNAL(signalWidthChanged()),this,SLOT(resizePicture()));
     resizePicture();
@@ -181,7 +257,17 @@ EofqaView::EofqaView(PhysicalModel *m, QWidget *parent)
 */
 void EofqaView::setScalesFromModel()
 {
-    if(Emax<=0.) Emax=20;
+    QPair<double,double> umin_umax = model->getUminUmax();
+    double Umin = umin_umax.first;
+    double Umax = umin_umax.second;
+    Emin = Umin + 1e-7;
+    if (Emax == Emin) Emax = 2*(Emin + 1);
+    if (Emax < Emin)
+    {
+        double t = Emax;
+        Emax = Emin;
+        Emin = t;
+    }
 }
 void EofqaView::slotEline()
 {
@@ -192,11 +278,14 @@ void EofqaView::slotEline()
         lineE = new EEDrag(this);
         scene()->addItem(lineE);
     }
-    QPen p;
+/*    QPen p;
+    p.setJoinStyle(Qt::BevelJoin);
+    p.setCapStyle(Qt::RoundCap);
     p.setStyle(Qt::DashLine);
     p.setColor(Qt::green);
-    lineE->setPen(p);
-    lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
+    lineE->setPen(p);*/
+    lineE->setLine(0, vp.height()*(E-Emin)/(Emax-Emin), vp.width());
+//    lineE->setLine(vp.width()*(E-Emin)/(Emax-Emin), 0., vp.height());
 }
 void EofqaView::resizePicture()
 {
@@ -207,11 +296,12 @@ void EofqaView::resizePicture()
 void EofqaView::setViewportMapping()
 {
     QRectF a = QRectF(this->viewport()->rect());
-    double rEmin=0;
-    double rEmax=a.width();//npoints-1;
-    double rTMin=0;
-    double rTMax=a.height();//a.height();
-    QRectF b = QRectF(QPointF(rEmin,rTMin),QPointF(rEmax,rTMax));
+//    double rEmin=0;
+//    double rEmax=a.width();//npoints-1;
+//    double rTMin=0;
+//    double rTMax=a.height();//a.height();
+    QRectF b = QRectF(QPointF(0,0),QPointF(a.width(),a.height()));
+//    QRectF b = QRectF(QPointF(rEmin,rTMin),QPointF(rEmax,rTMax));
     scene()->setSceneRect(b);
     {
         qreal m11 = a.width() / b.width();
@@ -226,11 +316,7 @@ void EofqaView::setViewportMapping()
 }
 void EofqaView::resizeEvent(QResizeEvent *)
 {
-//    QSize s = e->size();
-//    QSize o = e->oldSize();
     this->resizePicture();
-//    setViewportMapping();
-    //QWidget::resizeEvent(e);
 }
 
 void EofqaView::wheelEvent(QWheelEvent *event)
@@ -255,23 +341,23 @@ void EofqaView::clearAll()
 }
 void EofqaView::scrollView(int dx, int dy)
 {
-    double stepY=(tMax-tMin)/5;//numTTicks;
-    tMin +=dy*stepY;
-    tMax +=dy*stepY;
+/*    double stepY=(qaMax-qaMin)/5;//numTTicks;
+    qaMin +=dy*stepY;
+    qaMax +=dy*stepY;
     double stepX=(Emax-Emin)/5;//numETicks;
     Emin +=dx*stepX;
     Emax +=dx*stepX;
     if(Emin<0) Emin=-0.2;
     if(Emax<0) Emax=1.;
-    setScaleTE();
-    emit(signalScaleTEChanged());
-/*    double stepX=(tMax-tMin)/5;//numTTicks;
-    tMin +=dx*stepX;
-    tMax +=dx*stepX;
-    double stepY=(Emax-Emin)/5;//numETicks;
+    setScaleQE();
+    emit(signalScaleQAChanged());*/
+    double stepX=(qaMax-qaMin)/5;//numTTicks;
+    qaMin +=dx*stepX;
+    qaMax +=dx*stepX;
+    double stepY=(Emax-Emin)/5;
     Emin +=dy*stepY;
     Emax +=dy*stepY;
-    emit(signalScalesChanged());*/
+    emit(signalScaleQAChanged());
 }
 
 void EofqaView::keyPressEvent(QKeyEvent *event)
@@ -311,7 +397,8 @@ void EofqaView::slot_Eofqa()
 {
     if (! isVisible()) return;
     PotentialType type = model->getPotentialType();
-    if(type==FINITE) return;
+    if(type==FINITE||type==QUASISTATIONARY) return;
+    EParameters sE;
     QRectF vp = scene()->sceneRect();
     QRectF vp_old=vp;
     QPen p;
@@ -343,18 +430,22 @@ void EofqaView::slot_Eofqa()
         linev = new QGraphicsLineItem();
         linev->setPen(p);
         lineh->setPen(p);
-        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
-        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
+        lineh->setZValue(1000);
+        linev->setZValue(1000);
+//        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height()); 
+//        lineh->setLine(0,vp.width()*(-Emin)/(Emax-Emin), vp.width(),vp.width()*(-Emin)/(Emax-Emin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
     }
-    else
-    {
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
-        lineh->setLine(0,vp.height()*(-tMin)/(tMax-tMin),vp.width(),vp.height()*(-tMin)/(tMax-tMin));
-    }
+//    else
+//    {
+//        linev->setPen(p);
+//        lineh->setPen(p);
+        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height()); 
+        lineh->setLine(0,vp.height()*(-Emin)/(Emax-Emin), width(),vp.height()*(-Emin)/(Emax-Emin));
+//        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
+//        lineh->setLine(0,vp.height()*(-qaMin)/(qaMax-qaMin),vp.width(),vp.height()*(-qaMin)/(qaMax-qaMin));
+//    }
 //--------------------------
     static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
@@ -364,19 +455,25 @@ void EofqaView::slot_Eofqa()
     const int size_colorForIds = sizeof(colorForIds)/sizeof(colorForIds[0]);
     if(type==PERIODIC)
     {
-        model->set_EmaxEmin(Emax,Emin,hE);
+        sE.Emin = this->Emin;
+        sE.Emax = this->Emax;
+        model->setEParameters(sE);
         QVector<double> Ebound = model->getEn();
         int number_of_levels = Ebound.size();
-        QPolygonF curveTE;
+//        QPolygonF curve;
+        QPolygonF curvem;
+        QPolygonF curvep;
+        QPolygonF curveEQ;
         int npoint=101;
-//        curveTE.resize(npoint);
         double ed,eu;
         int i=0;
+        int jc=0;
         while(i < number_of_levels)
-            //        for (int i=0; i < number_of_levels; i=i+2)
         {
             ed=Ebound[i];
-            curveTE.resize(0);
+            int numberOfBand=(2+i)/2-1;
+            curveEQ.resize(npoint);
+//            curveEQ.resize(2*npoint);
             if((i+1)<number_of_levels) eu=Ebound[i+1];
             else eu=Emax;
             model->set_E0(0.5*(ed+eu));
@@ -387,8 +484,8 @@ void EofqaView::slot_Eofqa()
             }
             else
             {
-                //            if(ed>=Emin||eu>=Emin)
-                {
+                    curvem.resize(0);
+                    curvep.resize(0);
                     double dE=(eu-ed)/(npoint-1);
                     for(int j=0; j<npoint;j++)
                     {
@@ -397,19 +494,44 @@ void EofqaView::slot_Eofqa()
                         qa = model->get_qa()/M_PI;
                         if(qa<=1)
                         {
-                        double x = vp.width()*(EE-Emin)/(Emax-Emin);
-                        double y = vp.height()*(qa-tMin)/(tMax-tMin);
-                        curveTE.push_back(QPointF(x,y));
-//                        curveTE[j]  = QPointF(x,y);
+                            double y = vp.height()*(EE-Emin)/(Emax-Emin);
+                            double x = vp.width()*(qa-qaMin)/(qaMax-qaMin);
+                            double xm = vp.width()*(-qa-qaMin)/(qaMax-qaMin);
+                            curvep.push_back(QPointF(x,y));
+                            curvem.push_back(QPointF(xm,y));
+//                            curve.push_back(QPointF(qa,EE));
                         }
                     }
+/*                    int ns=curve.size()-1;
+                    int dqde_nc = (numberOfBand%2) ? -1 : +1;
+                    for (int l=0; l <= ns; l++)
+                    {
+                       if(dqde_nc>0)
+                        {
+                        QPointF p=curve[ns-l];
+                        double y = vp.height()*(p.y()-Emin)/(Emax-Emin);
+                        double xp = vp.width()*(p.x()-qaMin)/(qaMax-qaMin);
+                        double xm = vp.width()*(-p.x()-qaMin)/(qaMax-qaMin);
+                        curveEQ[l]=QPointF(xm,y);//curve[curve.size()-1-l];
+//                        curveEQ[2*ns+1-l]=QPointF(xp,y);
+                       }
+                       else
+                       {
+                        QPointF p=curve[l];
+                        double y = vp.height()*(p.y()-Emin)/(Emax-Emin);
+                        double xp = vp.width()*(p.x()-qaMin)/(qaMax-qaMin);
+                        double xm = vp.width()*(-p.x()-qaMin)/(qaMax-qaMin);
+                        curveEQ[l]=QPointF(xm,y);//curve[curve.size()-1-l];
+//                        curveEQ[2*ns+1-l]=QPointF(xp,y);
+                       }
+                    }*/
                     p.setColor(colorForIds[ i % size_colorForIds]);
-                    setCurve(i,curveTE,p);
+                    setCurve(jc,curvep,p);
+                    jc=jc+1;
+                    setCurve(jc,curvem,p);
+//                    setCurve(i,curveEQ,p);
+                    jc=jc+1;
                     i++;
-                    //                    i=i+2;
-                    //            p.setColor(colorForIds[ i/2 % size_colorForIds]);
-                    //            setCurve(i/2,curveTE,p);
-                }
             }
         }
     }
@@ -429,6 +551,7 @@ void EofqaView::setCurve(int id,const QPolygonF & curve, const QPen& pen)
         EofqaCurve *c = new EofqaCurve(curve,this);
         scene()->addItem(c);
         curves[id] = c;
+        c->setZValue(1);
     }
     curves[id]->setPen(pen);
     update();
@@ -472,7 +595,7 @@ void EofqaView::initDialogScaleY()
         QString x;
         x.sprintf("%lg",this->hE);
         this->leHE->setText(x);
-        connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leHE,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -484,7 +607,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->Emin);
         this->leEmin->setText(x);
         this->leEmin->setToolTip("Lower value of E-interval");
-        connect(this->leEmin,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leEmin,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -496,7 +619,7 @@ void EofqaView::initDialogScaleY()
         x.sprintf("%lg",this->Emax);
         this->leEmax->setText(x);
         this->leEmax->setToolTip("High value of E-interval");
-        connect(this->leEmax,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leEmax,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -505,10 +628,10 @@ void EofqaView::initDialogScaleY()
         h->addWidget(new QLabel("qa_min/pi",this));
         h->addWidget(this->leTmin= new QLineEdit(this));
         QString x;
-        x.sprintf("%lg",this->tMin);
+        x.sprintf("%lg",this->qaMin);
         this->leTmin->setText(x);
         //        this->leTmin->setToolTip("Lower value of E-interval");
-        connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leTmin,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     {
@@ -517,10 +640,10 @@ void EofqaView::initDialogScaleY()
         h->addWidget(new QLabel("qa_max/pi",this));
         h->addWidget(this->leTmax= new QLineEdit(this));
         QString x;
-        x.sprintf("%lg",this->tMax);
+        x.sprintf("%lg",this->qaMax);
         this->leTmax->setText(x);
         //        this->leTmax->setToolTip("High value of E-interval");
-        connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateScaleTE()));
+        connect(this->leTmax,SIGNAL(editingFinished()),this,SLOT(updateScaleQE()));
         vl->addWidget(line);
     }
     gbScaleXY->setLayout(vl);
@@ -532,7 +655,7 @@ void EofqaView::showDialogScaleY()
     gbScaleXY->raise();
     gbScaleXY->setFocus();
 }
-void EofqaView::setScaleTE()
+void EofqaView::setScaleQE()
 {
     QString x;
     x.sprintf("%lg",this->hE);
@@ -541,18 +664,18 @@ void EofqaView::setScaleTE()
     this->leEmin->setText(x);
     x.sprintf("%lg",this->Emax);
     this->leEmax->setText(x);
-    x.sprintf("%lg",this->tMax);
+    x.sprintf("%lg",this->qaMax);
     this->leTmax->setText(x);
-    x.sprintf("%lg",this->tMin);
+    x.sprintf("%lg",this->qaMin);
     this->leTmin->setText(x);
 }
-void EofqaView::updateScaleTE()
+void EofqaView::updateScaleQE()
 {
     double hENew = this->leHE->text().toDouble();
     double EminNew = this->leEmin->text().toDouble();
     double EmaxNew = this->leEmax->text().toDouble();
-    double TminNew = this->leTmin->text().toDouble();
-    double TmaxNew = this->leTmax->text().toDouble();
+    double qaMinNew = this->leTmin->text().toDouble();
+    double qaMaxNew = this->leTmax->text().toDouble();
     bool changed = false;
     if (hE != hENew)
     {
@@ -569,20 +692,20 @@ void EofqaView::updateScaleTE()
         changed = true;
         Emax=EmaxNew;
     }
-    if (tMin != TminNew)
+    if (qaMin != qaMinNew)
     {
         changed = true;
-        tMin=TminNew;
+        qaMin=qaMinNew;
     }
-    if (tMax != TmaxNew)
+    if (qaMax != qaMaxNew)
     {
         changed = true;
-        tMax=TmaxNew;
+        qaMax=qaMaxNew;
     }
     if(changed)
     {
-        model->set_EmaxEmin(Emax,Emin, hE);
-        emit(signalScaleTEChanged());
+//        setScaleQE();
+        emit(signalScaleQAChanged());
     }
 }
 void EofqaView::contextMenuEvent(QContextMenuEvent *event)
@@ -598,81 +721,64 @@ void EofqaView::contextMenuEvent(QContextMenuEvent *event)
             update();
         }
 }
+ScalesEQ EofqaView::getScalesEQ() const
+{
+ScalesEQ tp;
+tp.hE=this->hE;
+tp.Emin=this->Emin;
+tp.Emax=this->Emax;
+tp.qaMin=this->qaMin;
+tp.qaMax=this->qaMax;
+return tp;
+}
+void  EofqaView::setScalesEQ(const ScalesEQ& u)
+{
+ bool changed_x = false;
+ bool changed_y = false;
+ double v=u.Emax;
+ if(v!=this->Emax)
+ {
+     this->Emax=v;
+     changed_x = true;
+ }
+ v=u.Emin;
+ if(v!=this->Emin)
+ {
+     changed_x = true;
+     this->Emin=v;
+ }
+ v=u.qaMax;
+ if(v!=this->qaMax)
+ {
+     this->qaMax=v;
+     changed_y = true;
+ }
 
-/*void EofqaView::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::LeftButton)
-    {
-        rubberBandIsShown = false;
-        updateRubberBandRegion();
-        unsetCursor();
-        QRect rect = rubberBandRect.normalized();
-        if(rect.width()<4||rect.height()<4)
-            return;
-        rect.translate(-1, -1);
-    }
-}
-void EofqaView::updateRubberBandRegion()
-{
-    QRect rect=rubberBandRect.normalized();
-    update(rect.left(), rect.top(), rect.width(), 1);
-    update(rect.left(), rect.top(), 1, rect.height());
-    update(rect.left(), rect.bottom(), rect.width(), 1);
-    update(rect.right(), rect.top(), 1, rect.height());
-}
-void EofqaView::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button()== Qt::LeftButton)
-    {
-        rubberBandIsShown = true;
-        rubberBandRect.setTopLeft(event->pos());
-        rubberBandRect.setBottomRight(event->pos());
-        updateRubberBandRegion();
-        setCursor(Qt::CrossCursor);
-    }
-}
-void EofqaView::mouseMoveEvent(QMouseEvent *event)
-{
-    QPointF f = mapToScene(event->pos());
-    emit(infoMouseMovedTo(f));
-    QGraphicsView::mouseMoveEvent(event);
-    if (rubberBandIsShown)
-    {
-        updateRubberBandRegion();
-        rubberBandRect.setBottomRight(event->pos());
-        updateRubberBandRegion();
-    }
+ v=u.qaMin;
+ if(v!=this->qaMin)
+ {
+     changed_y = true;
+     this->qaMin=v;
+ }
 
-}
-void EofqaView::enterEvent ( QEvent * event )
-{
-    setFocus();
-    QWidget::enterEvent(event);
-}
-void EofqaView::paintEvent(QPaintEvent *event)
-{
-    QVector<QRect> rects = event->region().rects();
-    QPainter painter(this);
-   for(int i=0; i<(int)rects.size();++i)
-        painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
-    if(rubberBandIsShown)
+ if(this->hE!=u.hE)
+ {
+ changed_x = true;
+ this->hE=u.hE;
+ }
+    if (changed_x||changed_y)
     {
-        painter.setPen(palette().light().color());//was 2!!!!
-        painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
-    }
-    if (hasFocus())
-    {
-        QStyleOptionFocusRect option;
-        option.initFrom(this);
-        style()->drawPrimitive(QStyle::PE_FrameFocusRect, &option, &painter, this);
+    setScaleQE();
+    emit(signalScaleQAChanged());
     }
 }
-*/
+
 EEDrag::EEDrag(EofqaView *v,QGraphicsItem *parent)
 : QGraphicsItem(parent), view(v)
 {
     //TODO: how do I control the width of this draggable line?
-    setCursor(Qt::SizeVerCursor);
+//    setCursor(Qt::SizeHorCursor);
+    penHover.setCapStyle(Qt::FlatCap);
     penHover.setStyle(Qt::DashLine);
     penHover.setWidth(v->lineWidth);
 //    penHover.setStyle(Qt::DotLine);
@@ -680,10 +786,14 @@ EEDrag::EEDrag(EofqaView *v,QGraphicsItem *parent)
 //    pen.setStyle(Qt::DashLine);
     pen.setStyle(Qt::DotLine);
     pen.setColor(Qt::green);
-    penForPainter.setColor(Qt::green);
+    pen.setCapStyle(Qt::FlatCap);
     pen.setWidth(v->lineWidth);
+    penForPainter.setColor(Qt::green);
+    penForPainter.setWidthF(view->lineWidth);
+    penForPainter.setCapStyle(Qt::FlatCap);
 
-    setCursor(Qt::SizeHorCursor);
+
+    setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
     setZValue(999);
@@ -699,15 +809,18 @@ QVariant EEDrag::itemChange(GraphicsItemChange change, const QVariant & value)
         {
             QPointF newpos = value.toPointF();
             QPointF oldpos = pos();
-            newpos.setY( oldpos.y() );
+            newpos.setX( oldpos.x() );
+//            newpos.setY( oldpos.y() );
             return newpos;
         }
     case ItemPositionHasChanged:
         if (isSelected())
         {
-            double newE = pos().x();
+            double newE = pos().y();
+//            double newE = pos().x();
             QRectF vp = view->sceneRect();//
-            newE=view->Emin+(view->Emax-view->Emin)*newE/vp.width();
+            newE=view->Emin+(view->Emax-view->Emin)*newE/vp.height();
+//            newE=view->Emin+(view->Emax-view->Emin)*newE/vp.width();
             view->model->set_Energy(newE);
             return QVariant();
         }
@@ -726,7 +839,7 @@ public:
     }
 };
 
-EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
+QEWidget::QEWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
     setTitle(tr("Dispersion law E(qa)"));
@@ -738,11 +851,7 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
     QToolButton *reset = new QToolButton(this);
     reset->setIcon(QIcon(":/images/player_play.png"));
     reset->adjustSize();//QPushButton(tr("Close"));
-//    QPushButton *reset = new QPushButton(tr("&Resize"));
     connect(reset,SIGNAL(clicked()),eofqaView,SLOT(resizePicture()));
-
-//    bRunTE = new QPushButton(tr("Run "));
-//    connect(bRunTE,SIGNAL(clicked()),this,SLOT(slotRunWP()));
 
     QLabel *lTtext= new QLabel(this);
     lTtext->setText(tr("qa="));
@@ -764,11 +873,6 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
 
     connect(model, SIGNAL(signalEnergyChanged(double)), lE, SLOT(setNum(double)));
 
-//    zoomInButton = new QToolButton(this);
-//    zoomInButton->setIcon(QIcon("images/zoomin.png"));
-//    zoomInButton->adjustSize();
-//    connect(zoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
-
     QToolButton *buttonClose = new QToolButton(this);
     buttonClose->setIcon(QIcon(":/images/erase.png"));
     buttonClose->adjustSize();//QPushButton(tr("Close"));
@@ -779,13 +883,71 @@ EofqaWidget::EofqaWidget(PhysicalModel *model, QWidget *parent)
     vl->addLayout(hl);
     setLayout(vl);
 }
-void EofqaWidget::slotRunEqa()
+void QEWidget::slotRunEqa()
 {
- //   bRunTE->setText("STOP");
- //   disconnect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunEqa()));
- //   breakStatus.onButton(bRunTE);
     eofqaView->resizePicture();
- //   breakStatus.noButton(bRunTE);
- //   bRunTE->setText("RUN ");
- //   connect(bRunTE, SIGNAL(clicked()), this, SLOT(slotRunEqa()));
+}
+void QEWidget::readFromXml(QXmlStreamReader *r)
+{
+    Q_ASSERT(this);
+    Q_ASSERT(r->isStartElement() && r->name() == "QE");
+    double Emin = 0, Emax = 0, he=0;
+    ScalesEQ u;
+    while (!r->atEnd())
+    {
+        r->readNext();
+        if (r->isEndElement())
+            break;
+        if (!r->isStartElement())
+            continue;
+        if (r->name() == "Emin")
+        {
+            QString s = r->readElementText();
+            u.Emin = s.toDouble();
+        }
+        else if (r->name() == "Emax")
+        {
+            QString s = r->readElementText();
+            u.Emax = s.toDouble();
+        }
+        else if (r->name() == "hE")
+        {
+            QString s = r->readElementText();
+            u.hE = s.toDouble();
+        }
+        else if (r->name() == "qa_max")
+        {
+            QString s = r->readElementText();
+            u.qaMax = s.toDouble();
+        }
+        else if (r->name() == "qa_min")
+        {
+            QString s = r->readElementText();
+            u.qaMin = s.toDouble();
+        }
+        else
+            skipUnknownElement(r);
+    }
+    eofqaView->setScalesEQ(u);
+}
+
+
+void QEWidget::writeToXml(QXmlStreamWriter *w)
+{
+ScalesEQ u=eofqaView->getScalesEQ();
+w->writeStartElement("QE");
+    {
+        QString s;
+        s.sprintf("%lg",u.Emin);
+        w->writeTextElement("Emin",s);
+        s.sprintf("%lg",u.Emax);
+        w->writeTextElement("Emax",s);
+        s.sprintf("%lg",u.hE);
+        w->writeTextElement("hE",s);
+        s.sprintf("%lg",u.qaMin);
+        w->writeTextElement("qa_min",s);
+        s.sprintf("%lg",u.qaMax);
+        w->writeTextElement("qa_max",s);
+    }
+    w->writeEndElement();
 }

@@ -59,6 +59,8 @@ public slots:
     void setScalesFromModel();
     void updateRangeE();
     void changeE();
+//    void setRangeE();
+    void modelChanged();
 signals:
     void infoMouseMovedTo(QPointF);
 //    void signalRangeEChanged();
@@ -131,7 +133,7 @@ public slots:
     void updateLevelNumber();
     void printEnergy();
     void printLevelNumber();
-    void runHelp_ctx();
+//    void runHelp_ctx();
 private:
     void runHelp(const char *);
     QLineEdit *lE;
