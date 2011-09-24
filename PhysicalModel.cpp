@@ -1989,11 +1989,10 @@ b[i]=b[i]/a[1];
 }*/
 void PhysicalModel::norm()
 {
-    double a, s;
+    double a = 0, s;
     int n0;
     s=0;
     n0=1;
-//    if(typeOfU==QUASISTATIONARY) return;
     if(typeOfU==FINITE||(typeOfU==QUASISTATIONARY&&abs(imag(Ecmplx))<1e-10))
     {
         s=0.5*(
@@ -2005,7 +2004,7 @@ void PhysicalModel::norm()
     {
         complex aj=this->a[n];
         complex bj=this->b[n];
-        if(typeOfU==FINITE) a = this->E0 - this->U[n];
+        if(typeOfU==FINITE||typeOfU==PERIODIC) a = this->E0 - this->U[n];
         if(typeOfU==QUASISTATIONARY) a = real(get_Ecmplx()) - this->U[n];
         if(a>0)
         {
