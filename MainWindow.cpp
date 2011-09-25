@@ -91,10 +91,10 @@ void MainWindow::helpStart()
     openKvantPdf("start");
 }
 
-//void MainWindow::tasks()
-//{
-//    openTasksPdf(QString());
-//}
+void MainWindow::helpTasks()
+{
+    openTasksPdf(QString());
+}
 
 void MainWindow::initMenuBar()
 {
@@ -131,7 +131,7 @@ void MainWindow::initMenuBar()
 
      QAction *taskAction = fileMenu->addAction(tr("&Tasks"));
      taskAction->setShortcut(tr("Ctrl+T"));
-     connect(taskAction, SIGNAL(triggered()), this, SLOT(tasks()));
+     connect(taskAction, SIGNAL(triggered()), this, SLOT(helpTasks()));
      fileMenu->addAction(taskAction);
 
      aboutAction = new QAction(tr("&О программе"),this);
