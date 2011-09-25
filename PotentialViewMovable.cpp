@@ -1472,21 +1472,6 @@ public:
     }
 };
 
-/*void PotentialMovableWidget::runHelp(const char *s)
-{
-    QStringList args;
-    args.push_back("/A");
-    QString dest;
-    dest.sprintf("nameddest=%s",s);
-    args.push_back(dest);
-    args.push_back("kvant.pdf");
-    int i = QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args);
-}
-void PotentialMovableWidget::runHelp_ctx()
-{
-    runHelp("ctx");
-}*/
-
 PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *parent)
 : QGroupBox(parent)
 {
