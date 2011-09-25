@@ -66,7 +66,9 @@ void openPdf(const QString& pdfName, const QString& hypertarget)
     if (! hypertarget.isEmpty() )
     {
         args.push_back("/A");
-        args.push_back(hypertarget.toLatin1());
+        QString nd("nameddest=");
+        nd.append(hypertarget);
+        args.push_back(nd);
     }
     args.push_back(pdfName);
     QProcess::startDetached(       "C:\\Program Files (x86)\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args)
