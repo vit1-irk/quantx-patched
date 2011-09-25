@@ -63,12 +63,12 @@ void WaveFunctionView::slotEnergyChanged()
     if(nMin>0&&nMax>0&&hn>0) return;
     QRectF vp = scene()->sceneRect();
     QPen p,pl;
-    p.setWidthF(lineWidth);
+    p.setWidth(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);//Qt::darkRed);
     pl.setColor(Qt::lightGray);
-    pl.setWidthF(1);
+    pl.setWidth(1);
     double xn,yn,cs,sn;
     if(whatToDraw<3)
     {
@@ -400,7 +400,7 @@ void WaveFunctionView::slot_Psi_n_of_x()
     SettingParameters ts;
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
-    p.setWidthF(lineWidth);
+    p.setWidth(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -469,7 +469,7 @@ void WaveFunctionView::slot_Psi_n_of_x()
       if(!linez)
       {
           linez = new QGraphicsLineItem();
-          pl.setWidthF(1);
+          pl.setWidth(1);
           scene()->addItem(linez);
           linez->setPen(p);
       }
@@ -494,7 +494,7 @@ void WaveFunctionView::slot_Psi_n_of_x()
     npoints=1+(xmax-xmin)/this->dx;
     psi.resize(npoints);
     waveFunction.resize(npoints);
-    p.setWidthF(lineWidth);
+    p.setWidth(lineWidth);
     bool tail=true;
             for (int n = this->nMin; n <= this->nMax; n+= this->hn)
     {

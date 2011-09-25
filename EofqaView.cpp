@@ -407,7 +407,7 @@ void EofqaView::slot_Eofqa()
     lineWidth=ts.lineWidth;
     if(lineWidth==0)lineWidth=1;
 
-    p.setWidthF(lineWidth);
+    p.setWidth(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
@@ -789,7 +789,7 @@ EEDrag::EEDrag(EofqaView *v,QGraphicsItem *parent)
     pen.setCapStyle(Qt::FlatCap);
     pen.setWidth(v->lineWidth);
     penForPainter.setColor(Qt::green);
-    penForPainter.setWidthF(view->lineWidth);
+    penForPainter.setWidth(view->lineWidth);
     penForPainter.setCapStyle(Qt::FlatCap);
 
 
