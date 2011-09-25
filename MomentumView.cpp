@@ -177,18 +177,6 @@ void MomentumView::slotEnergyChanged()
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
-/*    if(!linev)
-    {
-        lineh = new QGraphicsLineItem();
-        linev = new QGraphicsLineItem();
-        scene()->addItem(lineh);
-        scene()->addItem(linev);
-    }
-        linev->setPen(p);
-        lineh->setPen(p);
-        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
-        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-*/ 
  p.setColor(Qt::darkCyan);//Qt::darkRed);
 
     double E=model->get_E0();
@@ -225,7 +213,6 @@ void MomentumView::slotEnergyChanged()
     }
     x = vp.width();
     phi[3*np+1]=QPointF(x, y0);
-//    p.setColor(colorForIds[1 % size_colorForIds]);
     setCurve(ID_PSI_ENERGY, phi, p);
     update();
 }
@@ -247,7 +234,6 @@ void MomentumView::slot_Phi_n_of_k()
     p.setColor(Qt::black);
     static const QColor colorForIds[12] = {
         Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
-//        Qt::yellow,
         Qt::black,
         Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta, Qt::darkYellow
     };
@@ -281,13 +267,10 @@ void MomentumView::slot_Phi_n_of_k()
             scene()->addItem(lineh);
             scene()->addItem(linev);
         }
-//        else
-//        {
-            linev->setPen(p);
-            lineh->setPen(p);
-            linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
-            lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-//        }
+        linev->setPen(p);
+        lineh->setPen(p);
+        linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
+        lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
     if(type==PERIODIC)
     {
         double     ax=0;
@@ -337,44 +320,24 @@ void MomentumView::slot_Phi_n_of_k()
     }
     else
     {
-/*        if(!linev)
-        {
-            lineh = new QGraphicsLineItem();
-            linev = new QGraphicsLineItem();
-            scene()->addItem(lineh);
-            scene()->addItem(linev);
-        }
-        else
-        {
-            linev->setPen(p);
-            lineh->setPen(p);
-            linev->setLine(vp.width()*(-kmin)/(kmax-kmin), 0, vp.width()*(-kmin)/(kmax-kmin),vp.height() );
-            lineh->setLine(0,vp.height()*(-phiMin)/(phiMax-phiMin),vp.width(),vp.height()*(-phiMin)/(phiMax-phiMin));
-        }
-*/
         int npoints;
         QVector<double> waveFunction;
         QPolygonF phi;
         npoints=1+(kmax-kmin)/this->dk;
         phi.resize(npoints);
         waveFunction.resize(npoints);
-        //    p.setWidthF(lineWidth);
         for (int n = nMin; n <= nMax; n+= hn)
         {
             if(n>number_of_levels-1) break;
             waveFunction = model->getPhiOfk(Ebound[n],kmin,kmax,npoints);
             for (int i=0; i < npoints; i++)
             {
-                //                double x = kmin + dk*i;
-                //                double y = waveFunction[i];
-                //                phi[i]  = QPointF(x, y);
                 double x = (i*vp.width())/(npoints-1);
                 double y =vp.height()*(waveFunction[i]-phiMin)/(phiMax-phiMin);
                 phi[i]  = QPointF(x, y);
             }
             p.setColor(colorForIds[n % size_colorForIds]);
             setCurve(n, phi, p);
-            //            setCurve(n,phi,colorForIds[n % size_colorForIds]);
         }
         update();
     }
