@@ -542,11 +542,11 @@ void WaveFunctionView::slot_Psi_n_of_x()
             }
             psi[i]  = QPointF(x, y);
         }
-        if(type==PERIODIC) 
+        if(type==PERIODIC)
         {
             p.setColor(colorForIdsP[n % size_colorForIdsP]);
         }
-        else 
+        else
             p.setColor(colorForIds[n % size_colorForIds]);
         setCurve(n, psi, p);
     }

@@ -2925,7 +2925,7 @@ void  PhysicalModel::setEParameters(const EParameters& u)
         need_build_En = true;
         emit(signalEboundChanged());
     }
-} 
+}
 void  PhysicalModel::setTimeParam(const TimeParameters& u)
 {
  double v=u.time;
@@ -3517,7 +3517,7 @@ void PhysicalModel::setPotentialType(PotentialType t)
             d[0]=0;
             m[0]=m[N];
             Ui[N+1]=0;
-            if(Ui[N+1]==Ui[N]) 
+            if(Ui[N+1]==Ui[N])
             {
                 set_N(N-1);
                 Ui[N+1]=0;
@@ -3992,7 +3992,7 @@ void PhysicalModel::getTnatE()//(double E)
 //        this->set_LevelNumber(n);
         double E0=real(Equasi[n]);
         double G=imag(Equasi[n]);
-        double G2=G*G; 
+        double G2=G*G;
         double EE=this->E0-E0;
         tt=G2/(EE*EE+G2);
         emit(signalTransmissionChanged(tt));

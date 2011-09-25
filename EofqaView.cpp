@@ -432,7 +432,7 @@ void EofqaView::slot_Eofqa()
         lineh->setPen(p);
         lineh->setZValue(1000);
         linev->setZValue(1000);
-//        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height()); 
+//        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height());
 //        lineh->setLine(0,vp.width()*(-Emin)/(Emax-Emin), vp.width(),vp.width()*(-Emin)/(Emax-Emin));
         scene()->addItem(lineh);
         scene()->addItem(linev);
@@ -441,7 +441,7 @@ void EofqaView::slot_Eofqa()
 //    {
 //        linev->setPen(p);
 //        lineh->setPen(p);
-        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height()); 
+        linev->setLine(vp.width()*(-qaMin)/(qaMax-qaMin), 0., vp.width()*(-qaMin)/(qaMax-qaMin), vp.height());
         lineh->setLine(0,vp.height()*(-Emin)/(Emax-Emin), width(),vp.height()*(-Emin)/(Emax-Emin));
 //        linev->setLine(vp.width()*(-Emin)/(Emax-Emin), 0, vp.width()*(-Emin)/(Emax-Emin),vp.height() );
 //        lineh->setLine(0,vp.height()*(-qaMin)/(qaMax-qaMin),vp.width(),vp.height()*(-qaMin)/(qaMax-qaMin));
