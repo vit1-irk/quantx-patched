@@ -4836,6 +4836,10 @@ void ModelXML::read()
         {
             readE0();
         }
+        else if (r->name() == "Settings")
+        {
+            readWidthOfLine();
+        }
         else if (r->name() == "LevelNumber")
         {
             readLevelNumber();
@@ -4922,6 +4926,7 @@ void ModelXML::write()
     writeTypeOfU();
     writeGParam();
     writeE0();
+    writeWidthOfLine();
     writeEParameters();
     writeUbias();
     writeUdm();
@@ -5178,10 +5183,9 @@ void ModelXML::writeLevelNumber()
 void ModelXML::writeWidthOfLine()
 {
     QString s;
-    SettingParameters wp=model->getSettingParameters();
-    int iw=wp.lineWidth;
-    s.sprintf("%i",iw);
-    w->writeTextElement("Setting",s);
+    SettingParameters tp=model->getSettingParameters();
+    s.sprintf("%i",tp.lineWidth);
+    w->writeTextElement("Settings",s);
 }
 void ModelXML::writeWPm()
 {
@@ -5330,13 +5334,11 @@ void ModelXML::readTypeOfU()
 }
 void ModelXML::readWidthOfLine()
 {
-    Q_ASSERT(r->isStartElement() && r->name() == "Setting");
+    Q_ASSERT(r->isStartElement() && r->name() == "Settings");
+    SettingParameters u;
     QString s = r->readElementText();
-    int iw;
-    sscanf_s(s.toAscii(),"%i",iw);
-    SettingParameters wp;
-    wp.lineWidth=iw;
-    model->setSettingParameters(wp);
+    u.lineWidth=s.toInt();
+    model->setSettingParameters(u);
 }
 
 void ModelXML::readLevelNumber()
