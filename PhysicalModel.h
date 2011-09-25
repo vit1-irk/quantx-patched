@@ -125,18 +125,14 @@ struct SettingParameters
 
 struct ScalesUParameters
 {
-    double Xmin,Xmax,Hx;
-//    double Psimin,Psimax;
+    double Xmin,Xmax;
     double Umin,Umax;
     bool operator != (const ScalesUParameters& o)
     {
-        return Hx != o.Hx
-            ||Xmin != o.Xmin
+        return Xmin != o.Xmin
             ||Xmax != o.Xmax
             ||Umin != o.Umin
             ||Umax != o.Umax;
-//            ||Psimin != o.Psimin
-//            ||Psimax != o.Psimax;
     }
 };
 
