@@ -1,7 +1,5 @@
 # http://sourceforge.net/project/memberlist.php?group_id=355577
-
-#!define VERSION "0.001" ; 2011 09 21
-!define VERSION "0.002" ; 2011 09 25
+!include "Version.nsh"
 Name "Kvant ${VERSION}"
 OutFile "Kvant-${VERSION}.exe"
 InstallDir $PROGRAMFILES32\Kvant
@@ -18,6 +16,19 @@ LicenseData $(license)
 LicenseForceSelection checkbox
 LangString note ${LANG_ENGLISH} "This will install educational software Kvant. Do you wish to continue?"
 LangString note ${LANG_RUSSIAN} "Вы устанавливаете учебную программу Квант. Продолжить?"
+
+VIProductVersion "${VERSIONA}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "Kvant"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "Software for teaching quantum mechanics"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Kvant installation program"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Olga Tkachenko"
+
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "ProductName" "Kvant"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "Comments" "Программа для изучения квантовой механики"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "FileDescription" "Инсталляционная программа"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "FileVersion" "${VERSION}"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "LegalCopyright" "Ольга Ткаченко"
 
 Page license
 Page directory

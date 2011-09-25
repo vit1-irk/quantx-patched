@@ -47,6 +47,7 @@ HEADERS += TransmissionView.h
 HEADERS += Uch2x.h
 HEADERS += Ulinear.h
 HEADERS += Uparabolic.h
+HEADERS += Version.h
 HEADERS += WaveFunctionView.h
 HEADERS += WavePacketKView.h
 HEADERS += WavePacketXView.h

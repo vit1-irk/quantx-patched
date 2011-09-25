@@ -335,10 +335,11 @@ void MainWindow::initMenuBar()
      widthLineAc->setToolTip(tr("Толщина линий в пикселах"));
      connect(widthLineAc, SIGNAL(triggered()), this, SLOT(slotSetting()));
 }
+#include "Version.h"
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("О программе Квант"),
-        tr("<p><b>Квант 0.002</b></p>"
+        tr("<p><b>Квант " KVANT_VERSION_STRING "</b></p>"
         "<p>Учебная программа по квантовой механике.</p>" 
         "<p>Авторы: О.А.Ткаченко, В.А.Ткаченко, Г.Л.Коткин</p>"
         "<p>Сайт программы: <a href='http://sourceforge.net/projects/quantx'>"
