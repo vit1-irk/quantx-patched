@@ -69,7 +69,9 @@ void openPdf(const QString& pdfName, const QString& hypertarget)
         args.push_back(hypertarget.toLatin1());
     }
     args.push_back(pdfName);
-    QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args);
+    QProcess::startDetached(       "C:\\Program Files (x86)\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args)
+        || QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args)
+        ;
 }
 
 void openKvantPdf(const QString& hypertarget)
