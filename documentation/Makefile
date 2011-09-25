@@ -3,6 +3,7 @@ FILE=kvant
 all: $(FILE).pdf
 all: ../debug/$(FILE).pdf
 all: ../release/$(FILE).pdf
+all: ../$(FILE).pdf
 
 $(FILE).pdf: $(FILE).tex
 	-pdflatex -interaction=batchmode $<
@@ -10,3 +11,6 @@ $(FILE).pdf: $(FILE).tex
 
 ../%/$(FILE).pdf: $(FILE).pdf
 	if [ -d $(@D) ] ; then cp $< $@ ; fi
+
+../$(FILE).pdf: $(FILE).pdf
+	cp $< $@
