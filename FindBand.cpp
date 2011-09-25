@@ -290,7 +290,7 @@ QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<
             }
         }
     }
-    while (res.last().e > z.e)
+    while (res.size()>0 && res.last().e > z.e)
     {
         res.pop_back();
     }
