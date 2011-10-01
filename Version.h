@@ -1,0 +1,6 @@
+#ifndef VERSION_H_INCLUDED
+#define VERSION_H_INCLUDED
+
+#define KVANT_VERSION_STRING "0.003"
+
+#endif

@@ -60,16 +60,40 @@ public:
     ~PosIntValidator(){}
 } thePosIntValidator(0);
 
+void openPdf(const QString& pdfName, const QString& hypertarget)
+{
+    QStringList args;
+    if (! hypertarget.isEmpty() )
+    {
+        args.push_back("/A");
+        QString nd("nameddest=");
+        nd.append(hypertarget);
+        args.push_back(nd);
+    }
+    args.push_back(pdfName);
+    QProcess::startDetached(       "C:\\Program Files (x86)\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args)
+        || QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args)
+        ;
+}
+
+void openKvantPdf(const QString& hypertarget)
+{
+    openPdf(QString("kvant.pdf"),hypertarget);
+}
+
+void openTasksPdf(const QString& hypertarget)
+{
+    openPdf(QString("tasks.pdf"),hypertarget);
+}
 
 void MainWindow::helpStart()
 {
-    QStringList args;
-    args.push_back("/A");
-//    QString dest;
-//    dest.sprintf("nameddest=%s",s);
-    args.push_back("start");
-    args.push_back("kvant.pdf");
-    int i = QProcess::startDetached("C:\\Program Files\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe",args);
+    openKvantPdf("start");
+}
+
+void MainWindow::helpTasks()
+{
+    openTasksPdf(QString());
 }
 
 void MainWindow::initMenuBar()
@@ -104,6 +128,11 @@ void MainWindow::initMenuBar()
      helpAction->setShortcut(tr("Ctrl+H"));
      connect(helpAction, SIGNAL(triggered()), this, SLOT(helpStart()));
      fileMenu->addAction(helpAction);
+
+     QAction *taskAction = fileMenu->addAction(tr("&Tasks"));
+     taskAction->setShortcut(tr("Ctrl+T"));
+     connect(taskAction, SIGNAL(triggered()), this, SLOT(helpTasks()));
+     fileMenu->addAction(taskAction);
 
      aboutAction = new QAction(tr("&О программе"),this);
 //     aboutAction->setStatuslTip(tr("Сведения о программе"));
@@ -306,14 +335,16 @@ void MainWindow::initMenuBar()
      widthLineAc->setToolTip(tr("Толщина линий в пикселах"));
      connect(widthLineAc, SIGNAL(triggered()), this, SLOT(slotSetting()));
 }
+#include "Version.h"
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("О программе Квант"),
-        tr("<p><b>Квант 0.001</b></p>"
+        tr("<p><b>Квант " KVANT_VERSION_STRING "</b></p>"
         "<p>Учебная программа по квантовой механике.</p>" 
         "<p>Авторы: О.А.Ткаченко, В.А.Ткаченко, Г.Л.Коткин</p>"
         "<p>Сайт программы: <a href='http://sourceforge.net/projects/quantx'>"
         "http://sourceforge.net/projects/quantx</a></p>"
+        "<p>Для чтения документации требуется <a href='http://get.adobe.com/reader/'>Acrobat Reader X</a></p>"
         ));
 }
 

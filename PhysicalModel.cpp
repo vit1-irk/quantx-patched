@@ -1989,11 +1989,10 @@ b[i]=b[i]/a[1];
 }*/
 void PhysicalModel::norm()
 {
-    double a, s;
+    double a = 0, s;
     int n0;
     s=0;
     n0=1;
-//    if(typeOfU==QUASISTATIONARY) return;
     if(typeOfU==FINITE||(typeOfU==QUASISTATIONARY&&abs(imag(Ecmplx))<1e-10))
     {
         s=0.5*(
@@ -2005,7 +2004,7 @@ void PhysicalModel::norm()
     {
         complex aj=this->a[n];
         complex bj=this->b[n];
-        if(typeOfU==FINITE) a = this->E0 - this->U[n];
+        if(typeOfU==FINITE||typeOfU==PERIODIC) a = this->E0 - this->U[n];
         if(typeOfU==QUASISTATIONARY) a = real(get_Ecmplx()) - this->U[n];
         if(a>0)
         {
@@ -2926,7 +2925,7 @@ void  PhysicalModel::setEParameters(const EParameters& u)
         need_build_En = true;
         emit(signalEboundChanged());
     }
-} 
+}
 void  PhysicalModel::setTimeParam(const TimeParameters& u)
 {
  double v=u.time;
@@ -3518,7 +3517,7 @@ void PhysicalModel::setPotentialType(PotentialType t)
             d[0]=0;
             m[0]=m[N];
             Ui[N+1]=0;
-            if(Ui[N+1]==Ui[N]) 
+            if(Ui[N+1]==Ui[N])
             {
                 set_N(N-1);
                 Ui[N+1]=0;
@@ -3993,7 +3992,7 @@ void PhysicalModel::getTnatE()//(double E)
 //        this->set_LevelNumber(n);
         double E0=real(Equasi[n]);
         double G=imag(Equasi[n]);
-        double G2=G*G; 
+        double G2=G*G;
         double EE=this->E0-E0;
         tt=G2/(EE*EE+G2);
         emit(signalTransmissionChanged(tt));
@@ -4837,6 +4836,10 @@ void ModelXML::read()
         {
             readE0();
         }
+        else if (r->name() == "Settings")
+        {
+            readWidthOfLine();
+        }
         else if (r->name() == "LevelNumber")
         {
             readLevelNumber();
@@ -4923,6 +4926,7 @@ void ModelXML::write()
     writeTypeOfU();
     writeGParam();
     writeE0();
+    writeWidthOfLine();
     writeEParameters();
     writeUbias();
     writeUdm();
@@ -5179,10 +5183,9 @@ void ModelXML::writeLevelNumber()
 void ModelXML::writeWidthOfLine()
 {
     QString s;
-    SettingParameters wp=model->getSettingParameters();
-    int iw=wp.lineWidth;
-    s.sprintf("%i",iw);
-    w->writeTextElement("Setting",s);
+    SettingParameters tp=model->getSettingParameters();
+    s.sprintf("%i",tp.lineWidth);
+    w->writeTextElement("Settings",s);
 }
 void ModelXML::writeWPm()
 {
@@ -5331,13 +5334,11 @@ void ModelXML::readTypeOfU()
 }
 void ModelXML::readWidthOfLine()
 {
-    Q_ASSERT(r->isStartElement() && r->name() == "Setting");
+    Q_ASSERT(r->isStartElement() && r->name() == "Settings");
+    SettingParameters u;
     QString s = r->readElementText();
-    int iw;
-    sscanf_s(s.toAscii(),"%i",iw);
-    SettingParameters wp;
-    wp.lineWidth=iw;
-    model->setSettingParameters(wp);
+    u.lineWidth=s.toInt();
+    model->setSettingParameters(u);
 }
 
 void ModelXML::readLevelNumber()

@@ -188,7 +188,7 @@ QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z, int dqde_a
         {
             z = mp;
         }
-        if((a.d<0&&abs(a.d)<1e-10)&&(z.d<=0&&abs(z.d)<1e-10))
+        if((a.d<0&&abs(a.d)<1e-10)&&(z.d<0&&abs(z.d)<1e-10))
         {
             return QPair<EQDN,EQDN>(a,z);
         }
@@ -290,7 +290,7 @@ QVector<EQDN> findBandEdges(PhysicalModel *model, EQDN a, EQDN z, const QVector<
             }
         }
     }
-    while (res.last().e > z.e)
+    while (res.size()>0 && res.last().e > z.e)
     {
         res.pop_back();
     }

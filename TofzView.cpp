@@ -101,7 +101,7 @@ public:
 //        view->widthLineE=0;
 
 //        penForPainter.setWidthF(ax);
-        penForPainter.setWidthF(view->lineWidth);
+        penForPainter.setWidth(view->lineWidth);
         painter->setPen(penForPainter);
         QPainter::RenderHints saved_hints = painter->renderHints();
         painter->setRenderHint(QPainter::Antialiasing, false);
@@ -375,7 +375,7 @@ void TofzView::slot_whole_T_of_z()
     ts=model->getSettingParameters();
     lineWidth=ts.lineWidth;
     QPen p;
-    p.setWidthF(lineWidth);
+    p.setWidth(lineWidth);
     p.setJoinStyle(Qt::BevelJoin);
     p.setCapStyle(Qt::RoundCap);
     p.setColor(Qt::black);
