@@ -1,4 +1,4 @@
-- Transition to Qt 4.6.3
+- Transition to Qt 4.7.2
 - Report version information (about dialog)
 - Dialog for wave packet should be better
 - Avoid wave functions flickers in compute_PsixE and others
@@ -10,3 +10,11 @@
 - need maximize button on plotters
 - more precision in tableEn
 - single barrier is junk in PotentialScene
+2011-09-25:
+- comments in saved files
+- secure static analysis
+- wave packet from levels listed by user
+- automate version inclusion in installer and program
+- locate acrobat reader automatically
+
+
