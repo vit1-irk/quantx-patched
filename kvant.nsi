@@ -10,8 +10,8 @@ XPStyle on
 ; First is default
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\Russian.nlf"
-LicenseLangString license ${LANG_ENGLISH} license-en.txt
-LicenseLangString license ${LANG_RUSSIAN} license-ru.txt
+LicenseLangString license ${LANG_ENGLISH} license-notice-en.txt
+LicenseLangString license ${LANG_RUSSIAN} license-notice-ru.txt
 LicenseData $(license)
 LicenseForceSelection checkbox
 LangString note ${LANG_ENGLISH} "This will install educational software Kvant. Do you wish to continue?"
@@ -45,6 +45,10 @@ Section "Installer Section"
   File "C:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
   File "documentation\kvant.pdf"
   File "documentation\tasks.pdf"
+  File "License.txt"
+  File "License-Doc.txt"
+  File "license-notice-en.txt"
+  File "license-notice-ru.txt"
 SectionEnd
 
 Section -post
@@ -69,6 +73,7 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\Kvant\Kvant.lnk" "$INSTDIR\kvant.exe" "" "$INSTDIR\kvant.exe" 0
   CreateShortCut "$SMPROGRAMS\Kvant\Kvant.pdf.lnk" "$INSTDIR\Kvant.pdf" "" "$INSTDIR\Kvant.pdf" 0
   CreateShortCut "$SMPROGRAMS\Kvant\Tasks.pdf.lnk" "$INSTDIR\Tasks.pdf" "" "$INSTDIR\Tasks.pdf" 0
+  CreateShortCut "$SMPROGRAMS\Kvant\License.txt.lnk" "$INSTDIR\License.txt" "" "$INSTDIR\License.txt" 0
 SectionEnd
 
 Section "un.Installer Section"
