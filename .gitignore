@@ -26,4 +26,6 @@ tmp*
 *.dll
 *.txt
 *.exe
-
+*.o
+moc_*.cpp
+qrc_*.cpp

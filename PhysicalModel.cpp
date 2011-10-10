@@ -22,6 +22,11 @@
 #include <QRectF>
 #include <QPolygonF>
 #include "FindBand.h"
+#include <cstdio>
+
+#if !defined(_WIN32)
+#define sscanf_s sscanf
+#endif
 
 // Auxiliary class for finding energy levels
 class ETree

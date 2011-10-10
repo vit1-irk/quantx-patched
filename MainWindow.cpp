@@ -21,7 +21,7 @@
 #include <math.h>
 #include <cmath>
 
-#include "MyParam.h"
+#include "myparam.h"
 #include "PhysicalModel.h"
 #include "PotentialModel.h"
 #include "LevelModel.h"

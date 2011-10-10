@@ -20,7 +20,7 @@
 #pragma once
 #include <QDialog>
 #include <QLabel>
-#include "Plotter.h"
+#include "plotter.h"
 
 class PlotterDialog : public QWidget
 //class PlotterDialog : public QDialog

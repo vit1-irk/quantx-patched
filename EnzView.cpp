@@ -68,7 +68,7 @@ public:
         this->setSelected(false);
         update();//repaint();
     }
-    double ZDraggable::getZFromLine()
+    double getZFromLine()
     {
         QPointF p = pos();
         return p.x();

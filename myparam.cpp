@@ -17,7 +17,7 @@
  *  02110-1301 USA
  */
 
-#include "mainwindow.h"
+#include "MainWindow.h"
 //#include <Q3Vbox.h>
 #include <qlabel.h>
 #include "myparam.h"
