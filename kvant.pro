@@ -7,7 +7,14 @@ CODECFORTR = Windows-1251
 TRANSLATIONS += kvant_en.ts
 TRANSLATIONS += kvant_fr.ts
 
-CONFIG += debug
+CONFIG += debug warn_on
+linux-g++ {
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-unused
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-switch
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-parentheses
+    QMAKE_CXXFLAGS_WARN_ON += -Werror
+}
 
 RESOURCES = kvant.qrc
 
