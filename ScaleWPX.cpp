@@ -137,7 +137,7 @@ void ScaleWPX::modelChanged()
 void ScaleWPX::updateModel()
 {
     if (!model) return;
-    ScaleWPXParameters tp = { 0 };
+    ScaleWPXParameters tp = { 0, 0, 0, 0, 0 };
 
     tp.Hx = this->leHx->text().toDouble();
     tp.Xmin = this->leXmin->text().toDouble();

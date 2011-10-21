@@ -103,7 +103,7 @@ void TimeView::setModel(PhysicalModel *_model)
 
 void TimeView::change_Time()
 {
-    TimeParameters tp = { 0 };
+    TimeParameters tp = { 0, 0, 0, 0 };
 
     tp.time = this->leTime->text().toDouble();
     tp.tmin = this->leTmin->text().toDouble();
@@ -150,7 +150,7 @@ void TimeView::modelChanged()
 void TimeView::updateModel()
 {
     if (!model) return;
-    TimeParameters tp = { 0 };
+    TimeParameters tp = { 0, 0, 0, 0 };
 
     tp.time = this->leTime->text().toDouble();
     tp.tmin = this->leTmin->text().toDouble();

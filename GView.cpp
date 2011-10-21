@@ -133,7 +133,7 @@ void GView::modelChanged()
 void GView::updateModel()
 {
     if (!model) return;
-    gParameters tp = { 0 };
+    gParameters tp = { 0, 0, 0, 0 };
 
     tp.g = this->leG->text().toDouble();
     tp.gmin = this->leGmin->text().toDouble();

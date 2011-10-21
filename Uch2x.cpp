@@ -103,7 +103,7 @@ void Uch2x::modelChanged()
 void Uch2x::updateModel()
 {
     if (!model) return;
-    U_ch2x up = { 0 };
+    U_ch2x up = { 0, 0, 0 };
 
     up.numberOfIntervals = this->leNumberOfIntervals->text().toInt();
     up.U0 = this->leU0->text().toDouble();

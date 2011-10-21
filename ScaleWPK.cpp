@@ -137,7 +137,7 @@ void ScaleWPK::modelChanged()
 void ScaleWPK::updateModel()
 {
     if (!model) return;
-    ScaleWPKParameters tp = { 0 };
+    ScaleWPKParameters tp = { 0, 0, 0, 0, 0 };
 
     tp.Hk = this->leHx->text().toDouble();
     tp.Kmin = this->leXmin->text().toDouble();
