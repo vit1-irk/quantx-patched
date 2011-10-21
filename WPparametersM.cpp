@@ -106,7 +106,7 @@ void WPparametersM::modelChanged()
 void WPparametersM::updateModel()
 {
     if (!model) return;
-    EmWP wp = { 0 };
+    EmWP wp = { 0, 0, 0 };
 
     wp.nmin = this->leNmin->text().toInt();
     wp.nmax = this->leNmax->text().toInt();

@@ -68,7 +68,7 @@ public:
         this->setSelected(false);
         update();//repaint();
     }
-    double EnergyDraggableLine::getEnergyFromLine()
+    double getEnergyFromLine()
     {
         QPointF p = pos();
         return p.y();
@@ -241,21 +241,19 @@ public:
              update();//repaint();
         }
     }
-    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverEnterEvent( QGraphicsSceneHoverEvent* )
     {
-     QGraphicsItem::GraphicsItemFlags f;
-     f=this->flags();
-      if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
-      {
-      penForPainter = penHover;
-            update();//repaint();
-      }
+        if (flags() & QGraphicsItem::ItemIsSelectable)
+        {
+            penForPainter = penHover;
+            update();
+        }
     }
-    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverLeaveEvent( QGraphicsSceneHoverEvent* )
     {
         penForPainter = pen;
         this->setSelected(false);
-        update();//repaint();
+        update();
     }
     QRectF boundingRect() const
     {
@@ -349,23 +347,21 @@ public:
             update();//repaint();
         }
     }
-    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverEnterEvent( QGraphicsSceneHoverEvent* )
     {
-        QGraphicsItem::GraphicsItemFlags f;
-        f=this->flags();
-        if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
+        if (flags() & QGraphicsItem::ItemIsSelectable)
         {
             penForPainter = penHover;
             penForPainter.setWidthF(view->widthLineV);
-            update();//repaint();
+            update();
         }
     }
-    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverLeaveEvent( QGraphicsSceneHoverEvent* )
     {
         penForPainter = pen;
         penForPainter.setWidthF(view->widthLineV);
         this->setSelected(false);
-        update();//repaint();
+        update();
     }
     QRectF boundingRect() const
     {
@@ -1119,6 +1115,7 @@ EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setZValue(1002);
     setAcceptHoverEvents ( true );
 }
@@ -1162,6 +1159,7 @@ HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setAcceptHoverEvents ( true );
 }
 
@@ -1227,6 +1225,7 @@ VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
 
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setAcceptHoverEvents ( true );
 }
 QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)

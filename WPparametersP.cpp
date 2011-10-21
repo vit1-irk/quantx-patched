@@ -104,7 +104,7 @@ void WPparametersP::modelChanged()
 void WPparametersP::updateModel()
 {
     if (!model) return;
-    EpWP wp = { 0 };
+    EpWP wp = { 0, 0, 0 };
 
     wp.numberOfModes = this->leNumberOfModes->text().toInt();
     wp.E_low = this->leE_low->text().toDouble();

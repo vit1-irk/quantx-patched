@@ -68,7 +68,7 @@ public:
         this->setSelected(false);
         update();//repaint();
     }
-    double gDraggable::getGFromLine()
+    double getGFromLine()
     {
         QPointF p = pos();
         return p.x();

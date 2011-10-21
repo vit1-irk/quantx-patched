@@ -135,7 +135,7 @@ void PotentialViewMultiWell::modelChanged()
 void PotentialViewMultiWell::updateModel()
 {
     if (!model) return;
-    UAsMW u = { 0 };
+    UAsMW u = { 0, 0, 0, 0, 0 };
 
     u.numberOfWells = this->leNumberOfWells->text().toInt();
     u.wa = this->leWidthA->text().toDouble();

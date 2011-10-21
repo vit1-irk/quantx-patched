@@ -70,7 +70,7 @@ public:
         this->setSelected(false);
         update();//repaint();
     }
-    double EnergyDraggable::getEnergyFromLine()
+    double getEnergyFromLine()
     {
         QPointF p = pos();
         return p.x();

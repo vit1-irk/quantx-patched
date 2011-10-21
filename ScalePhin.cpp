@@ -138,7 +138,7 @@ void ScalePhin::modelChanged()
 void ScalePhin::updateModel()
 {
     if (!model) return;
-    ScalePhinParameters tp = { 0 };
+    ScalePhinParameters tp = { 0, 0, 0, 0, 0 };
 
     tp.Hk = this->leHk->text().toDouble();
     tp.Kmin = this->leKmin->text().toDouble();

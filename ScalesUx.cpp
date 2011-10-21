@@ -125,7 +125,7 @@ void ScalesUx::modelChanged()
 void ScalesUx::updateModel()
 {
     if (!model) return;
-    ScalesUParameters tp = { 0 };
+    ScalesUParameters tp = { 0, 0, 0, 0 };
 
     tp.Xmin = this->leXmin->text().toDouble();
     tp.Xmax = this->leXmax->text().toDouble();

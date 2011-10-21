@@ -106,7 +106,7 @@ void LevelNumber::modelChanged()
 void LevelNumber::updateModel()
 {
     if (!model) return;
-    LevelNumberParameters wp = { 0 };
+    LevelNumberParameters wp = { 0, 0, 0 };
 
     wp.nmin = this->leNmin->text().toInt();
     wp.nmax = this->leNmax->text().toInt();

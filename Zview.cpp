@@ -154,7 +154,7 @@ void Zview::modelChanged()
 void Zview::updateModel()
 {
     if (!model) return;
-    zParameters tp = { 0 };
+    zParameters tp = { 0, 0, 0, 0 };
 
     tp.z = this->leZ->text().toDouble();
     tp.zmin = this->leZmin->text().toDouble();

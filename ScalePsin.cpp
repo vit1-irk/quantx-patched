@@ -138,7 +138,7 @@ void ScalePsin::modelChanged()
 void ScalePsin::updateModel()
 {
     if (!model) return;
-    ScalePsinParameters tp = { 0 };
+    ScalePsinParameters tp = { 0, 0, 0, 0, 0 };
 
     tp.Hx = this->leHx->text().toDouble();
     tp.Xmin = this->leXmin->text().toDouble();

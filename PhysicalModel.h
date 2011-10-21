@@ -629,7 +629,9 @@ inline double squaremod(complex& c)
     return real(c)*real(c) + imag(c)*imag(c);
 }
 
+#if !defined(M_PI)
 const double M_PI = 3.1415926535897932384626433832795;
+#endif
 
 inline void skipUnknownElement(QXmlStreamReader *r)
 {

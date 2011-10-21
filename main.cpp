@@ -18,9 +18,11 @@
  */
 
 #include <QTextCodec>
-#include "mainwindow.h"
+#include "MainWindow.h"
 #include <QApplication>
 #include <QTranslator>
+#include <QTime>
+#include <QFont>
 
 void installEnglishTranslation(QApplication *app)
 {

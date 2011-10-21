@@ -104,7 +104,7 @@ void Uparabolic::modelChanged()
 void Uparabolic::updateModel()
 {
     if (!model) return;
-    Uparab up = { 0 };
+    Uparab up = { 0, 0, 0 };
 
     up.numberOfIntervals = this->leNumberOfIntervals->text().toInt();
     up.U0 = this->leU0->text().toDouble();
