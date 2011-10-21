@@ -241,21 +241,19 @@ public:
              update();//repaint();
         }
     }
-    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverEnterEvent( QGraphicsSceneHoverEvent* )
     {
-     QGraphicsItem::GraphicsItemFlags f;
-     f=this->flags();
-      if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
-      {
-      penForPainter = penHover;
-            update();//repaint();
-      }
+        if (flags() & QGraphicsItem::ItemIsSelectable)
+        {
+            penForPainter = penHover;
+            update();
+        }
     }
-    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverLeaveEvent( QGraphicsSceneHoverEvent* )
     {
         penForPainter = pen;
         this->setSelected(false);
-        update();//repaint();
+        update();
     }
     QRectF boundingRect() const
     {
@@ -349,23 +347,21 @@ public:
             update();//repaint();
         }
     }
-    void hoverEnterEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverEnterEvent( QGraphicsSceneHoverEvent* )
     {
-        QGraphicsItem::GraphicsItemFlags f;
-        f=this->flags();
-        if(this->flags()==3)//QGraphicsItem::ItemIsSelectable)
+        if (flags() & QGraphicsItem::ItemIsSelectable)
         {
             penForPainter = penHover;
             penForPainter.setWidthF(view->widthLineV);
-            update();//repaint();
+            update();
         }
     }
-    void hoverLeaveEvent ( QGraphicsSceneHoverEvent * event )
+    void hoverLeaveEvent( QGraphicsSceneHoverEvent* )
     {
         penForPainter = pen;
         penForPainter.setWidthF(view->widthLineV);
         this->setSelected(false);
-        update();//repaint();
+        update();
     }
     QRectF boundingRect() const
     {
