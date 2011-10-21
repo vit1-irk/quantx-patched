@@ -1119,6 +1119,7 @@ EnergyDraggableLine::EnergyDraggableLine(PotentialViewMovable *v,QGraphicsItem *
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setZValue(1002);
     setAcceptHoverEvents ( true );
 }
@@ -1162,6 +1163,7 @@ HorDraggableLine::HorDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
     setCursor(Qt::SizeVerCursor);
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setAcceptHoverEvents ( true );
 }
 
@@ -1227,6 +1229,7 @@ VerDraggableLine::VerDraggableLine(PotentialViewMovable *v,QGraphicsItem *parent
 
     setFlag(QGraphicsItem::ItemIsMovable,true);
     setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges,true);
     setAcceptHoverEvents ( true );
 }
 QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant & value)
