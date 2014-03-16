@@ -31,6 +31,9 @@
 #include <QAction>
 #include <QPainterPath>
 #include "BreakStatus.h"
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QCheckBox>
 
 class gDraggable : public QGraphicsItem
 {
@@ -386,7 +389,7 @@ void EGView::slot_drawEc_n()
     QRectF vp = scene()->sceneRect();
     QPen p;
     if(rectFirst) scene()->removeItem(rectFirst);
-    rectFirst = new QGraphicsRectItem(NULL,scene());
+    rectFirst = new QGraphicsRectItem(sceneRect());
     QVector<complex> Equasi;
     Equasi = model->getEnquasi();
     gParameters tp = model->getGParam();
@@ -470,7 +473,7 @@ void EGView::slot_Ec_n()
     double gg=pp.x();
     Er=pp.y();
     if(rectFirst) scene()->removeItem(rectFirst);
-    rectFirst = new QGraphicsRectItem(NULL,scene());
+    rectFirst = new QGraphicsRectItem(sceneRect());
     b.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
     p.setColor(Qt::red);//colorForIds[1 % size_colorForIds]);
     rectFirst->setBrush(b);

@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -31,6 +30,7 @@
 #include <QMap>
 #include "myparam.h"
 #include <QPaintEvent>
+#include <QGroupBox>
 
 class EEDrag;
 class EofqaView;
@@ -53,7 +53,7 @@ class EofqaCurve : public QGraphicsPolygonItem
     EofqaView *view;
 public:
     EofqaCurve(const QPolygonF& p, EofqaView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

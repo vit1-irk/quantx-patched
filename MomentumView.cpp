@@ -31,6 +31,8 @@
 #include <QAction>
 #include <QPainterPath>
 #include "ScalePhin.h"
+#include <QVBoxLayout>
+#include <QToolButton>
 
 MomentumView::MomentumView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogScalePhin(0),lineh(0),linev(0)//,

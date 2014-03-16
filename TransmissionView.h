@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -31,6 +30,9 @@
 #include <QMap>
 #include "myparam.h"
 #include <QPaintEvent>
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QPushButton>
 
 class EnergyDraggable;
 class TransmissionView;
@@ -40,7 +42,7 @@ class TransmissionCurve : public QGraphicsPolygonItem
     TransmissionView *view;
 public:
     TransmissionCurve(const QPolygonF& p, TransmissionView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

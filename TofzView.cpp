@@ -32,6 +32,8 @@
 #include <QLabel>
 #include "BreakStatus.h"
 #include "TofzView.h"
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 class ZTDraggable : public QGraphicsItem
 {

@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -32,6 +31,7 @@
 #include "myparam.h"
 #include "Zview.h"
 #include <QPaintEvent>
+#include <QGroupBox>
 
 class ZTDraggable;
 class TofzView;
@@ -41,7 +41,7 @@ class TofzCurve : public QGraphicsPolygonItem
     TofzView *view;
 public:
     TofzCurve(const QPolygonF& p, TofzView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

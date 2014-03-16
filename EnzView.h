@@ -34,6 +34,7 @@
 #include "myparam.h"
 #include "BreakStatus.h"
 #include "Zview.h"
+#include <QGroupBox>
 
 class EnzView;
 class ZDraggable;
@@ -43,7 +44,7 @@ class EnzCurve : public QGraphicsPolygonItem
     EnzView *view;
 public:
     EnzCurve(const QPolygonF& p, EnzView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

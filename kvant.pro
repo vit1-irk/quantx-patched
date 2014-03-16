@@ -1,7 +1,8 @@
 TEMPLATE = app
-TARGET =
+TARGET = kvant
 DEPENDPATH += .
 INCLUDEPATH += .
+QT += widgets
 
 CODECFORTR = Windows-1251
 TRANSLATIONS += kvant_en.ts

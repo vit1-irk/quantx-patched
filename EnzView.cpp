@@ -31,6 +31,10 @@
 #include <QAction>
 #include <QPainterPath>
 #include "BreakStatus.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QCheckBox>
 
 class ZDraggable : public QGraphicsItem
 {

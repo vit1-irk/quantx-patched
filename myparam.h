@@ -20,7 +20,7 @@
 #ifndef myparam_h_included
 #define myparam_h_included
 
-#include <QtGui>
+#include <QLineEdit>
 
 class MyParamD : public QObject
 {

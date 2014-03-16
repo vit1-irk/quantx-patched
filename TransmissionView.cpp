@@ -32,6 +32,8 @@
 #include <QLabel>
 #include "BreakStatus.h"
 #include "TransmissionView.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 class EnergyDraggable : public QGraphicsItem
 {

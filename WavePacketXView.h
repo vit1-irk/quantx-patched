@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -34,6 +33,8 @@
 #include "WPparametersP.h"
 #include "WPparametersM.h"
 #include "ScaleWPX.h"
+#include <QButtonGroup>
+#include <QGroupBox>
 
 class WavePacketXView;
 
@@ -42,7 +43,7 @@ class CoordinateDistributionCurve : public QGraphicsPolygonItem
     WavePacketXView *view;
 public:
     CoordinateDistributionCurve(const QPolygonF& p, WavePacketXView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

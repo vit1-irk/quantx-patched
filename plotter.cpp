@@ -28,6 +28,12 @@
 #include <map>
 using namespace std;
 //#include <QColorGroup>
+#include <QToolButton>
+#include <QPainter>
+#include <QStyleOption>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QTextStream>
 
 void Plotter::moveButtons()
 {
@@ -617,5 +623,5 @@ bool Plotter::savePlot()
             ++it;
     }
      f.close();
-    return TRUE;
+    return true;
 }

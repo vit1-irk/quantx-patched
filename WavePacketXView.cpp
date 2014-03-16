@@ -31,6 +31,11 @@
 #include <QAction>
 #include <QPainterPath>
 #include "BreakStatus.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QRadioButton>
+#include <QLabel>
+
 
 WavePacketXView::WavePacketXView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m), dialogTime(0),
@@ -368,7 +373,7 @@ void WavePacketXView::slot_WavePacket_of_t()
     setInitialTime();
     PotentialType type = model->getPotentialType();
     if(vectorFirst) scene()->removeItem(vectorFirst);
-    vectorFirst = new QGraphicsLineItem(NULL,scene());
+    vectorFirst = new QGraphicsLineItem();
     TimeParameters tp=model->getTimeParam();
     SettingParameters ts;
     for (double t=this->time; t>=tp.tmin&&t<=tp.tmax; t+=htime)
@@ -400,7 +405,7 @@ void WavePacketXView::slot_WavePacket_of_t()
  //       if(whatToDraw==3)
         {
             if(vectorFirst) scene()->removeItem(vectorFirst);
-            vectorFirst = new QGraphicsLineItem(NULL,scene());
+            vectorFirst = new QGraphicsLineItem();
         }
             bool first=true;
         for (int i=0; i < npoints; i++)

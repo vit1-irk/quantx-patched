@@ -43,7 +43,9 @@ PotentialModel::columnCount(const QModelIndex& /*parent*/) const
 void
 PotentialModel::invalidateModel()
 {
-    reset();
+	beginResetModel();
+	//clear data
+    endResetModel();
 }
 
 void

@@ -23,13 +23,13 @@
 //#include <qpixmap.h>
 //#include <qwidget.h>
 //Added by qt3to4:
-#include <QtGui>
 #include <QResizeEvent>
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QPaintEvent>
 #include <vector>
+#include <QWidget>
 
 class QToolButton;
 class PlotSettings;

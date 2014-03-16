@@ -19,7 +19,6 @@
 
 #ifndef MAINWINDOW_H_INCLUDED
 #define MAINWINDOW_H_INCLUDED
-#include <QtGui>
 #include <QWidget>
 #include <QSplitter>
 #include <QDialog>
@@ -49,6 +48,16 @@
 #include "EofqaView.h"
 #include "TofzView.h"
 #include "BoundaryCondition.h"
+#include <QMainWindow>
+#include <QToolBox>
+#include <QComboBox>
+#include <QRadioButton>
+#include <QLabel>
+#include <QTableView>
+#include <QVBoxLayout>
+#include <QMenu>
+#include <QMenuBar>
+
 struct WPE
 {
     double E,w;
@@ -258,7 +267,11 @@ private:
     QEWidget *qeWidget;
     TZWidget *tzWidget;
     QGroupBox *grrb;
-    QRadioButton *rad1,*rad2;
+
+/* Stupid MS have rad1 and rad2 #defined somewhere */
+#undef rad1
+#undef rad2
+    QRadioButton *rad1, *rad2;
     QButtonGroup *bgR;
     QPushButton *butEn;
     QPushButton *bRunPsi;

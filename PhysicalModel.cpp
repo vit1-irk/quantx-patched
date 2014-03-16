@@ -5117,7 +5117,7 @@ void ModelXML::readStep(double *u, double *d, double *m)
 
     QString s = r->readElementText();
     *u = *d = 0; *m = 1;
-    sscanf_s(s.toAscii(),"%lg %lg %lg",u,d,m);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg",u,d,m);
 }
 void ModelXML::writeUdm()
 {
@@ -5305,7 +5305,7 @@ void ModelXML::readGParam()
     gmin=-5;
     gmax=0.1;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&g,&hg,&gmin,&gmax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg",&g,&hg,&gmin,&gmax);
     gParameters tp;
     tp.g=g;
     tp.hg=hg;
@@ -5322,7 +5322,7 @@ void ModelXML::readTime()
     tmin=0;
     tmax=1000;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&t,&ht,&tmin,&tmax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg",&t,&ht,&tmin,&tmax);
     TimeParameters tp;
     tp.time=t;
     tp.ht=ht;
@@ -5338,7 +5338,7 @@ void ModelXML::readEParameters()
     Emin=0;
     Emax=1000;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg",&hE,&Emin,&Emax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg",&hE,&Emin,&Emax);
     EParameters tp;
     tp.hE=hE;
     tp.Emin=Emin;
@@ -5370,7 +5370,7 @@ void ModelXML::readLevelNumber()
     Q_ASSERT(r->isStartElement() && r->name() == "LevelNumber");
     int hn,nmin,nmax;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%i %i %i",&hn,&nmin,&nmax);
+    sscanf_s(s.toLatin1(),"%i %i %i",&hn,&nmin,&nmax);
     LevelNumberParameters tp;
     tp.hn=hn;
     tp.nmin=nmin;
@@ -5382,7 +5382,7 @@ void ModelXML::readWPm()
     Q_ASSERT(r->isStartElement() && r->name() == "WPm");
     int hn,nmin,nmax;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%i %i %i",&hn,&nmin,&nmax);
+    sscanf_s(s.toLatin1(),"%i %i %i",&hn,&nmin,&nmax);
     EmWP tp;
     tp.hn=hn;
     tp.nmin=nmin;
@@ -5396,7 +5396,7 @@ void ModelXML::readWPp()
     int nn;
     double Emin, Emax;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%i %lg %lg",&nn,&Emin,&Emax);
+    sscanf_s(s.toLatin1(),"%i %lg %lg",&nn,&Emin,&Emax);
     EpWP wp;
     wp.numberOfModes = nn;
     wp.E_low = Emin;
@@ -5409,7 +5409,7 @@ void ModelXML::readZdef()
     Q_ASSERT(r->isStartElement() && r->name() == "ZParameters");
     double z,hz,zmin,zmax;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&z,&hz,&zmin,&zmax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg",&z,&hz,&zmin,&zmax);
     zParameters tp;
     tp.z=z;
     tp.hz=hz;
@@ -5423,7 +5423,7 @@ void ModelXML::readScalesUx()
     double xmin,xmax,Umin,Umax;
     ScalesUParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg",&xmin,&xmax,&Umin,&Umax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg",&xmin,&xmax,&Umin,&Umax);
     tp.Xmin=xmin;
     tp.Xmax=xmax;
     tp.Umax=Umax;
@@ -5436,7 +5436,7 @@ void ModelXML::readScalesPsi()
     double hx,xmin,xmax,Psimin,Psimax;
     ScalePsinParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
     tp.Hx=hx;
     tp.Xmin=xmin;
     tp.Xmax=xmax;
@@ -5450,7 +5450,7 @@ void ModelXML::readScalesWPX()
     double hx,xmin,xmax,Psimin,Psimax;
     ScaleWPXParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg %lg",&hx,&xmin,&xmax,&Psimin,&Psimax);
     tp.Hx=hx;
     tp.Xmin=xmin;
     tp.Xmax=xmax;
@@ -5464,7 +5464,7 @@ void ModelXML::readScalesWPK()
     double hk,kmin,kmax,Psimin,Psimax;
     ScaleWPKParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Psimin,&Psimax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Psimin,&Psimax);
     tp.Hk=hk;
     tp.Kmin=kmin;
     tp.Kmax=kmax;
@@ -5478,7 +5478,7 @@ void ModelXML::readScalesPhi()
     double hk,kmin,kmax,Phimin,Phimax;
     ScalePhinParameters tp;
     QString s = r->readElementText();
-    sscanf_s(s.toAscii(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Phimin,&Phimax);
+    sscanf_s(s.toLatin1(),"%lg %lg %lg %lg %lg",&hk,&kmin,&kmax,&Phimin,&Phimax);
     tp.Hk=hk;
     tp.Kmin=kmin;
     tp.Kmax=kmax;

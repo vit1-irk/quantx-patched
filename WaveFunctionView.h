@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -32,6 +31,8 @@
 #include "myparam.h"
 #include "ScalePsin.h"
 #include "LevelNumber.h"
+#include <QButtonGroup>
+#include <QGroupBox>
 
 class WaveFunctionView;
 
@@ -41,7 +42,7 @@ class CoordinateDistribution : public QGraphicsPolygonItem
 public:
     CoordinateDistribution(const QPolygonF& p, WaveFunctionView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
 //    CoordinateDistribution(const QPolygon& p, WaveFunctionView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include <QtGui>
+#include <QGroupBox>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -43,7 +43,7 @@ class EGCurve : public QGraphicsPolygonItem
     EGView *view;
 public:
     EGCurve(const QPolygonF& p, EGView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

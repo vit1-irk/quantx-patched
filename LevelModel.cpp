@@ -44,7 +44,9 @@ LevelModel::columnCount(const QModelIndex& /*parent*/) const
 void
 LevelModel::invalidateModel()
 {
-    reset();
+    beginResetModel();
+	// clear data here
+	endResetModel();
 }
 
 void

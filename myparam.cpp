@@ -21,9 +21,9 @@
 //#include <Q3Vbox.h>
 #include <qlabel.h>
 #include "myparam.h"
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
 const int maxSizeInt=300;
 const int maxSizeDouble=300;
 

@@ -44,7 +44,9 @@ QuasiLevelModel::columnCount(const QModelIndex& /*parent*/) const
 void
 QuasiLevelModel::invalidateModel()
 {
-    reset();
+	beginResetModel();
+	//clear data
+	endResetModel();
 }
 
 void

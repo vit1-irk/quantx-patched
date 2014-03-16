@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <QtGui>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QResizeEvent>
@@ -31,6 +30,7 @@
 #include <QMap>
 #include "myparam.h"
 #include "ScalePhin.h"
+#include <QGroupBox>
 
 class MomentumView;
 
@@ -39,7 +39,7 @@ class MomentumDistribution : public QGraphicsPolygonItem
     MomentumView *view;
 public:
     MomentumDistribution(const QPolygonF& p, MomentumView *_view, QGraphicsItem *parent=0,QGraphicsScene *scene=0)
-        : QGraphicsPolygonItem(p,parent,scene), view(_view)
+        : QGraphicsPolygonItem(p,parent), view(_view)
     {
     }
     void paint (QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0);

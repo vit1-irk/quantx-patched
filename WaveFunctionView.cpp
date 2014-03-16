@@ -34,6 +34,10 @@
 #include "ScalePsin.h"
 #include "LevelNumber.h"
 #include <cmath>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolButton>
+#include <QRadioButton>
 
 WaveFunctionView::WaveFunctionView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),
@@ -150,7 +154,7 @@ void WaveFunctionView::slotEnergyChanged()
     if(type==QUASISTATIONARY) return;
     double h=vp.height();
     if(vectorFirst) scene()->removeItem(vectorFirst);
-    vectorFirst = new QGraphicsLineItem(NULL,scene());
+    vectorFirst = new QGraphicsLineItem();
     bool tail=false;
         if(type==PERIODIC) waveFunction = model->getPsiOfX_per(E,xmin,xmax,npoints);
         if(type==FINITE) waveFunction = model->getPsiOfX(E,xmin,xmax,npoints,tail);
@@ -506,7 +510,7 @@ void WaveFunctionView::slot_Psi_n_of_x()
       lineh->setPen(p);
   }
     if(vectorFirst) scene()->removeItem(vectorFirst);
-    vectorFirst = new QGraphicsLineItem(NULL,scene());
+    vectorFirst = new QGraphicsLineItem();
     int npoints;//=501;
     QVector<complex> waveFunction;
     QPolygonF psi;

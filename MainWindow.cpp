@@ -36,6 +36,11 @@
 #include <QSettings>
 #include "BreakStatus.h"
 #include "MySplitter.h"
+#include <QToolBar>
+#include <QMessageBox>
+#include <QFontDialog>
+#include <QFileDialog>
+#include <QStatusBar>
 
 QString gDocDir;
 static void update_gDocDir(const QString& filename = QString())
@@ -116,7 +121,7 @@ void MainWindow::helpTasks()
 
 void MainWindow::initMenuBar()
 {
-     QMenu *fileMenu = new QMenu;
+     QMenu *fileMenu = new QMenu(this);
      menuBar()->addMenu(fileMenu);
      QFont font( "Serif", 10, QFont::DemiBold );
      menuBar()->setFont(font);
@@ -289,7 +294,7 @@ void MainWindow::initMenuBar()
      connect(mQE, SIGNAL(triggered()), this, SLOT(window_QE()));
      connect(mEG, SIGNAL(triggered()), this, SLOT(window_EG()));
 
-     QToolBar *bcTool = new QToolBar;
+     QToolBar *bcTool = new QToolBar();
      bcTool->setFont(font);
      addToolBar(bcTool);
      QAction *bcAc = new QAction(tr("Model"), bcTool);
@@ -1917,7 +1922,7 @@ static void setSomeInitialU(PhysicalModel *m)
 "xmin=-3\n"
 ;
 */
-MainWindow::MainWindow(QWidget *parent, Qt::WFlags f)
+MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags f)
 : Nwb(1),nmaxLevel(10),nminLevel(0),nLevel(0), nmaxWP(7), nminWP(0),hnWP(1),
 E0(-10.), hE(0.01),time(0.), tmin(0.), tmax(1000.0), htime(0.1),Psi2(0.),
 totalRT(1.),Ua(-10.0),aa(1.),Ub(0.),bb(0.8),xmin(-3.),xmax(8.),hx(0.01),

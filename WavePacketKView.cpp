@@ -31,7 +31,9 @@
 #include <QAction>
 #include <QPainterPath>
 #include "BreakStatus.h"
-
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
 
 WavePacketKView::WavePacketKView(PhysicalModel *m, QWidget *parent)
 : QGraphicsView(parent), model(m),lineh(0),linev(0),

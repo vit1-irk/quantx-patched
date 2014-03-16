@@ -32,6 +32,8 @@
 #include <QLabel>
 #include "BreakStatus.h"
 #include "EofqaView.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 class EEDrag : public QGraphicsItem
 {
