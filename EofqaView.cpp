@@ -834,6 +834,7 @@ QVariant EEDrag::itemChange(GraphicsItemChange change, const QVariant & value)
 //            newpos.setY( oldpos.y() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {

@@ -818,6 +818,7 @@ QVariant EnergyDraggable::itemChange(GraphicsItemChange change, const QVariant &
             newpos.setY( oldpos.y() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {

@@ -2327,7 +2327,7 @@ bool MainWindow::openFile()
                 tr("Warning"),
                 reader.errorString(),
                 "Ok",
-                QString::null,
+                QString(),
                 0,
                 1);
         }

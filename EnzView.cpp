@@ -173,6 +173,7 @@ QVariant ZDraggable::itemChange(GraphicsItemChange change, const QVariant & valu
             newpos.setY( oldpos.y() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {

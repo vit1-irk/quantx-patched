@@ -1132,6 +1132,7 @@ QVariant EnergyDraggableLine::itemChange(GraphicsItemChange change, const QVaria
             newpos.setX( oldpos.x() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {
@@ -1175,6 +1176,7 @@ QVariant HorDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             newpos.setX( oldpos.x() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {
@@ -1246,6 +1248,7 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             newpos.setY(oldpos.y());
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
        if (isSelected())
         {
@@ -1261,9 +1264,8 @@ QVariant VerDraggableLine::itemChange(GraphicsItemChange change, const QVariant 
             view->linesU[n+1]->setLine(x,right.y1(),right_w);
 
     PotentialType type = view->model->getPotentialType();
-    if(type==PERIODIC) view->model->set_d(n+1,left_w,n+2,right_w);
-    else
-            view->model->set_d(n,left_w,n+1,right_w);
+    if(type==PERIODIC) { view->model->set_d(n+1,left_w,n+2,right_w); }
+    else { view->model->set_d(n,left_w,n+1,right_w); }
 
             return QVariant();
         }

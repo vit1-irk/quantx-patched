@@ -610,6 +610,7 @@ QVariant ZTDraggable::itemChange(GraphicsItemChange change, const QVariant & val
             newpos.setY( oldpos.y() );
             return newpos;
         }
+	break;
     case ItemPositionHasChanged:
         if (isSelected())
         {

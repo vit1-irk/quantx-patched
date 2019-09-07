@@ -240,10 +240,10 @@ QSize Plotter::sizeHint() const
 }
 void Plotter::paintEvent(QPaintEvent *event)
 {
-    QVector<QRect> rects = event->region().rects();
+	QRegion::const_iterator rects = event->region().begin();
     QPainter painter(this);
 //    PlotSettings settings = zoomStack[curZoom];
-   for(int i=0; i<(int)rects.size();++i)
+   for(int i=0; i<event->region().rectCount();++i)
         painter.drawImage(rects[i].topLeft(), pixmap.toImage(), rects[i]);
     if(rubberBandIsShown)
     {
@@ -391,7 +391,7 @@ void Plotter::refreshPixmap()
 {
     pixmap = QPixmap(size());
 //    pixmap.setMask ( const QBitmap & mask )
-    pixmap.fill(this,0,0);
+    pixmap.fill(Qt::black);
     QPainter painter(&pixmap);
     drawGrid(&painter);
     drawCurves(&painter);
@@ -583,7 +583,7 @@ bool Plotter::savePlot()
             "\n Do you want to rewrite it?",
             "Yes",
             "No",
-            QString::null,
+            QString(),
             0,
             1
             );
