@@ -57,7 +57,7 @@ main(int argc, char **argv)
     mainWindow.setFont(font);
 //    mainWindow.setPointSize(10);
     //mainWindow.setWindowTitle("Solution of the Schroedinger equation for the step-wise potential");
-    mainWindow.setWindowTitle(mainWindow.tr("Решение уравнения Шредингера c кусочно-постоянным потенциалом"));
+    mainWindow.setWindowTitle(mainWindow.tr("Р РµС€РµРЅРёРµ СѓСЂР°РІРЅРµРЅРёСЏ РЁСЂРµРґРёРЅРіРµСЂР° c РєСѓСЃРѕС‡РЅРѕ-РїРѕСЃС‚РѕСЏРЅРЅС‹Рј РїРѕС‚РµРЅС†РёР°Р»РѕРј"));
 //    QApplication::setPalette(pal, true);
     mainWindow.show();
 

@@ -1499,7 +1499,7 @@ PotentialMovableWidget::PotentialMovableWidget(PhysicalModel *model, QWidget *pa
 
     QVBoxLayout *vl = new QVBoxLayout();
     potentialViewMovable = new PotentialViewMovable(model,this);
-    potentialViewMovable->setWhatsThis(tr("Â ýòîì îêíå âû ìîæåòå ðåäàêòèðîâàòü ïîòåíöèàë è âèäåòü óðîâíè ýíåðãèè. "));
+    potentialViewMovable->setWhatsThis(tr("Ð’ ÑÑ‚Ð¾Ð¼ Ð¾ÐºÐ½Ðµ Ð²Ñ‹ Ð¼Ð¾Ð¶ÐµÑ‚Ðµ Ñ€ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¿Ð¾Ñ‚ÐµÐ½Ñ†Ð¸Ð°Ð» Ð¸ Ð²Ð¸Ð´ÐµÑ‚ÑŒ ÑƒÑ€Ð¾Ð²Ð½Ð¸ ÑÐ½ÐµÑ€Ð³Ð¸Ð¸. "));
     vl->addWidget(potentialViewMovable);
 /*    QPushButton *help = new QPushButton("Help");
     vl->addWidget(help);

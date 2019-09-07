@@ -15,7 +15,7 @@ LicenseLangString license ${LANG_RUSSIAN} license-notice-ru.txt
 LicenseData $(license)
 LicenseForceSelection checkbox
 LangString note ${LANG_ENGLISH} "This will install educational software Kvant. Do you wish to continue?"
-LangString note ${LANG_RUSSIAN} "Вы устанавливаете учебную программу Квант. Продолжить?"
+LangString note ${LANG_RUSSIAN} "Р’С‹ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚Рµ СѓС‡РµР±РЅСѓСЋ РїСЂРѕРіСЂР°РјРјСѓ РљРІР°РЅС‚. РџСЂРѕРґРѕР»Р¶РёС‚СЊ?"
 
 VIProductVersion "${VERSIONA}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "Kvant"
@@ -25,10 +25,10 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${VERSION}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Olga Tkachenko"
 
 VIAddVersionKey /LANG=${LANG_RUSSIAN} "ProductName" "Kvant"
-VIAddVersionKey /LANG=${LANG_RUSSIAN} "Comments" "Программа для изучения квантовой механики"
-VIAddVersionKey /LANG=${LANG_RUSSIAN} "FileDescription" "Инсталляционная программа"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "Comments" "РџСЂРѕРіСЂР°РјРјР° РґР»СЏ РёР·СѓС‡РµРЅРёСЏ РєРІР°РЅС‚РѕРІРѕР№ РјРµС…Р°РЅРёРєРё"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "FileDescription" "РРЅСЃС‚Р°Р»Р»СЏС†РёРѕРЅРЅР°СЏ РїСЂРѕРіСЂР°РјРјР°"
 VIAddVersionKey /LANG=${LANG_RUSSIAN} "FileVersion" "${VERSION}"
-VIAddVersionKey /LANG=${LANG_RUSSIAN} "LegalCopyright" "Ольга Ткаченко"
+VIAddVersionKey /LANG=${LANG_RUSSIAN} "LegalCopyright" "РћР»СЊРіР° РўРєР°С‡РµРЅРєРѕ"
 
 Page license
 Page directory

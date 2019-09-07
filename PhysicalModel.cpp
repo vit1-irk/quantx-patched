@@ -862,7 +862,7 @@ restartIm:           i--;
                         if(1!=colorEG[jG*i+j])
                         {
 restartJp:                     j++;
-                            //ïðîâåðêà öâåòà
+                            //Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ° Ñ†Ð²ÐµÑ‚Ð°
                             if(1!=colorEG[jG*i+j])
                             {
 
@@ -1180,9 +1180,9 @@ restart:
 
   totalR = r#(i)*r(i)
 
-  totalT = t#*t k(N+1)/k(0)*m(0)/m(N+1) áûëî
+  totalT = t#*t k(N+1)/k(0)*m(0)/m(N+1) Ð±Ñ‹Ð»Ð¾
 
-  TT=|t|^2*k(0)/k(N+1)*m(N+1)/m(0); â äðóãóþ ñòîðîíó
+  TT=|t|^2*k(0)/k(N+1)*m(N+1)/m(0); Ð² Ð´Ñ€ÑƒÐ³ÑƒÑŽ ÑÑ‚Ð¾Ñ€Ð¾Ð½Ñƒ
   RR=|r|^2
 -------------------------------------------------*/
 void PhysicalModel::build_RT() /* input:r,t,k,m  --- result:R,T,totalR,totalT,totalRT */
@@ -1367,7 +1367,7 @@ This function calculates the coefficients a & b.
             Smatrix();
             this->funEn=real(bN1);
             if((this->E0 > U[N+1])||(U[N+1]>U[0]&&E0>U[N+1]))
-// ïðè ïàäåíèè íà ñòóïåíüêó ñïðàâà U[0]>U[1] àìïëèòóäà ïàäàþùåé âîëíû âñåãäà 1
+// Ð¿Ñ€Ð¸ Ð¿Ð°Ð´ÐµÐ½Ð¸Ð¸ Ð½Ð° ÑÑ‚ÑƒÐ¿ÐµÐ½ÑŒÐºÑƒ ÑÐ¿Ñ€Ð°Ð²Ð° U[0]>U[1] Ð°Ð¼Ð¿Ð»Ð¸Ñ‚ÑƒÐ´Ð° Ð¿Ð°Ð´Ð°ÑŽÑ‰ÐµÐ¹ Ð²Ð¾Ð»Ð½Ñ‹ Ð²ÑÐµÐ³Ð´Ð° 1
 //            if((this->E0 > U[N+1]&&E0<=U[0])||(U[N+1]>U[0]&&E0>U[N+1]))
             {
                 complex bb=b[N+1];

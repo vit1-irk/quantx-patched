@@ -588,7 +588,7 @@ bool Plotter::savePlot()
             1
             );
         if(n){
-           return this->savePlotAs(); //выбираем новое имя
+           return this->savePlotAs(); //РІС‹Р±РёСЂР°РµРј РЅРѕРІРѕРµ РёРјСЏ
         }
     }
     //Saving the file!

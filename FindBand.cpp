@@ -220,13 +220,13 @@ QPair<EQDN,EQDN> findBandEdges2(PhysicalModel *model, EQDN a, EQDN z, int dqde_a
 //        EQDN z1 = EQDN( z.e - h, model );
 //        if(((m1.q-m.q)>=0&&(a1.q-a.q)>=0)||((m1.q-m.q)<=0&&(a1.q-a.q)<=0))
 //        {
-//            //на одной ветке c a
+//            //РЅР° РѕРґРЅРѕР№ РІРµС‚РєРµ c a
 //            a=m1;
 //            continue;
 //        }
 //        if(((m1.q-m.q)>=0&&(z1.q-z.q)>=0)||((m1.q-m.q)<=0&&(z1.q-z.q)<=0))
 //        {
-//            //на одной ветке c z
+//            //РЅР° РѕРґРЅРѕР№ РІРµС‚РєРµ c z
 //            z=m;
 //            continue;
 //        }
