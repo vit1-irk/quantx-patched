@@ -19,7 +19,6 @@ Makefile*
 *.out
 tmp*
 *.f
-*.pdf
 *.ppt
 *.doc
 *.qm
